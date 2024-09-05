@@ -25,6 +25,7 @@ numerosMuyPequeños = ("Arial Narrow", 8)
 
 # Colores
 grisOscuro = "#272727"
+grisOscuro = "#272727"
 grisAzuladoClaro="#566f9A"
 grisAzuladoMedio="#445879"
 
