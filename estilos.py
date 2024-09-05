@@ -16,6 +16,7 @@ textoMinimo   = ("Segoe UI Black", 9)
 
 
 numerosGrandes     = ("Arial Narrow", 15)
+numerosGrandes     = ("Arial Narrow", 15)
 numerosMedianos    = ("Arial Narrow", 13)
 numerosPequeños    = ("Arial Narrow", 10)
 numerosMuyPequeños = ("Arial Narrow", 8)
