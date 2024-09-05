@@ -310,10 +310,13 @@ class TablaPedido():
         Mod_programador.programa_completo(Objetos.pedido_quito06, Mod_programador.personal, 4000)
         horizonte_calculado = Mod_programador.calcular_horizonte(Objetos.pedido_quito06)
         print(f"el horizonte es {horizonte_calculado}")
+       
         #GRAFICAR PROGRAMACIÓN EN GANTT##########
         Graficador.generar_gantt_tecnicos(Mod_programador.personal,horizonte_calculado)
         Graficador.generar_gantt_vehiculos(Objetos.pedido_quito06,horizonte_calculado)
-        ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel())
+
+        programa = "programar_todo"
+        ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel(programa))
 
 
     def programar_inmediato(self):
@@ -321,10 +324,13 @@ class TablaPedido():
         Mod_programador.programa_inmediato(Objetos.pedido_quito06, Mod_programador.personal, 4000)
         horizonte_calculado = Mod_programador.calcular_horizonte(Objetos.pedido_quito06)
         print(f"el horizonte es {horizonte_calculado}")
+
         #GRAFICAR PROGRAMACIÓN EN GANTT##########
         Graficador.generar_gantt_tecnicos(Mod_programador.personal,horizonte_calculado)
         Graficador.generar_gantt_vehiculos(Objetos.pedido_quito06,horizonte_calculado)
-        ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel())
+
+        programa = "programar_inmediato"
+        ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel(programa))
 
 
 

@@ -94,5 +94,5 @@ def leepedidoBBDD():
     return CRUD.leer_vehiculos()
 
 
-def nombraArchivoExcel():
-    return 'D:\\NUEVO PORTATAIL\\ECUADOR PLANTA Jaramijo\\ASIGNACION\\archivo_salida.xlsx'
+def nombraArchivoExcel(programa):
+    return programa + 'Numero__' + '.xlsx'

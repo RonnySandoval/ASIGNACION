@@ -499,7 +499,7 @@ def eliminar_ordenes_todas():
 
 #print(leer_ordenes_todas())
 
-#eliminar_ordenes_todas()
+eliminar_ordenes_todas()
 
 
 """
