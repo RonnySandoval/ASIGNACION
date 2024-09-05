@@ -19,7 +19,7 @@ import  ventanas_emergentes
 root = tk.Tk()
 root.title("Programación de Planta")
 root.config(bg=grisAzuladoOscuro)
-root.iconbitmap("logo5.ico")
+root.iconbitmap("logo8.ico")
 root.geometry("800x600")
 root.state('zoomed')
 
