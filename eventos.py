@@ -3,6 +3,7 @@ import re
 import CRUD
 import dicc_variables
 import ventanas_auxiliares
+import ventanas_emergentes
 
 def crear_modelo():
     print("pusó el botón crear modelo")
@@ -107,14 +108,16 @@ def modificar_vehiculo_pedido(chasis_anterior):
     ventana.set_values(valores, 'MODIFICAR')
     ventana.asignafuncionBoton(lambda:modificarVH_en_BBDD(ventana, chasis_anterior), lambda:cancelar(ventana))
     ventana.rootAux.destroy()
-    pass
 
+def eliminar_VH_pedido(chasis):
+    if ventanas_emergentes.msg_eliminar_vh(chasis) == "Aceptar":
+        CRUD.eliminar_vehiculo(chasis)
 
 def agregar_a_pedido(botonPulsado):
     print(recoger_datos_modelo(botonPulsado))
     datos = recoger_datos_modelo(botonPulsado)
     ventana = ventanas_auxiliares.VentanaGestionaPedido("AGREGAR")
-    ventana.set_values(datos)
+    ventana.set_values(datos, "AGREGAR")
     ventana.asignafuncionBoton(lambda:agregarVH_pedido(ventana), lambda:cancelar(ventana))
     ventana.rootAux.destroy()
 

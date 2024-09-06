@@ -27,3 +27,16 @@ def desea_guardar(excel):
     else:
         print("Click en Cancelar")
 
+
+def msg_eliminar_vh(chasis):
+    respuesta = messagebox.askokcancel(
+        title="Eliminar Vehículo",
+        message=f"¡Está a punto de eliminar el Vehículo {chasis}!\nEste cambio es irreversible.\n¿Seguro desea eliminarlo?"
+    )
+    if respuesta:
+        print("Click en Cancelar")
+        return "Aceptar"
+    else:
+        print("Click en Cancelar")
+        return "Cancelar"
+

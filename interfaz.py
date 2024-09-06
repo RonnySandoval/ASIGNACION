@@ -9,7 +9,7 @@ import  Mod_programador
 import  Objetos
 import  Graficador
 import  ventanas_emergentes
-
+import  menu_principal
 
 #####################################################################################################################################################
 #####################################################################  RAIZ  ########################################################################
@@ -22,6 +22,8 @@ root.config(bg=grisAzuladoOscuro)
 root.iconbitmap("logo8.ico")
 root.geometry("800x600")
 root.state('zoomed')
+
+menu_principal.crearMenuPrincipal(root)
 
 # Creación de los frames principales
 frameVHyTEC = tk.Frame(root, bg=grisAzuladoMedio)
@@ -283,38 +285,42 @@ class TablaPedido():
                 self.tablaPedidos.insert(parent='', index='end', iid=record[0], text='', values=record)
         
         
-        def seleccionar_fila():
+        def seleccionar_modificar_fila():
             fila = self.tablaPedidos.selection()     #obtener el item seleccionado
             print("Modificar seleccionada")
             if fila:
                 valores = self.tablaPedidos.item(fila, 'values')     #obtener los valores de la fila
                 print(valores)
-                modificar_fila(valores, fila)
+                modificar_vh(valores, fila)
 
-        
+        def seleccionar_eliminar_fila():
+            fila = self.tablaPedidos.selection()     #obtener el item seleccionado
+            print("Eliminar seleccionada")
+            if fila:
+                valores = self.tablaPedidos.item(fila, 'values')     #obtener los valores de la fila
+                print(valores)
+                eliminar_vh(valores, fila)       
         
         #CREAR MENU CONTEXTUAL
         self.menu = tk.Menu(root, tearoff=0)
-        self.menu.add_command(label="Modificar", command = seleccionar_fila)
-        self.menu.add_command(label="Eliminar", command =lambda: print("Eliminar seleccionada"))
+        self.menu.add_command(label="Modificar", command = seleccionar_modificar_fila)
+        self.menu.add_command(label="Eliminar", command = seleccionar_eliminar_fila)
         
         
+        #Opciones del menú del click derecho
+        def eliminar_vh(valores, item):
+            chasis = valores[0]
+            print(f"Se eliminará {chasis}")
+            eventos.eliminar_VH_pedido(chasis)
 
 
-
-        def modificar_fila(valores, item):
+        def modificar_vh(valores, item):
             chasis_anterior = valores[0]
             print(f"el primer valor es {chasis_anterior}")
             ventana_auxiliar = eventos.modificar_vehiculo_pedido(chasis_anterior)
 
-            def guardar_cambios():
-                pass
-            
-            tk.Button(ventana_auxiliar, text="Guardar", command=guardar_cambios).grid(row=0, column=0)
 
-
-
-                # Manejar el evento del clic derecho
+        # Manejar el evento del clic derecho
         def mostrar_menu(evento):
             try:
                 item_id = self.tablaPedidos.identify_row(evento.y)  # Identificar la fila en la que se hizo click
