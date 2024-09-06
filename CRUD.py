@@ -359,6 +359,32 @@ def leer_vehiculos():
     return registros
 
 
+def leer_vehiculo(chasis):
+    conn = sqlite3.connect('produccion.db')
+    cursor = conn.cursor()
+
+    vehiculo = chasis
+    cursor.execute('SELECT * FROM vehiculos WHERE CHASIS=?', (vehiculo,))
+    registros = cursor.fetchone()
+    print(registros)
+
+    conn.close()
+    return registros
+
+
+def modificar_vehiculo( nuevo_registro, chasis_actual):
+    conn = sqlite3.connect('produccion.db')
+    cursor = conn.cursor()
+    print(chasis_actual)
+    cursor.execute('''UPDATE vehiculos SET
+                    CHASIS=?, FECHA=?, MARCA=?, MODELO=?, COLOR=?, ESTADO=?, TIME_TEL=?, TIME_PDI=?, TIME_LAV=?, TIME_PIN=?, TIME_CAL=?, NOVEDADES=?, SUBCONTRATAR=?
+                    WHERE CHASIS=?''',
+                    (*nuevo_registro, chasis_actual))
+    conn.commit()
+    conn.close()
+
+
+
 
 def eliminar_vehiculo(chasis):
     try:

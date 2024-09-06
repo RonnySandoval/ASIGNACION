@@ -157,9 +157,9 @@ class VentanaGestionaPedido():
     def setup_ui(self):
         # Define colors basandose en el parámetro accion (EDITAR o CREAR)
         if self.accion == "MODIFICAR":
-            colorTitulo = grisAzuladoMedio
-            colorLabel = grisAzuladoMedio      
-            colorEntry = grisAzuladoMedio
+            colorTitulo = moradoOscuro
+            colorLabel = moradoOscuro     
+            colorEntry = moradoOscuro
             colorfuenteLabel = blancoFrio
             colorfuenteEntry = blancoFrio
         elif self.accion == "AGREGAR":
@@ -247,22 +247,42 @@ class VentanaGestionaPedido():
         self.entrySubcon.grid(row=12,column=1, sticky="ew", pady=5)
 
         self.buttonCancelar = tk.Button(self.frameEntradas,text="Cancelar", font=texto1Bajo, bg=grisAzuladoOscuro, fg=blancoHueso, command="")   
-        self.buttonAgregar = tk.Button(self.frameEntradas,text="Agregar", font=textoGrande, bg=azulMedio, fg=blancoFrio, command="")    
-
         self.buttonCancelar.grid(row=13, column=0, padx=22, pady=10)
-        self.buttonAgregar.grid(row=13, column=1, padx=22, pady=10)
+
+        if self.accion == "AGREGAR":
+            self.buttonAgregar = tk.Button(self.frameEntradas,text="Agregar", font=textoGrande, bg=azulMedio, fg=blancoFrio, command="")    
+            self.buttonAgregar.grid(row=13, column=1, padx=22, pady=10)
+
+        if self.accion == "MODIFICAR":
+            self.buttonAgregar = tk.Button(self.frameEntradas,text="Reemplazar", font=textoGrande, bg=azulMedio, fg=blancoFrio, command="")    
+            self.buttonAgregar.grid(row=13, column=1, padx=22, pady=10)            
 
 
-    def set_values(self, datos):
-        
-        self.varMarca.set(datos[0])
-        self.varModelo.set(datos[1])
-        self.varTel.set(datos[2])
-        self.varPdi.set(datos[3])
-        self.varLav.set(datos[4])
-        self.varPin.set(datos[5])
-        self.varCal.set(datos[6])     
+    def set_values(self, datos, accion):
+        if accion == 'AGREGAR':
+            self.varMarca.set(datos[0])
+            self.varModelo.set(datos[1])
+            self.varTel.set(datos[2])
+            self.varPdi.set(datos[3])
+            self.varLav.set(datos[4])
+            self.varPin.set(datos[5])
+            self.varCal.set(datos[6])   
 
+        if accion == 'MODIFICAR':
+            self.varChasis.set(datos[0])
+            self.varFecha.set(datos[1])
+            self.varMarca.set(datos[2])
+            self.varModelo.set(datos[3])
+            self.varColor.set(datos[4])
+            self.varEstado.set(datos[5])
+            self.varTel.set(datos[6])
+            self.varPdi.set(datos[7])
+            self.varLav.set(datos[8])
+            self.varPin.set(datos[9])
+            self.varCal.set(datos[10])
+            self.varNoved.set(datos[11])
+            self.varSubcon.set(datos[12])
+    
     def asignafuncionBoton(self, funcionAgregar, funcionCancelar):
         #Método para asignar la función al command button de guardar y cancelar desde otro módulo.
         self.buttonAgregar.configure(command =funcionAgregar)

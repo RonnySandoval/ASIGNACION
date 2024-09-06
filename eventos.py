@@ -48,6 +48,31 @@ def agregarVH_pedido(ventana):
     ventana.rootAux.destroy()
 
 
+def modificarVH_en_BBDD(ventana, chasis_anterior):
+    #Se recogen los datos de la fila
+    datos = (ventana.varChasis.get(),
+            ventana.varFecha.get(),
+            ventana.varMarca.get(),
+            ventana.varModelo.get(),
+            ventana.varColor.get(),
+            ventana.varEstado.get(),
+            ventana.varTel.get(),
+            ventana.varPdi.get(),
+            ventana.varLav.get(),
+            ventana.varPin.get(),
+            ventana.varCal.get(),
+            ventana.varNoved.get(),
+            ventana.varSubcon.get(),
+    )
+    print(chasis_anterior)
+
+    for dato in datos:
+        print (dato)
+    #Modifica el registro en la base de datos
+    CRUD.modificar_vehiculo(datos, chasis_anterior)
+    ventana.rootAux.destroy()
+
+
 def recoger_datos_modelo(filaBoton):
     #extraer el numero dela fila
     fila = re.search(r'(\d+)$', filaBoton).group(1)
@@ -63,6 +88,9 @@ def recoger_datos_modelo(filaBoton):
     return [marca, modelo] + tiempos
 
 
+def recoger_datos_vehiculo(id_chasis):
+    return CRUD.leer_vehiculo(id_chasis)
+
 
 def editar_modelo(botonPulsado):
     print(recoger_datos_modelo(botonPulsado))
@@ -71,10 +99,15 @@ def editar_modelo(botonPulsado):
     ventana.set_values(datos)
     ventana.asignafuncionBoton(lambda:guardar_modelo(ventana), lambda:cancelar(ventana))
 
-    #recoger datos
-    #conectar con BD
-    #agregar registro
-    #leer BBDD y rellenar los label con la BBDD actualizada
+
+def modificar_vehiculo_pedido(chasis_anterior):
+    ventana = ventanas_auxiliares.VentanaGestionaPedido("MODIFICAR")
+    valores = recoger_datos_vehiculo(chasis_anterior)
+    print(valores)
+    ventana.set_values(valores, 'MODIFICAR')
+    ventana.asignafuncionBoton(lambda:modificarVH_en_BBDD(ventana, chasis_anterior), lambda:cancelar(ventana))
+    ventana.rootAux.destroy()
+    pass
 
 
 def agregar_a_pedido(botonPulsado):

@@ -86,7 +86,7 @@ for filasCambiarMod in range (1, CRUD.calcula_modelos()+1):
 
 #label_variables_vehiculos = {}            # Diccionario para almacenar las variables de los Labels y sus textos
 
-    #Lee los nombres desde la BBDD y los almacena en variables
+#Lee los nombres desde la BBDD y los almacena en variables
 for filasVehiculos, textos in zip(range(1, CRUD.calcula_modelos()+1), CRUD.leer_modelos()):                 
     label_name_vehiculo = f"labelVehiculo{filasVehiculos}"
     print(label_name_vehiculo)
@@ -191,7 +191,7 @@ class FiltrosPedido():
         self.boton_filtrar = tk.Button(self.frame_filtros, text="Filtro", command=lambda:self.filtrar_datos(pedido), font=numerosPequeños, bg=azulOscuro, fg=blancoHueso)
         self.boton_filtrar.grid(row=0, column=0)
     
-        self.boton_actualizar = tk.Button(self.frame_filtros, text="Actualizar", command=lambda:pedido1.llenarTabla(), font=numerosPequeños, bg=azulOscuro, fg=blancoHueso)
+        self.boton_actualizar = tk.Button(self.frame_filtros, text="Actualizar", command=lambda:pedido1.actualizar_tabla(), font=numerosPequeños, bg=azulOscuro, fg=blancoHueso)
         self.boton_actualizar.grid(row=0, column=1)
 
     def filtrar_datos(self, pedido):
@@ -231,8 +231,8 @@ class TablaPedido():
 
 
          #Crear estilo personalizado para las cabeceras
-        styletreeview = ttk.Style()
-        styletreeview.configure("Treeview.Heading", foreground=moradoMedio, font=texto1Minimo)
+        self.styletreeview = ttk.Style()
+        self.styletreeview.configure("Treeview.Heading", foreground=moradoMedio, font=texto1Minimo)
 
         
         #Crear Tabla
@@ -281,29 +281,67 @@ class TablaPedido():
 
             for record in self.datos:
                 self.tablaPedidos.insert(parent='', index='end', iid=record[0], text='', values=record)
+        
+        
+        def seleccionar_fila():
+            fila = self.tablaPedidos.selection()     #obtener el item seleccionado
+            print("Modificar seleccionada")
+            if fila:
+                valores = self.tablaPedidos.item(fila, 'values')     #obtener los valores de la fila
+                print(valores)
+                modificar_fila(valores, fila)
 
-
-
+        
+        
         #CREAR MENU CONTEXTUAL
         self.menu = tk.Menu(root, tearoff=0)
-        self.menu.add_command(label="Modificar", command=lambda: print("Modificar seleccionada"))
-        self.menu.add_command(label="Eliminar", command=lambda: print("Eliminar seleccionada"))
+        self.menu.add_command(label="Modificar", command = seleccionar_fila)
+        self.menu.add_command(label="Eliminar", command =lambda: print("Eliminar seleccionada"))
+        
+        
+
+
+
+        def modificar_fila(valores, item):
+            chasis_anterior = valores[0]
+            print(f"el primer valor es {chasis_anterior}")
+            ventana_auxiliar = eventos.modificar_vehiculo_pedido(chasis_anterior)
+
+            def guardar_cambios():
+                pass
+            
+            tk.Button(ventana_auxiliar, text="Guardar", command=guardar_cambios).grid(row=0, column=0)
+
 
 
                 # Manejar el evento del clic derecho
         def mostrar_menu(evento):
             try:
-                item_id = self.tablaPedidos.identify_row(evento.y)  # Identificar la fila en la que se hizo clic
+                item_id = self.tablaPedidos.identify_row(evento.y)  # Identificar la fila en la que se hizo click
                 self.tablaPedidos.selection_set(item_id)  # Seleccionar la fila
 
                 # Mostrar el menú contextual en la posición del cursor
                 self.menu.post(evento.x_root, evento.y_root)
             except:
                 pass
-
-            # Asociar el clic derecho al evento
-
+        
+        
+        # Asociar el click derecho al evento
         self.tablaPedidos.bind("<Button-3>", mostrar_menu)
+
+
+
+
+
+    def actualizar_tabla(self):
+        # Elimina todos los elementos del Treeview
+        for item in self.tablaPedidos.get_children():
+            self.tablaPedidos.delete(item)
+        
+        self.llenarTabla()
+
+
+
 
     def programar_todo(self):
         #########GENERAR PROGRAMACIÓN############
