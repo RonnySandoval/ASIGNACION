@@ -11,7 +11,6 @@ def crear_modelo():
     ventana.asignafuncionBoton(lambda:guardar_modelo(ventana), lambda:cancelar(ventana))
 
 
-
 def guardar_modelo(ventana):
     print(ventana)
     datos = (ventana.varMarca.get(),

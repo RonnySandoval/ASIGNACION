@@ -85,7 +85,6 @@ def buscar_tiempos(modelo):     #Devuelve una lista con los tiempos de todos los
     return tiempos.get(modelo)
 
 
-
 class VehiculoBase:             # Son los tipos de vehiculos, es decir los modelos, con sus tiempos de proceso
     def __init__(self, modelo, marca):
         self.modelo = modelo
@@ -97,12 +96,6 @@ class VehiculoBase:             # Son los tipos de vehiculos, es decir los model
 
     def __repr__(self):
         return f"Marca: {self.marca}, Modelo: {self.modelo}, Tiempos {self.tiempos_proceso} \n"    #formato de impresión para cada modelo de vehículo
-
-
-#print(AUMAN.obtener_tiempo_proceso('PDI'))
-#print(ONE.obtener_tiempo_proceso('PDI'))
-#print(PATHFINDER)
-
 
 
 class Vehiculo(VehiculoBase):               #Es cada vehiculo único que pasa por los procesos de la planta
@@ -141,8 +134,6 @@ class Vehiculo(VehiculoBase):               #Es cada vehiculo único que pasa po
         return f"Vehiculo(chasis: {self.id_chasis}, Marca: {self.marca}, Modelo: {self.modelo}, Estado: {self.estado}, Color: {self.color}, tiempos: {self.tiempos_proceso}, Resumen: {self.historico_estados}, Plazo: {self.plazo} \n"
         #Formato de impresión de vehículo
     
-
-
 
 
 personal = []
@@ -220,7 +211,6 @@ class Tecnico:                                  # Es cada técnico con nombre e 
 
 
 
-
 class Pedido:
     def __init__(self, id_pedido, plazo_entrega, vehiculos, estado ="PENDIENTE"):
         self.id_pedido = id_pedido
@@ -238,7 +228,7 @@ class Pedido:
 
 
 
-class OrdenProduccion():
+class OrdenProduccion:
     def __init__(self, vehiculo, proceso, tecnico, inicio, fin, pedido):
         self.chasis         = vehiculo.id_chasis
         self.marca          = vehiculo.marca
@@ -345,7 +335,6 @@ def programa_inmediato(pedido, tecnicos, horizonte):
     return pedido.vehiculos
 
 #programa_inmediato(pedido_quito06, personal, 700)
-
 
 
 def programa_completo(pedido, tecnicos, horizonte):

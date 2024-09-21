@@ -183,9 +183,11 @@ class FiltrosPedido():
         self.entry_novedades.grid(row=1, column=7, padx=5)
         self.entry_subcontratar = tk.Entry(self.frame_filtros, bg=moradoMedio, fg=blancoHueso)
         self.entry_subcontratar.grid(row=1, column=8, padx=5)
+        self.entry_subcontratar = tk.Entry(self.frame_filtros, bg=moradoMedio, fg=blancoHueso)
+        self.entry_subcontratar.grid(row=1, column=9, padx=5)
 
         # Configurar el peso de las columnas para que se expandan
-        for i in range(9):  # Suponiendo que hay 9 columnas
+        for i in range(10):  # Suponiendo que hay 9 columnas
             self.frame_filtros.grid_columnconfigure(i, weight=1)
 
 
@@ -239,20 +241,27 @@ class TablaPedido():
         
         #Crear Tabla
         self.tablaPedidos = ttk.Treeview(canvas, show="headings")
-        self.tablaPedidos["columns"] = ("Chasis", "Fecha de entrega", "Marca", "Modelo", "Color", "Estado", "Tiempos", "Novedades", "Subcontratar")
+        self.tablaPedidos["columns"] = ("Chasis", "Fecha de entrega", "Marca", "Modelo", "Color", "Estado", "Tiempos", "Novedades", "Subcontratar", "Pedido")
 
         # Formatear las columnas
         for col in self.tablaPedidos["columns"]:
             self.tablaPedidos.column(col, anchor=tk.CENTER, width=80)
             self.tablaPedidos.heading(col, text=col, anchor=tk.CENTER)
 
-        self.tablaPedidos.pack(expand=True, fill="both")
+        self.tablaPedidos.pack(expand=True, fill="both", padx=5)
 
 
-        # Crear una barra de desplazamiento para la tabla y configurarla
-        #self.scrollbar = ttk.Scrollbar(canvas, orient=tk.VERTICAL, command=self.tablaPedidos.yview)
-        #self.tablaPedidos.configure(yscrollcommand=self.scrollbar.set)
-        #self.scrollbar.pack(side='right', fill='y')
+# Crear un Scrollbar y conectarlo con el Canvas
+
+
+
+
+        #Crear una barra de desplazamiento para la tabla y configurarla
+        self.scrollbarTablaPedido = ttk.Scrollbar(frameTablaPedido, orient=tk.VERTICAL, command=self.tablaPedidos.yview)
+        self.scrollbarTablaPedido.pack(side='right', fill='y')
+        self.tablaPedidos.configure(yscrollcommand=self.scrollbarTablaPedido.set)
+        #self.tablaPedidos.bind('<Configure>', lambda e: self.tablaPedidos.configure(scrollregion=self.tablaPedidos.bbox("all")))
+
 
 
         #empaquetar tabla de pedidos
@@ -284,7 +293,7 @@ class TablaPedido():
             for record in self.datos:
                 self.tablaPedidos.insert(parent='', index='end', iid=record[0], text='', values=record)
         
-        
+        #click derecho en modificar fila
         def seleccionar_modificar_fila():
             fila = self.tablaPedidos.selection()     #obtener el item seleccionado
             print("Modificar seleccionada")
@@ -293,6 +302,7 @@ class TablaPedido():
                 print(valores)
                 modificar_vh(valores, fila)
 
+        #click derecho en eliminar fila
         def seleccionar_eliminar_fila():
             fila = self.tablaPedidos.selection()     #obtener el item seleccionado
             print("Eliminar seleccionada")

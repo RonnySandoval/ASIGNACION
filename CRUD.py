@@ -316,35 +316,6 @@ def insertar_vehiculo(chasis, fecha, marca, modelo, color, estado, ttel, tpdi, t
         conn.close()
 
 
-#CODIGO_ORDEN, CHASIS, MARCA, MODELO, COLOR, NOVEDADES, PEDIDO, ID_PEDIDO, PROCESO, ID_TECNICO, NOMBRE_TECNICO, ESPECIALIDAD, INICIO, FIN, DURACION, PLAZO
-
-def insertar_orden(codigo_orden, chasis, marca, modelo, color, novedades, pedido, id_pedido, proceso, id_tecnico, nombre_tecnico, especialidad, inicio, fin, duracion, plazo):
-    try:
-        conn = sqlite3.connect('produccion.db')
-        cursor = conn.cursor()
-
-          
-        insert_data_script = """INSERT INTO ordenes
-                                    (CODIGO_ORDEN, CHASIS, MARCA, MODELO, COLOR, NOVEDADES, PEDIDO, ID_PEDIDO, PROCESO, ID_TECNICO, NOMBRE_TECNICO, ESPECIALIDAD, INICIO, FIN, DURACION, PLAZO)
-                                    VALUES  (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                                """
-
-        datos = (codigo_orden, chasis, marca, modelo, color, novedades, pedido, id_pedido, proceso, id_tecnico, nombre_tecnico, especialidad, inicio, fin, duracion, plazo)
-
-        cursor.execute(insert_data_script, datos)
-        conn.commit()
-        print("Orden añadida")
-        
-    except sqlite3.Error as e:
-        print(f"Error al insertar el Orden: {e}")
-
-    except UnboundLocalError as e:
-        print(f"No se llenaron todos los campos: {e}") 
-
-    finally:
-        conn.close()    
-
-
 
 def leer_vehiculos():
 
@@ -473,6 +444,33 @@ def calcula_tecnicos():
 ##################################################################################
 ######################### CRUD PARA ORDENES ######################################
 ##################################################################################
+#CODIGO_ORDEN, CHASIS, MARCA, MODELO, COLOR, NOVEDADES, PEDIDO, ID_PEDIDO, PROCESO, ID_TECNICO, NOMBRE_TECNICO, ESPECIALIDAD, INICIO, FIN, DURACION, PLAZO
+
+def insertar_orden(codigo_orden, chasis, marca, modelo, color, novedades, pedido, id_pedido, proceso, id_tecnico, nombre_tecnico, especialidad, inicio, fin, duracion, plazo):
+    try:
+        conn = sqlite3.connect('produccion.db')
+        cursor = conn.cursor()
+
+          
+        insert_data_script = """INSERT INTO ordenes
+                                    (CODIGO_ORDEN, CHASIS, MARCA, MODELO, COLOR, NOVEDADES, PEDIDO, ID_PEDIDO, PROCESO, ID_TECNICO, NOMBRE_TECNICO, ESPECIALIDAD, INICIO, FIN, DURACION, PLAZO)
+                                    VALUES  (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                """
+
+        datos = (codigo_orden, chasis, marca, modelo, color, novedades, pedido, id_pedido, proceso, id_tecnico, nombre_tecnico, especialidad, inicio, fin, duracion, plazo)
+
+        cursor.execute(insert_data_script, datos)
+        conn.commit()
+        print("Orden añadida")
+        
+    except sqlite3.Error as e:
+        print(f"Error al insertar el Orden: {e}")
+
+    except UnboundLocalError as e:
+        print(f"No se llenaron todos los campos: {e}") 
+
+    finally:
+        conn.close()    
 
 def leer_ordenes_todas():
     conn = sqlite3.connect('produccion.db')         # Conectar a la base de datos
@@ -516,7 +514,7 @@ def eliminar_ordenes_todas():
 
 ###################### CONSULTAS Y PRUEBAS ##################################
 #crear_tabla_ordenes()
-#eliminar_tabla("vehiculos")
+#eliminar_tabla("sqlite_sequence")
 
 #insertar_vehiculo(1,2,3,4,5,6,7,8,9)
 #eliminar_vehiculo("123")
