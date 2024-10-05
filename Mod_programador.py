@@ -1,10 +1,16 @@
 import CRUD
 
-nombres_procesos = list(map(lambda proceso:proceso.upper(), CRUD.leer_procesos()))              #PROCESOS EN ORDEN SECUENCIAL
+nombres_procesos = list(map(lambda proceso:proceso.upper(), CRUD.leer_procesos()))      #PROCESOS EN ORDEN SECUENCIAL
 orden_procesos = ['SIN PROCESAR'] + nombres_procesos + ['DESPACHO', 'ENTREGADO']        #DIFERENTES DE UN VEHÍCULO
+
+print(nombres_procesos)
+print(orden_procesos)
+
 
 # Modelos de vehículos agrupados por marcas
 modelos = list(map(lambda modelo_marca: modelo_marca[1], CRUD.leer_modelos()))
+
+
 
 marcas = {
     "NISSAN":   ["ALTIMA","FRONTIER","KICKS","QASHQAI","LEAFT","VERSA","PATHFINDER","XTRAIL",],

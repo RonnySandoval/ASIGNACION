@@ -1,5 +1,6 @@
 import sqlite3
 import pandas as pd
+import os
 #from planta import modelos, marcas, tiempos
 
 ###########################################################################
@@ -156,6 +157,7 @@ def leer_procesos():
     lista_procesos = list(map(lambda nombre: nombre.replace('time_', ''), campos_times))
     conn.close()
     return lista_procesos
+
 
 
 #Inserta un nuevo registro en la tabla de modelos
@@ -585,4 +587,33 @@ for marca, lista_modelos in marcas.items():
                 print(f'  Índice: {indice}, Tiempo: {tiempo}')
                 
             insertar_modelo(marca, modelo, tiempos_modelo[0], tiempos_modelo[1], tiempos_modelo[2], tiempos_modelo[3], tiempos_modelo[4])
+"""
+
+
+
+
+
+
+"""
+#TEST PARA VERIFICAR EXISTENCIA DE BD y VERIFICAR LA CARPETA DONDE SE UBICA LA TERMINAL
+
+# Nombre del archivo de la base de datos
+db_path = 'produccion.db'
+print("Directorio de trabajo actual:", os.getcwd())
+
+# Verificar si la base de datos existe
+if os.path.exists(db_path):
+    print(f"La base de datos '{db_path}' existe.")
+    
+    # Si existe, intenta conectarte
+    try:
+        conn = sqlite3.connect(db_path)
+        print("Conexión exitosa a la base de datos.")
+    except sqlite3.Error as e:
+        print(f"Error al conectarse a la base de datos: {e}")
+    finally:
+        if conn:
+            conn.close()
+else:
+    print(f"La base de datos '{db_path}' no existe.")
 """
