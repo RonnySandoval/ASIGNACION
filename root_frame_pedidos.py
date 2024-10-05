@@ -9,7 +9,7 @@ import  Mod_programador
 import  Objetos
 import  Graficador
 import  ventanas_emergentes
-import  menu_principal
+import  menu
 
 
 

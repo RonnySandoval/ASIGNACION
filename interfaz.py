@@ -9,7 +9,7 @@ import  Mod_programador
 import  Objetos
 import  Graficador
 import  ventanas_emergentes
-import  menu_principal
+import  menu
 
 #####################################################################################################################################################
 #####################################################################  RAIZ  ########################################################################
@@ -23,7 +23,7 @@ root.iconbitmap("logo8.ico")
 root.geometry("800x600")
 root.state('zoomed')
 
-menu_principal.crearMenuPrincipal(root)
+menu.crearMenuPrincipal(root)
 
 # Creación de los frames principales
 frameVHyTEC = tk.Frame(root, bg=grisAzuladoMedio)

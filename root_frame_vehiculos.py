@@ -9,7 +9,7 @@ from    estilos import *
 #import  Objetos
 #import  Graficador
 #import  ventanas_emergentes
-import  menu_principal
+import  menu
 
 class ContenidoVehiculos():
 

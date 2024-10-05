@@ -1,5 +1,7 @@
 import tkinter as Tk
 from estilos import grisOscuro, blancoCalido
+import menu.submenu_nuevo as subNuevo
+
 
 def crearMenuPrincipal(raiz):
     #Barra de menú
@@ -7,24 +9,20 @@ def crearMenuPrincipal(raiz):
     raiz.config(menu=barraMenu)
 
 
-    #submenu de Nuevo
+    ###########submenu de Nuevo
     menuNuevo=Tk.Menu(barraMenu, tearoff=0)
     barraMenu.add_cascade(label="Nuevo", menu=menuNuevo)
-    nuevaPlanta=menuNuevo.add_command(label="Nueva Planta", command="")
-    menuNuevo.add_separator()
-    nuevoPedido=menuNuevo.add_command(label="Nuevo Pedido", command="")
-    nuevoModelo=menuNuevo.add_command(label="Nuevo Modelo", command="")
-    nuevoVehiculo=menuNuevo.add_command(label="Nuevo Vehículo", command="")
-    nuevoTecnico=menuNuevo.add_command(label="Nuevo Técnico", command="")
-    nuevoProveedor=menuNuevo.add_command(label="Nuevo Proveedor", command="")
-    menuNuevo.add_separator()
-    menuNuevo.add_command(label="Salir", command="")
+    subNuevo.desplegar_nuevo(menuNuevo)
+    ###########################
 
-    #submenu de Abrir
+
+    ###########submenu de Abrir
     menuAbrir=Tk.Menu(barraMenu, tearoff=0)
     barraMenu.add_cascade(label="Abrir", menu=menuAbrir)
     menuAbrir.add_command(label="Abrir Planta", command="")
     menuAbrir.add_command(label="Abrir Pedido", command="")
+    ###########################
+
 
     #submenu de Editar
     menuEditar=Tk.Menu(barraMenu, tearoff=0)
