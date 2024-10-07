@@ -6,14 +6,13 @@ tituloMinimo  = ("Bahnschrift", 13)
 
 texto1Grande   = ("Franklin Gothic Book", 15)
 texto1Medio    = ("Franklin Gothic Book", 13)
-texto1Bajo     = ("Franklin Gothic Book", 11)
-texto1Minimo   = ("Franklin Gothic Book", 9)
+texto1Bajo     = ("Franklin Gothic Book", 10)
+texto1Minimo   = ("Franklin Gothic Book", 8)
 
 textoGrande   = ("Segoe UI Black", 15)
 textoMedio    = ("Segoe UI Black", 13)
-textoBajo     = ("Segoe UI Black", 11)
-textoMinimo   = ("Segoe UI Black", 9)
-
+textoBajo     = ("Segoe UI Black", 10)
+textoMinimo   = ("Segoe UI Black", 8)
 
 numerosGrandes     = ("Arial Narrow", 15)
 numerosMedianos    = ("Arial Narrow", 13)

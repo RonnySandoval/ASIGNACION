@@ -23,7 +23,6 @@ def crear_tabla_modelos():
         time_CALIDAD INTEGER NOT NULL
     )
     """
-
     cursor.execute(create_table_script)
     conn.commit()
     conn.close()
@@ -73,7 +72,6 @@ def crear_tabla_tecnicos():
         ESPECIALIDAD VARCHAR NOT NULL
     )
     """
-
     cursor.execute(create_table_script)
     conn.commit()
     conn.close()    
@@ -109,12 +107,61 @@ def crear_tabla_ordenes():
         FOREIGN KEY (ID_TECNICO) REFERENCES tecnicos(ID_TECNICO)
         )
     """
-
     cursor.execute(create_table_script)
     conn.commit()
     conn.close()
 
     print("Tabla 'Ordenes' creada exitosamente.")
+
+#Crear la tabla para ordenes de pedido
+def crear_tabla_pedidos():
+    # Conectar a la base de datos (o crearla si no existe)
+    conn = sqlite3.connect('produccion.db')
+    cursor = conn.cursor()
+
+    create_table_script = """
+    CREATE TABLE ordenes (
+        ID_PEDIDO VARCHAR PRIMARY KEY,
+        PEDIDO VARCHAR NOT NULL,
+        ID_PLANTA VARCHAR NOT NULL,
+        FECHA_RECEPCION VARCHAR NOT NULL,
+        FECHA_ENTREGA VARCHAR NOT NULL,
+        FOREIGN KEY (ID_PLANTA) REFERENCES modelos_vehiculos(PLANTAS)
+        )
+    """
+    cursor.execute(create_table_script)
+    conn.commit()
+    conn.close()
+
+    print("Tabla 'Pedidos' creada exitosamente.")
+
+#Crear la tabla para almacenar plantas
+def crear_tabla_plantas():
+    # Conectar a la base de datos (o crearla si no existe)
+    conn = sqlite3.connect('produccion.db')
+    cursor = conn.cursor()
+
+    create_table_script = """
+    CREATE TABLE plantas (
+        ID_PLANTA VARCHAR PRIMARY KEY,
+        NOMBRE VARCHAR NOT NULL,
+        DESCRIPCION VARCHAR NOT NULL,
+        UBICACION VARCHAR NOT NULL,
+        PROCESOS VARCHAR NOT NULL,
+        )
+    """
+
+    cursor.execute(create_table_script)
+    conn.commit()
+    conn.close()
+
+    print("Tabla 'Plantas' creada exitosamente.")
+
+
+
+
+
+
 
 
 
@@ -157,7 +204,6 @@ def leer_procesos():
     lista_procesos = list(map(lambda nombre: nombre.replace('time_', ''), campos_times))
     conn.close()
     return lista_procesos
-
 
 
 #Inserta un nuevo registro en la tabla de modelos
@@ -288,7 +334,7 @@ def leer_tiempos():
 
 
 ###########################################################################
-############################# CRUD PARA PEDIDOS############################
+############################# CRUD PARA VEHICULOS##########################
 ###########################################################################
 
 #Inserta un nuevo registro en la tabla de pedidos

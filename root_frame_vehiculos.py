@@ -102,6 +102,6 @@ class ContenidoVehiculos():
         button_variables_agregVh = {}
         for filasAgregarVH in range (1, CRUD.calcula_modelos()+1):
             button_name = f"ButtonAgregar{filasAgregarVH}"
-            button_variables_agregVh[button_name] = tk.Button(frameVehiculosInterior,text="Agregar a Pedido", font=textoMinimo, bg=moradoMedio, fg=blancoHueso,
+            button_variables_agregVh[button_name] = tk.Button(frameVehiculosInterior,text="Añadir a Pedido", font=textoMinimo, bg=moradoMedio, fg=blancoHueso,
                                                             command=lambda varBoton=button_name:eventos.agregar_a_pedido(varBoton))
             button_variables_agregVh[button_name].grid(row=filasAgregarVH, column= 7, padx=3)

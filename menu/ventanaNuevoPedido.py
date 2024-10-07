@@ -18,31 +18,39 @@ class VentanaNuevoPedido():       #Ventana para crear o editar modelos
         self.frameEntradas.pack(expand=True, side="bottom", fill="both", pady=10)
 
         # variables objeto para los entry. Deben ser parte del constructor, para poder usarlas en sus métodos
-        self.varDependCleinte = tk.StringVar()
-        self.varProcesos = tk.StringVar() 
-        self.varDescripcion = tk.StringVar() 
+        self.varDependCliente  = tk.StringVar()
+        self.varFechaRecepcion = tk.StringVar() 
+        self.varFechaEntrega   = tk.StringVar()
+        self.varCantVehiculos   = tk.StringVar()
 
 
         #LABEL PARA TITULO Y CAMPOS
-        self.labelTitulo      = tk.Label(self.frameTitulo, text = "CREAR NUEVA PLANTA", font = estilos.textoGrande, fg = estilos.grisAzuladoOscuro, bg=estilos.azulClaro)
-        self.labelNombre      = tk.Label(self.frameEntradas, text = "Nombre de Planta", font = estilos.texto1Bajo, fg = estilos.grisAzuladoOscuro, bg=estilos.azulClaro)
-        self.labelProcesos    = tk.Label(self.frameEntradas, text = "Cantidad de Procesos", font = estilos.texto1Bajo, fg = estilos.grisAzuladoOscuro, bg=estilos.azulClaro)
-        self.labelDescripcion = tk.Label(self.frameEntradas, text = "Descripción de Planta", font = estilos.texto1Bajo, fg = estilos.grisAzuladoOscuro, bg=estilos.azulClaro)
+        self.labelTitulo          = tk.Label(self.frameTitulo,   text = "CREAR NUEVO PEDIDO", font = estilos.textoGrande, fg = estilos.grisAzuladoOscuro, bg=estilos.azulClaro)
+        self.labelDependCliente   = tk.Label(self.frameEntradas, text = "Cliente/Depedencia", font = estilos.texto1Bajo, fg = estilos.grisAzuladoOscuro, bg=estilos.azulClaro)
+        self.labelFechaRecepcion  = tk.Label(self.frameEntradas, text = "Fecha de Recepción", font = estilos.texto1Bajo, fg = estilos.grisAzuladoOscuro, bg=estilos.azulClaro)
+        self.labelFechaEntrega    = tk.Label(self.frameEntradas, text = "Fecha de entrega"  , font = estilos.texto1Bajo, fg = estilos.grisAzuladoOscuro, bg=estilos.azulClaro)
+        self.labelCantVehiculos   = tk.Label(self.frameEntradas, text = "Cantidad de Vehículos", font = estilos.texto1Bajo, fg = estilos.grisAzuladoOscuro, bg=estilos.azulClaro)
+
+
 
         self.labelTitulo.pack     (expand=True, side="top", fill="x", padx=20, pady=20)
-        self.labelNombre.grid     (row=0,column=0, sticky="ew", padx=20, pady=5)
-        self.labelProcesos.grid   (row=1,column=0, sticky="ew", padx=20, pady=5)
-        self.labelDescripcion.grid(row=2,column=0, sticky="ew", padx=20, pady=5)
+        self.labelDependCliente.grid     (row=0,column=0, sticky="ew", padx=20, pady=5)
+        self.labelFechaRecepcion.grid   (row=1,column=0, sticky="ew", padx=20, pady=5)
+        self.labelFechaEntrega.grid(row=2,column=0, sticky="ew", padx=20, pady=5)
+        self.labelCantVehiculos.grid(row=3,column=0, sticky="ew", padx=20, pady=5)
 
 
         #ENTRY PARA CAMPOS
-        self.entryNombre = tk.Entry     (self.frameEntradas, font = estilos.numerosMedianos, fg = estilos.blancoHueso, bg=estilos.moradoOscuro, width=30, textvariable=self.varNombre)
-        self.entryProcesos = tk.Entry   (self.frameEntradas, font = estilos.numerosMedianos, fg = estilos.blancoHueso, bg=estilos.moradoOscuro, width=30, textvariable=self.varProcesos)
-        self.entryDescripcion = tk.Entry(self.frameEntradas, font = estilos.numerosMedianos, fg = estilos.blancoHueso, bg=estilos.moradoOscuro,  width=30, textvariable=self.varDescripcion)
+        self.entryDependCliente = tk.Entry     (self.frameEntradas, font = estilos.numerosMedianos, fg = estilos.blancoHueso, bg=estilos.moradoOscuro, width=30, textvariable=self.varDependCliente)
+        self.entryFechaRecepcion = tk.Entry   (self.frameEntradas, font = estilos.numerosMedianos, fg = estilos.blancoHueso, bg=estilos.moradoOscuro, width=30, textvariable=self.varFechaRecepcion)
+        self.entryFechaEntrega = tk.Entry(self.frameEntradas, font = estilos.numerosMedianos, fg = estilos.blancoHueso, bg=estilos.moradoOscuro,  width=30, textvariable=self.varFechaEntrega)
+        self.entryCantVehiculos = tk.Entry(self.frameEntradas, font = estilos.numerosMedianos, fg = estilos.blancoHueso, bg=estilos.moradoOscuro,  width=30, textvariable=self.varCantVehiculos)
 
-        self.entryNombre.grid     (row=0,column=1, sticky="ew", pady=5)
-        self.entryProcesos.grid   (row=1,column=1, sticky="ew", pady=5)
-        self.entryDescripcion.grid(row=2,column=1, sticky="ew", pady=5)
+
+        self.entryDependCliente .grid     (row=0,column=1, sticky="ew", pady=5)
+        self.entryFechaRecepcion.grid   (row=1,column=1, sticky="ew", pady=5)
+        self.entryFechaEntrega.grid(row=2,column=1, sticky="ew", pady=5)
+        self.entryCantVehiculos.grid(row=3,column=1, sticky="ew", pady=5)
 
 
         self.buttonCancelar = tk.Button(self.frameEntradas, text="Cancelar", font = estilos.texto1Bajo,  bg = estilos.grisAzuladoMedio, fg = estilos.blancoHueso,

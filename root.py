@@ -20,7 +20,7 @@ class ventanaRoot():
     root.title("Programación de Planta")
     root.config(bg=grisAzuladoOscuro)
     root.iconbitmap("logo8.ico")
-    root.geometry("800x600")
+    root.geometry("800x700")
     root.state('zoomed')
 
     menu_principal.crearMenuPrincipal(root)
