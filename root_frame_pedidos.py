@@ -5,8 +5,8 @@ import  eventos as eventos
 import  re
 import  dicc_variables
 from    estilos import *
-import  Mod_programador
-import  Objetos
+import  Mod_clases
+import  Mod_objetos
 import  Graficador
 import  ventanas_emergentes
 import  menu
@@ -241,13 +241,13 @@ class TablaPedido():
 
     def programar_todo(self):
         #########GENERAR PROGRAMACIÓN############
-        Mod_programador.programa_completo(Objetos.pedido_quito06, Mod_programador.personal, 4000)
-        horizonte_calculado = Mod_programador.calcular_horizonte(Objetos.pedido_quito06)
+        Mod_clases.programa_completo(Mod_objetos.pedido_quito06, Mod_clases.personal, 4000)
+        horizonte_calculado = Mod_clases.calcular_horizonte(Mod_objetos.pedido_quito06)
         print(f"el horizonte es {horizonte_calculado}")
        
         #GRAFICAR PROGRAMACIÓN EN GANTT##########
-        Graficador.generar_gantt_tecnicos(Mod_programador.personal,horizonte_calculado)
-        Graficador.generar_gantt_vehiculos(Objetos.pedido_quito06,horizonte_calculado)
+        Graficador.generar_gantt_tecnicos(Mod_clases.personal,horizonte_calculado)
+        Graficador.generar_gantt_vehiculos(Mod_objetos.pedido_quito06,horizonte_calculado)
 
         programa = "programar_todo"
         ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel(programa))
@@ -255,13 +255,13 @@ class TablaPedido():
 
     def programar_inmediato(self):
         #########GENERAR PROGRAMACIÓN############
-        Mod_programador.programa_inmediato(Objetos.pedido_quito06, Mod_programador.personal, 4000)
-        horizonte_calculado = Mod_programador.calcular_horizonte(Objetos.pedido_quito06)
+        Mod_clases.programa_inmediato(Mod_objetos.pedido_quito06, Mod_clases.personal, 4000, franjaStart="2024-10-09 08:00")
+        horizonte_calculado = Mod_clases.calcular_horizonte(Mod_objetos.pedido_quito06)
         print(f"el horizonte es {horizonte_calculado}")
 
         #GRAFICAR PROGRAMACIÓN EN GANTT##########
-        Graficador.generar_gantt_tecnicos(Mod_programador.personal,horizonte_calculado)
-        Graficador.generar_gantt_vehiculos(Objetos.pedido_quito06,horizonte_calculado)
+        Graficador.generar_gantt_tecnicos(Mod_clases.personal,horizonte_calculado)
+        Graficador.generar_gantt_vehiculos(Mod_objetos.pedido_quito06,horizonte_calculado)
 
         programa = "programar_inmediato"
         ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel(programa))

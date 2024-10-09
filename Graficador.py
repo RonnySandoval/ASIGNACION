@@ -1,4 +1,4 @@
-from Mod_programador import personal
+from Mod_clases import personal
 #from Objetos import pedido_quito06, horizonte_calculado
 import funcionesGANTT
 

@@ -1,14 +1,6 @@
 import  tkinter as tk
 from    tkinter import ttk
-#import  CRUD as CRUD
-#import  eventos as eventos
-#import  re
-#import  dicc_variables
 from    estilos import *
-#import  Mod_programador
-#import  Objetos
-#import  Graficador
-#import  ventanas_emergentes
 import  menu_principal
 import root_frame_vehiculos as frameVh
 import root_frame_tecnicos as frameTec
