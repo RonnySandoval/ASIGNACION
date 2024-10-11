@@ -341,18 +341,10 @@ class OrdenProduccion:
 listaOrdenes = []
 def programa_inmediato(pedido, tecnicos, horizonte, fechaStart, horaStart):
 
-    for tecnico in tecnicos:
-        if tecnico.libre == None:
-            tecnico.libre = fechahora.parseDT(fechaStart,horaStart)
-    print(tecnicos)
-
 
     vehiculos_por_programar = pedido.vehiculos.copy()                   # Extrae una copia de la lista de vehiculos
-
-
     contador = 0
-    while len(vehiculos_por_programar) > 0 and contador <=200:
-        contador = contador + 1
+    while len(vehiculos_por_programar) > 0:
 
         tiempos_restantes = list(map(lambda vh: sum(vh.tiempos_proceso), vehiculos_por_programar))  #crea una lista con solo el total de tiempos restante de cada vehiculo
         indice_min_time = tiempos_restantes.index(min(tiempos_restantes))                           #busca el índice con tiempo restante menor
@@ -362,16 +354,11 @@ def programa_inmediato(pedido, tecnicos, horizonte, fechaStart, horaStart):
         siguiente_estado = orden_procesos[orden_procesos.index(ultimo_estado) + 1]                  #Imprime el siguiente estado o proceso de la secuencia
         print(f"{vehiculo_min_time.id_chasis} necesita {siguiente_estado}")
 
-        if vehiculo_min_time.obtener_tiempo_proceso(siguiente_estado) == 0:             #Avanza al siguiente estado sin asignar el tecnico en caso de tiempo = 0
-            vehiculo_min_time.avanzar_estado(tecnico=None, bloques=None)
-            contador = contador + 1
-            continue
-
-        tecnicos_disponibles = list(filter(lambda tec: siguiente_estado in tec.especializacion, tecnicos))    # incluye solo aquellos técnicos de la especialidad correcta
-        tecnicos_disponibles.sort(key = lambda op: op.libre)                                                  #ordena técnicos por tiempo de menor a mayor
+        tecnicos_disponibles = list(filter(lambda tec: siguiente_estado in tec.especializacion, tecnicos))      # incluye solo aquellos técnicos de la especialidad correcta
+        tecnicos_disponibles.sort(key = lambda op: op.termina)                                                  #ordena técnicos por tiempo de menor a mayor
 
         
-        tiempos_disponibles = list(map(lambda operario: operario.libre, tecnicos_disponibles))   #crea una lista solo con los tiempos
+        tiempos_disponibles = list(map(lambda operario: operario.termina, tecnicos_disponibles))   #crea una lista solo con los tiempos
         tiempos_disponibles.sort()                                                                 #ordena tiempos de menor a mayor
         print(f"tecnicos disponibles: \n {tecnicos_disponibles}")
         tecnico_min_time = tecnicos_disponibles[0]                                                 #selecciona el tecnico de menor tiempo (el primer elemento de la lista)
@@ -380,35 +367,24 @@ def programa_inmediato(pedido, tecnicos, horizonte, fechaStart, horaStart):
         #print(tecnicos_disponibles)
 
 
-        for times in tiempos_disponibles:                                                                             #buscamos en la lista de técnicos
-            print(f"{times} + {vehiculo_min_time.obtener_tiempo_proceso(siguiente_estado)}")
+        for times in tiempos_disponibles:                                                          #buscamos en la lista de tiempos de técnicos
+            print(f"{times}+{vehiculo_min_time.obtener_tiempo_proceso(siguiente_estado)}")
 
             asignado = False
-            maximaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(fechaStart, horaStart, horizonte ,am=(8,12), pm=(14,18)))
-            terminaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(
-                                                                                str(times.date()),
-                                                                                str(times.time()),
-                                                                                vehiculo_min_time.obtener_tiempo_proceso(siguiente_estado),
-                                                                                am=(8,12),
-                                                                                pm=(14,18)
-                                                                                )
-                                                    )
-            print(f"{times}+{vehiculo_min_time.obtener_tiempo_proceso(siguiente_estado)}={terminaAsignacion}")
 
-
-            if terminaAsignacion <= maximaAsignacion:                          #verificamos que el tiempo asignado no supere el horizonte
+            if times + vehiculo_min_time.obtener_tiempo_proceso(siguiente_estado) <= horizonte:    #verificamos que el tiempo asignado no supere el horizonte
                 print("OK. Aun no se supera el horizonte")
-                tecnico_min_time.asignar_vehiculo(vehiculo_min_time, times.date(), times.time())                                    #SE ASIGNA VEHICULO A TÉCNICO desde el método en la clase técnico
+                tecnico_min_time.asignar_vehiculo(vehiculo_min_time, fechaStart, horaStart)                               #SE ASIGNA VEHICULO A TÉCNICO desde el método en la clase técnico
                 asignado = True
-                print(f"asignado = {asignado}. Se asignó {vehiculo_min_time.id_chasis} a {tecnico_min_time.id_tecnico} en el proceso {siguiente_estado}\n\n")                
-                listaOrdenes.append(OrdenProduccion(vehiculo_min_time, 
-                                                    siguiente_estado,
-                                                    tecnico_min_time,
+                print(f"asignado = {asignado} {tecnico_min_time.nombre} al vehiculo {vehiculo_min_time.id_chasis} en {siguiente_estado}")
+                
+                listaOrdenes.append(OrdenProduccion(vehiculo_min_time,
+                                                    siguiente_estado, tecnico_min_time,
                                                     vehiculo_min_time.inicio,
                                                     vehiculo_min_time.fin,
                                                     vehiculo_min_time.pedido))
                 print(listaOrdenes[-1])
-                #listaOrdenes[-1].almacenar_orden()
+                listaOrdenes[-1].almacenar_orden()
                 break
         
         if asignado == False:
@@ -418,7 +394,7 @@ def programa_inmediato(pedido, tecnicos, horizonte, fechaStart, horaStart):
         vehiculos_por_programar.remove(vehiculo_min_time)        #REMOVEMOS DE LA LISTA EL VEHICULO QUE SE ACABA DE ASIGNAR               
         print(f"--------------------------vuelta {contador}")
 
-
+        contador = contador + 1
     return pedido.vehiculos
 
 #programa_inmediato(pedido_quito06, personal, 700)
@@ -516,13 +492,8 @@ def programa_completo(pedido, tecnicos, horizonte, fechaStart, horaStart):
             print(f"No se asignó {vehiculo_min_time.id_chasis}")
 
         if vehiculo_min_time.estado == 'calidad':
-            vehiculos_por_programar.remove(vehiculo_min_time)        #REMOVEMOS DE LA LISTA EL VEHICULO QUE SE ACABA DE ASIGNAR
-            continue             
+            vehiculos_por_programar.remove(vehiculo_min_time)        #REMOVEMOS DE LA LISTA EL VEHICULO QUE SE ACABA DE ASIGNAR               
         
-        vehiculos_por_programar.remove(vehiculo_min_time)        #REMOVEMOS DE LA LISTA EL VEHICULO QUE SE ACABA DE ASIGNAR               
-        print(f"--------------------------vuelta {contador}")
-
-
         print("#############################################################")
         print("#############################################################")
         print (f"vuelta #{contador}\n---------------------------------")

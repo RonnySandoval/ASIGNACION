@@ -255,7 +255,7 @@ class TablaPedido():
 
     def programar_inmediato(self):
         #########GENERAR PROGRAMACIÓN############
-        Mod_clases.programa_inmediato(Mod_objetos.pedido_quito06, Mod_clases.personal, 4000, franjaStart="2024-10-09 08:00")
+        Mod_clases.programa_inmediato(Mod_objetos.pedido_quito06, Mod_clases.personal, 4000, fechaStart="2024-10-09", horaStar="08:00")
         horizonte_calculado = Mod_clases.calcular_horizonte(Mod_objetos.pedido_quito06)
         print(f"el horizonte es {horizonte_calculado}")
 

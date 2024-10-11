@@ -1,5 +1,5 @@
 from Mod_clases import personal
-#from Objetos import pedido_quito06, horizonte_calculado
+from Mod_objetos import pedido_quito06, horizonte_calculado
 import funcionesGANTT
 
 
@@ -56,5 +56,5 @@ def generar_gantt_tecnicos(personal, horizonte_calculado):
         
     funcionesGANTT.mostrar_grafico_tecnicos("GRAFICO_DE_TECNICOS_02")
 
-#generar_gantt_tecnicos(personal)
-#generar_gantt_vehiculos(pedido_quito06)
+generar_gantt_tecnicos(personal, horizonte_calculado)
+generar_gantt_vehiculos(pedido_quito06, horizonte_calculado)

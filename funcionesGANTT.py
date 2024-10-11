@@ -103,7 +103,7 @@ def crear_gantt_vehiculos(nombre_grafico, vehiculos, horizonte):
         "fig": fig,
         "ejes": gantt,
         "hbar": hbar,
-        "tecnicos": vehiculos,
+        "vehiculos": vehiculos,
         "horizonte": horizonte
     }
 
@@ -127,6 +127,8 @@ def crear_gantt_vehiculos(nombre_grafico, vehiculos, horizonte):
 
     return diagrama
 
+
+
 # Diccionario para almacenar los colores de cada técnico
 colores_tecnicos = {}
 
@@ -137,7 +139,7 @@ def agregar_proceso(nombre_grafico, t0, duracion, vehiculo, nombre, tecnico, col
         print(f"Error: El gráfico '{nombre_grafico}' no existe.")
         return
 
-    tecnicos = diagrama["tecnicos"]
+    vehiculos = diagrama["vehiculos"]
     gantt = diagrama["ejes"]
     hbar = diagrama["hbar"]
 
@@ -148,10 +150,10 @@ def agregar_proceso(nombre_grafico, t0, duracion, vehiculo, nombre, tecnico, col
             color = (rdm.uniform(0, 0.7), rdm.uniform(0, 0.7), rdm.uniform(0, 0.7))
         colores_tecnicos[tecnico] = color
 
-    ind_tec = tecnicos.index(vehiculo)
-    gantt.broken_barh([(t0, duracion)], (hbar * ind_tec, hbar), facecolors=color)
-    gantt.text(x=t0 + duracion / 2, y=hbar * ind_tec + hbar / 2, 
-               s=f'{nombre}\n{duracion}"\n({tecnico})', 
+    ind_veh = vehiculos.index(vehiculo)
+    gantt.broken_barh([(t0, duracion)], (hbar * ind_veh, hbar), facecolors=color)
+    gantt.text(x=t0 + duracion / 2, y=hbar * ind_veh + hbar / 2, 
+               s=f'{nombre}\n{duracion}\n({tecnico})', 
                va="center", ha="center", color="w", fontsize=6)
     
 

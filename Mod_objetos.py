@@ -57,7 +57,7 @@ victor_calidad      = Mod_programador.Tecnico('Tcal01','VICTOR', 'calidad')
 
 #ejemplos de objetos vehículos únicos.
 lista_vehiculos = CRUD.leer_vehiculos()
-print(lista_vehiculos[0])
+#print(lista_vehiculos[0])
 
 lista_objetos_vehiculos = []
 for vehiculo in lista_vehiculos:
@@ -111,7 +111,12 @@ pedido_quito06 = Mod_clases.Pedido(
 
 
 
-#Mod_programador.programa_completo(pedido_quito06, Mod_programador.personal, 4000)
-#horizonte_calculado = Mod_programador.calcular_horizonte(pedido_quito06)
+Mod_clases.programa_inmediato(pedido_quito06, Mod_clases.personal, 10000, "2024-10-09", "12:57:00")
+horizonte_calculado = Mod_clases.calcular_horizonte(pedido_quito06)
 
-#print(f"el horizonte es {Mod_programador.calcular_horizonte(pedido_quito06)}")
+print(f"el horizonte es {Mod_clases.calcular_horizonte(pedido_quito06)}")
+
+for vehiculo in pedido_quito06.vehiculos:
+    print(vehiculo.id_chasis)
+    for estado in vehiculo.historico_estados:
+        print(estado)

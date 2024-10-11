@@ -282,7 +282,7 @@ def leer_modelos():
     cursor.execute('SELECT * FROM modelos_vehiculos;')
     todosRegistros = cursor.fetchall()
     los_modelos = [(registro[0], registro[1]) for registro in todosRegistros]
-    print(los_modelos)
+    #print(los_modelos)
 
     conn.close()
     return los_modelos
@@ -327,7 +327,7 @@ def leer_tiempos():
 
     cursor.execute('SELECT * FROM modelos_vehiculos')
     registros = list(cursor.fetchall())
-    print(registros)
+    #print(registros)
 
     conn.close()
     return registros
@@ -372,7 +372,7 @@ def leer_vehiculos():
 
     cursor.execute('SELECT * FROM vehiculos')
     registros = cursor.fetchall()
-    print(registros)
+    #print(registros)
 
     conn.close()
     return registros
@@ -430,7 +430,6 @@ def eliminar_vehiculo(chasis):
     finally:
         conn.close()
 
-
 ###########################################################################
 ############################# CRUD PARA TECNICOS ##########################
 ###########################################################################
@@ -470,7 +469,7 @@ def leer_tecnicos():
     cursor.execute('SELECT * FROM tecnicos;')
     todosRegistros = cursor.fetchall()
     los_tecnicos = [(registro[0], registro[1], registro[2]) for registro in todosRegistros]
-    print(los_tecnicos)
+    #print(los_tecnicos)
 
     conn.close()
     return los_tecnicos
@@ -572,7 +571,7 @@ def eliminar_ordenes_todas():
 #print(leer_ordenes_todas())
 
 #eliminar_ordenes_todas()
-
+#eliminar_vehiculo("OOO11111")
 
 """
 #Ejemplos de técnicos
