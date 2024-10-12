@@ -1,7 +1,11 @@
 import tkinter as tk
-from tkinter import ttk
+#from tkinter import ttk
+from tkcalendar import Calendar
+from tkinter import simpledialog
+import time
 from estilos import grisAzuladoClaro, grisAzuladoMedio, grisAzuladoOscuro, grisMedio, grisOscuro, textoGrande, naranjaOscuro, blancoFrio, amarilloClaro, amarilloMedio, azulOscuro, moradoOscuro, moradoClaro, texto1Bajo, numerosMedianos, naranjaMedio, blancoHueso, azulMedio, moradoMedio, amarilloOscuro, grisVerdeMedio
-
+import datetime
+import re
 
 ######################################################################################################
 ################################### VENTANA PARA AGREGAR Y EDITAR MODELOS ############################
@@ -138,6 +142,7 @@ class VentanaGestionaPedido():
         self.frameEntradas = tk.Frame(self.rootAux, bg=grisAzuladoMedio)
         self.frameEntradas.pack(expand=True, side="bottom", fill="both", pady=10)
 
+        self.varChasis = tk.StringVar() 
         self.varChasis = tk.StringVar() 
         self.varFecha = tk.StringVar() 
         self.varMarca = tk.StringVar()
@@ -288,4 +293,96 @@ class VentanaGestionaPedido():
         self.buttonAgregar.configure(command =funcionAgregar)
         self.buttonCancelar.configure(command =funcionCancelar)
 
+        self.rootAux.mainloop()
+
+
+
+
+
+class EstableceFechaHora():
+    def __init__(self):
+        self.rootAux = tk.Toplevel()
+        self.rootAux.title("Iniciar programa")
+        self.rootAux.config(bg = grisAzuladoMedio)
+        self.rootAux.iconbitmap("logo5.ico")
+        self.rootAux.geometry("300x300")
+        self.rootAux.resizable(False, False)
+
+        self.frameTitulo = tk.Frame(self.rootAux, bg=grisAzuladoMedio)
+        self.frameTitulo.pack(expand=True, side="top", fill="both")
+        self.frameEntradas = tk.Frame(self.rootAux, bg=grisAzuladoMedio)
+        self.frameEntradas.pack(expand=True, side="bottom", fill="both", pady=10)
+
+
+        self.labelTitulo   = tk.Label(self.frameTitulo, text = "Iniciar programa en", font = textoGrande, bg = grisAzuladoMedio, fg = blancoFrio)
+        self.labelTitulo.pack(expand=True, side="top", fill="x", padx=20, pady=20)
+        self.labelFecha    = tk.Label(self.frameEntradas, text = "FECHA", font = texto1Bajo, bg = grisAzuladoMedio, fg = blancoFrio, anchor="w")
+        self.labelFecha.grid(row=1,column=0, sticky="ew", padx=20, pady=5)
+        self.labelHora   = tk.Label(self.frameEntradas, text = "HORA", font = texto1Bajo, bg = grisAzuladoMedio, fg = blancoFrio, anchor="w")
+        self.labelHora.grid(row=2,column=0, sticky="ew", padx=20, pady=5)
+
+
+        self.varFecha = tk.StringVar() 
+        self.varHora = tk.StringVar()
+        self.entryFecha = tk.Entry   (self.frameEntradas, font = numerosMedianos, bg = grisAzuladoClaro, fg = blancoFrio, width=20, textvariable=self.varFecha) 
+        self.entryHora = tk.Entry   (self.frameEntradas, font = numerosMedianos, bg = grisAzuladoClaro, fg = blancoFrio, width=20, textvariable=self.varHora,
+                                     validate='focusout', validatecommand=(self.rootAux.register(self.validar_hora), '%P'))  # %P es el valor propuesto
+        self.entryFecha.grid (row=1 ,column=1, sticky="ew", pady=5)
+        self.entryHora.grid (row=2 ,column=1, sticky="ew", pady=5)
+        self.entryFecha.bind("<Button-1>", self.mostrar_calendario)
+        self.entryHora.bind("<Button-1>", self.seleccionar_hora)
+
+        self.buttonCancelar = tk.Button(self.frameEntradas, text="Cancelar", font = texto1Bajo,  bg = naranjaMedio, fg = blancoHueso,  command="")   
+        self.buttonAceptar  = tk.Button(self.frameEntradas, text="Aceptar",  font = textoGrande, bg = azulMedio, fg = blancoFrio,  command="")
+        self.buttonCancelar.grid(row=3, column=0, padx=22, pady=10)  
+        self.buttonAceptar.grid(row=3, column=1, padx=22, pady=10)
+
+        self.llenar_hora_actual()
+
+    def mostrar_calendario(self, event):
+        #Muestra un calendario para seleccionar la fecha
+        top = tk.Toplevel(self.rootAux)
+        top.grab_set()
+        cal = Calendar(top, selectmode='day', date_pattern="yyyy-mm-dd")
+        cal.pack(pady=20)
+
+        def seleccion_fecha():
+            self.varFecha.set(cal.get_date())
+            top.destroy()
+
+        btnSeleccionar = tk.Button(top, text="Seleccionar", command=seleccion_fecha)
+        btnSeleccionar.pack()
+
+    def llenar_hora_actual(self):
+        #Prellena el Entry de hora con la hora actual en formato HH:MM
+        self.varHora.set(datetime.datetime.now().strftime("%H:%M:%S"))
+
+
+
+    def seleccionar_hora(self, event):
+        #Despliega una ventana para seleccionar la hora
+        hora = simpledialog.askstring("Seleccionar Hora", "Ingrese la hora (HH:MM:SS):", parent=self.rootAux)
+        if self.validar_hora(hora):
+            self.varHora.set(hora)
+        else:
+            tk.messagebox.showerror("Error", "Formato de hora inválido. Use HH:MM:SS")
+
+
+    def validar_hora(self, valor_propuesto):        #Valida que el formato de la hora sea HH:MM. Retorna True si es válido, False de lo contrario.
+
+        if re.fullmatch(r'([01]\d|2[0-3]):([0-5]\d):([0-5]\d)', valor_propuesto):
+            return True
+        elif valor_propuesto == "":
+            # Permitir que el campo esté vacío si el usuario lo elimina
+            return True
+        else:
+            tk.messagebox.showerror("Error de validación", "Formato de hora inválido. Use HH:MM:SS (24 horas).")
+            return False
+
+
+    def asignaFuncion(self, funcionAceptar, funcionCancelar):
+        self.buttonAceptar.configure(command = funcionAceptar)
+        self.buttonCancelar.configure(command = funcionCancelar)
+
+     
         self.rootAux.mainloop()

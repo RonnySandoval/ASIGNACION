@@ -5,11 +5,11 @@ import  eventos as eventos
 import  re
 import  dicc_variables
 from    estilos import *
-import  Mod_clases
-import  Mod_objetos
-import  Graficador
-import  ventanas_emergentes
-import  menu
+#import  Mod_clases
+#import  Mod_objetos
+#import  graficaGantt
+#import  ventanas_emergentes
+#import  menu
 
 
 class ContenidoTecnicos():

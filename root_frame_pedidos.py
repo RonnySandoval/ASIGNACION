@@ -2,14 +2,14 @@ import  tkinter as tk
 from    tkinter import ttk
 import  CRUD as CRUD
 import  eventos as eventos
-import  re
-import  dicc_variables
+#import  re
+#import  dicc_variables
 from    estilos import *
 import  Mod_clases
 import  Mod_objetos
-import  Graficador
+import  graficaGantt
 import  ventanas_emergentes
-import  menu
+#import  menu
 
 
 
@@ -148,11 +148,11 @@ class TablaPedido():
         self.llenarTabla()
 
         #Botones de programar pedido
-        self.botonProgramarTodo = tk.Button(contenedor ,text="Programar TODO", font=textoGrande, bg=naranjaMedio, fg=blancoHueso, command=self.programar_todo)
+        self.botonProgramarTodo = tk.Button(contenedor ,text="Programar TODO", font=textoGrande, bg=naranjaMedio, fg=blancoHueso, command=lambda:self.programar_todo("completo"))
         self.botonProgramarTodo.pack()
 
     #Botones de programar pedido
-        self.botonProgramarInmediato = tk.Button(contenedor, text="Programar INMEDIATO", font=textoGrande, bg=naranjaMedio, fg=blancoHueso, command=self.programar_inmediato)
+        self.botonProgramarInmediato = tk.Button(contenedor, text="Programar INMEDIATO", font=textoGrande, bg=naranjaMedio, fg=blancoHueso, command=lambda:self.programar_inmediato("inmediato"))
         self.botonProgramarInmediato.pack()        
    
    
@@ -239,29 +239,11 @@ class TablaPedido():
 
 
 
-    def programar_todo(self):
-        #########GENERAR PROGRAMACIÓN############
-        Mod_clases.programa_completo(Mod_objetos.pedido_quito06, Mod_clases.personal, 4000)
-        horizonte_calculado = Mod_clases.calcular_horizonte(Mod_objetos.pedido_quito06)
-        print(f"el horizonte es {horizonte_calculado}")
-       
-        #GRAFICAR PROGRAMACIÓN EN GANTT##########
-        Graficador.generar_gantt_tecnicos(Mod_clases.personal,horizonte_calculado)
-        Graficador.generar_gantt_vehiculos(Mod_objetos.pedido_quito06,horizonte_calculado)
-
-        programa = "programar_todo"
-        ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel(programa))
+    def programar_todo(self, tipoPrograma):
+        eventos.abrirFechayHora(tipoPrograma)
+        ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel("programar_todo"))
 
 
-    def programar_inmediato(self):
-        #########GENERAR PROGRAMACIÓN############
-        Mod_clases.programa_inmediato(Mod_objetos.pedido_quito06, Mod_clases.personal, 4000, fechaStart="2024-10-09", horaStar="08:00")
-        horizonte_calculado = Mod_clases.calcular_horizonte(Mod_objetos.pedido_quito06)
-        print(f"el horizonte es {horizonte_calculado}")
-
-        #GRAFICAR PROGRAMACIÓN EN GANTT##########
-        Graficador.generar_gantt_tecnicos(Mod_clases.personal,horizonte_calculado)
-        Graficador.generar_gantt_vehiculos(Mod_objetos.pedido_quito06,horizonte_calculado)
-
-        programa = "programar_inmediato"
-        ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel(programa))
+    def programar_inmediato(self, tipoPrograma):
+        eventos.abrirFechayHora(tipoPrograma)
+        ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel("programar_inmediato"))

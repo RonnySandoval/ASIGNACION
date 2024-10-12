@@ -3,6 +3,7 @@ import CRUD
 
 # Instancias de todos lo modelos actuales de la planta
 
+
 ALTIMA = Mod_clases.VehiculoBase('ALTIMA', 'NISSAN')
 FRONTIER = Mod_clases.VehiculoBase('FRONTIER', 'NISSAN')
 KICKS = Mod_clases.VehiculoBase('KICKS', 'NISSAN')
@@ -109,10 +110,10 @@ pedido_quito06 = Mod_clases.Pedido(
                         )
 
 
+#horizonte_calculado = Mod_clases.calcular_horizonte(pedido_quito06)
+""""
+Mod_clases.programa_completo(pedido_quito06, Mod_clases.personal, 10000, "2024-10-08", "12:57:00")
 
-
-Mod_clases.programa_inmediato(pedido_quito06, Mod_clases.personal, 10000, "2024-10-09", "12:57:00")
-horizonte_calculado = Mod_clases.calcular_horizonte(pedido_quito06)
 
 print(f"el horizonte es {Mod_clases.calcular_horizonte(pedido_quito06)}")
 
@@ -120,3 +121,4 @@ for vehiculo in pedido_quito06.vehiculos:
     print(vehiculo.id_chasis)
     for estado in vehiculo.historico_estados:
         print(estado)
+"""

@@ -5,7 +5,7 @@ import  eventos as eventos
 import  re
 import  dicc_variables
 from    estilos import *
-import  menu
+#import  menu
 
 class ContenidoVehiculos():
 

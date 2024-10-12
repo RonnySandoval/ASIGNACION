@@ -4,12 +4,13 @@ import CRUD
 import dicc_variables
 import ventanas_auxiliares
 import ventanas_emergentes
+import Mod_clases, Mod_objetos
+import graficaGantt
 
 def crear_modelo():
     print("pusó el botón crear modelo")
     ventana = ventanas_auxiliares.VentanaCreaEdita("CREAR")
     ventana.asignafuncionBoton(lambda:guardar_modelo(ventana), lambda:cancelar(ventana))
-
 
 def guardar_modelo(ventana):
     print(ventana)
@@ -47,7 +48,6 @@ def agregarVH_pedido(ventana):
     CRUD.insertar_vehiculo(*datos)
     ventana.rootAux.destroy()
 
-
 def modificarVH_en_BBDD(ventana, chasis_anterior):
     #Se recogen los datos de la fila
     datos = (ventana.varChasis.get(),
@@ -72,7 +72,6 @@ def modificarVH_en_BBDD(ventana, chasis_anterior):
     CRUD.modificar_vehiculo(datos, chasis_anterior)
     ventana.rootAux.destroy()
 
-
 def recoger_datos_modelo(filaBoton):
     #extraer el numero dela fila
     fila = re.search(r'(\d+)$', filaBoton).group(1)
@@ -87,10 +86,8 @@ def recoger_datos_modelo(filaBoton):
     print(tiempos)
     return [marca, modelo] + tiempos
 
-
 def recoger_datos_vehiculo(id_chasis):
     return CRUD.leer_vehiculo(id_chasis)
-
 
 def editar_modelo(botonPulsado):
     print(recoger_datos_modelo(botonPulsado))
@@ -98,7 +95,6 @@ def editar_modelo(botonPulsado):
     ventana = ventanas_auxiliares.VentanaCreaEdita("EDITAR")
     ventana.set_values(datos)
     ventana.asignafuncionBoton(lambda:guardar_modelo(ventana), lambda:cancelar(ventana))
-
 
 def modificar_vehiculo_pedido(chasis_anterior):
     ventana = ventanas_auxiliares.VentanaGestionaPedido("MODIFICAR")
@@ -120,14 +116,46 @@ def agregar_a_pedido(botonPulsado):
     ventana.asignafuncionBoton(lambda:agregarVH_pedido(ventana), lambda:cancelar(ventana))
     ventana.rootAux.destroy()
 
-
 def cancelar(ventana):
     ventana.rootAux.destroy()
-
 
 def leepedidoBBDD():
     return CRUD.leer_vehiculos()
 
 
+
+
+def abrirFechayHora(tipoPrograma):
+    ventana = ventanas_auxiliares.EstableceFechaHora()
+    ventana.asignaFuncion(lambda:aceptarFechayHora(ventana, tipoPrograma), lambda:cancelar(ventana))
+    
+def aceptarFechayHora(ventana, tipoPrograma):
+    fecha = ventana.varFecha.get()
+    hora = ventana.varHora.get()
+    print(f"Fecha: {fecha}, Hora: {hora}")
+    ventana.rootAux.destroy()
+    
+    if tipoPrograma == "completo":
+        Mod_clases.programa_completo(Mod_objetos.pedido_quito06, Mod_clases.personal, 4000, fecha, hora)
+        horizonte_calculado = Mod_clases.calcular_horizonte(Mod_objetos.pedido_quito06)
+        print(f"el horizonte es {horizonte_calculado}")
+
+        #GRAFICAR PROGRAMACIÓN EN GANTT##########
+        graficaGantt.generar_gantt_tecnicos(Mod_clases.personal, fecha, hora, horizonte_calculado=horizonte_calculado)
+        graficaGantt.generar_gantt_vehiculos(Mod_objetos.pedido_quito06, fecha, hora, horizonte_calculado=horizonte_calculado)
+    
+    if tipoPrograma == "inmediato":
+        Mod_clases.programa_inmediato(Mod_objetos.pedido_quito06, Mod_clases.personal, 4000, fecha, hora)
+        horizonte_calculado = Mod_clases.calcular_horizonte(Mod_objetos.pedido_quito06)
+        print(f"el horizonte es {horizonte_calculado}")
+
+        #GRAFICAR PROGRAMACIÓN EN GANTT##########
+        graficaGantt.generar_gantt_tecnicos(Mod_clases.personal, fecha, hora, horizonte_calculado=horizonte_calculado)
+        graficaGantt.generar_gantt_vehiculos(Mod_objetos.pedido_quito06, fecha, hora, horizonte_calculado=horizonte_calculado)
+
 def nombraArchivoExcel(programa):
     return programa + 'Numero__' + '.xlsx'
+
+
+
+

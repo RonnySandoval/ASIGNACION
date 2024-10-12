@@ -1,5 +1,5 @@
 import  tkinter as tk
-from    tkinter import ttk
+#from    tkinter import ttk
 from    estilos import *
 import  menu_principal
 import root_frame_vehiculos as frameVh

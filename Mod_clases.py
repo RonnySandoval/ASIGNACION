@@ -87,6 +87,7 @@ def buscar_tiempo(modelo, proceso):         #Devuelve el tiempo de un solo proce
 def buscar_tiempos(modelo):     #Devuelve una lista con los tiempos de todos los procesos para un modelo dado.
     return tiempos.get(modelo)
 
+
 class VehiculoBase:             # Son los tipos de vehiculos, es decir los modelos, con sus tiempos de proceso
     def __init__(self, modelo, marca):
         self.modelo = modelo
@@ -98,6 +99,7 @@ class VehiculoBase:             # Son los tipos de vehiculos, es decir los model
 
     def __repr__(self):
         return f"Marca: {self.marca}, Modelo: {self.modelo}, Tiempos {self.tiempos_proceso} \n"    #formato de impresión para cada modelo de vehículo
+
 
 class Vehiculo(VehiculoBase):               #Es cada vehiculo único que pasa por los procesos de la planta
     def __init__(self, id_chasis, modelo, marca, color, pedido,  fecha, estado='SIN PROCESAR', novedades = "NO"):
@@ -146,8 +148,7 @@ class Vehiculo(VehiculoBase):               #Es cada vehiculo único que pasa po
                 tiempos: {self.tiempos_proceso},
                 Resumen: {self.historico_estados},
                 Plazo: {self.plazo} \n"""
-
-    
+ 
 
 personal = []
 class Tecnico:                                  # Es cada técnico con nombre e ID
@@ -266,7 +267,6 @@ class Tecnico:                                  # Es cada técnico con nombre e 
                  Asignaciones: {self.historico_asignacion})
                  Libre en : {self.libre}
                  \n"""
-    
 
 
 class Pedido:
@@ -335,8 +335,9 @@ class OrdenProduccion:
     def __repr__(self):
         return f"Orden: {self.codigo_orden}, Chasis: {self.chasis},Modelo: {self.modelo}, Marca: {self.marca}, Color: {self.color}, Proceso: {self.proceso}, Id_tecnico: {self.id_tecnico} Tecnico: {self.nombre_tecnico}, Pedido(ID: {self.id_pedido}, Inicio: {self.inicio}, Fin: {self.fin}, Duración: {self.duracion}, Fecha Entrega: {self.plazo}"
 
+
 ######################################################################################################
-#########################################METODOS ESTATICOS############################################
+######################################### METODOS ESTATICOS ##########################################
 ######################################################################################################
 listaOrdenes = []
 def programa_inmediato(pedido, tecnicos, horizonte, fechaStart, horaStart):
@@ -516,10 +517,10 @@ def programa_completo(pedido, tecnicos, horizonte, fechaStart, horaStart):
             print(f"No se asignó {vehiculo_min_time.id_chasis}")
 
         if vehiculo_min_time.estado == 'calidad':
-            vehiculos_por_programar.remove(vehiculo_min_time)        #REMOVEMOS DE LA LISTA EL VEHICULO QUE SE ACABA DE ASIGNAR
+            vehiculos_por_programar.remove(vehiculo_min_time)        #REMOVEMOS DE LA LISTA EL VEHICULO QUE TERMINÓ TODOS LOS PROCESOS
             continue             
         
-        vehiculos_por_programar.remove(vehiculo_min_time)        #REMOVEMOS DE LA LISTA EL VEHICULO QUE SE ACABA DE ASIGNAR               
+         
         print(f"--------------------------vuelta {contador}")
 
 
