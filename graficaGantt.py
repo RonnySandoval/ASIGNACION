@@ -1,5 +1,5 @@
 from Mod_clases import personal
-from Mod_objetos import pedido_quito06, horizonte_calculado
+from Mod_objetos import pedido_quito06
 import gantt
 import datetime
 import fechahora

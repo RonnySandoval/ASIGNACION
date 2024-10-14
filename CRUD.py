@@ -312,11 +312,11 @@ def leer_tiempo(modeloVehiculo,indiceColumna):
     cursor.execute('SELECT * FROM modelos_vehiculos WHERE modelo=?',(el_modelo,))
     registro = cursor.fetchone()
     print(registro)
-    tiemposIndiv = registro[indiceColumna]
-    print(tiemposIndiv)
+    tiemposIndividuales = registro[indiceColumna]
+    print(tiemposIndividuales)
 
     conn.close()
-    return tiemposIndiv
+    return tiemposIndividuales
 
 
 def leer_tiempos():

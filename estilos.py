@@ -24,8 +24,8 @@ numerosMuyPequeños = ("Arial Narrow", 8)
 
 # Colores
 grisOscuro = "#272727"
-grisAzuladoClaro="#566f9A"
 grisAzuladoMedio="#445879"
+grisAzuladoClaro="#566f9A"
 
 grisAzuladoOscuro="#3F4B5E"
 grisMedio  = "#575757"
@@ -54,3 +54,67 @@ azulOscuro = "#00619C"
 naranjaClaro  = "#FF9F6B"
 naranjaMedio  = "#DB5D18"
 naranjaOscuro = "#C53600"
+
+rojoClaro ="#ff8a8a"
+rojoMedio ="#ff0000"
+rojoOscuro ="#9c0000"
+
+azul = {
+    "titulo":blancoCalido,
+     "texto":blancoCalido,
+     "fondo":grisAzuladoOscuro,
+     "label":grisAzuladoOscuro,
+     "entry":grisAzuladoMedio,
+     "boton1":azulClaro,
+     "boton2":rojoClaro
+     }
+
+gris = {
+    "titulo":blancoHueso,
+     "texto":blancoHueso,
+     "fondo":grisOscuro,
+     "label":grisOscuro,
+     "entry":grisMedio,
+     "boton1":azulMedio,
+     "boton2":rojoMedio
+     }
+
+azulgris = {
+    "titulo":blancoHueso,
+     "texto":blancoHueso,
+     "fondo":grisMedio,
+     "label":grisMedio,
+     "entry":grisAzuladoMedio,
+     "boton1":azulClaro,
+     "boton2":naranjaMedio
+     }
+
+morado = {
+    "titulo":blancoFrio,
+     "texto":blancoFrio,
+     "fondo":moradoOscuro,
+     "label":moradoOscuro,
+     "entry":moradoMedio,
+     "boton1":moradoClaro,
+     "boton2":amarilloClaro
+     }
+
+verde = {
+    "titulo":blancoFrio,
+     "texto":blancoFrio,
+     "fondo":grisVerdeOscuro,
+     "label":grisVerdeOscuro,
+     "entry":grisVerdeMedio,
+     "boton1":grisVerdeClaro,
+     "boton2":naranjaMedio
+     }
+
+amarillo = {
+    "titulo":blancoHueso,
+     "texto":blancoHueso,
+     "fondo":grisOscuro,
+     "label":grisOscuro,
+     "entry":amarilloOscuro,
+     "boton1":amarilloClaro,
+     "boton2":grisVerdeMedio
+     }

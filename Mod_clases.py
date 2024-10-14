@@ -88,14 +88,24 @@ def buscar_tiempos(modelo):     #Devuelve una lista con los tiempos de todos los
     return tiempos.get(modelo)
 
 
+
+
 class VehiculoBase:             # Son los tipos de vehiculos, es decir los modelos, con sus tiempos de proceso
     def __init__(self, modelo, marca):
         self.modelo = modelo
         self.marca = marca
         self.tiempos_proceso = buscar_tiempos(modelo)
+        self.estado_inicial = {'modelo': modelo,
+                               'marca': marca,}
 
-    def obtener_tiempo_proceso(self, proceso):      #Obtiene el tiempo del proceso en cuestion para ese objeto vehiculo
+    def obtener_tiempo_proceso(self, proceso):          #Obtiene el tiempo del proceso en cuestion para ese objeto vehiculo
         return buscar_tiempo(self.modelo, proceso)
+
+    def reset(self):
+        for key, value in self.estado_inicial.items():
+            setattr(self, key, value)
+
+        self.tiempos_proceso = buscar_tiempos(self.modelo)
 
     def __repr__(self):
         return f"Marca: {self.marca}, Modelo: {self.modelo}, Tiempos {self.tiempos_proceso} \n"    #formato de impresión para cada modelo de vehículo
@@ -117,11 +127,31 @@ class Vehiculo(VehiculoBase):               #Es cada vehiculo único que pasa po
         self.plazo = None
         self.historico_estados = []  # Guarda la historia de estado, el técnico que atendió cada proceso y sus momentos de inicio y fin de proceso
 
+        self.estado_inicial = {**self.estado_inicial,  # Estado inicial de la superclase
+                               'color': color,
+                               'fecha_entrega': fecha,
+                               'id_chasis': id_chasis,
+                               'pedido': pedido,
+                               'estado': estado,
+                               'novedades': novedades,
+                               'inicio': 0,
+                               'fin': 0,
+                               'tecnico_actual': None,
+                               'libre': None,
+                               'plazo': None,
+                               'historico_estados': []}
+
+    def reset(self):
+        # Ahora restauramos los atributos específicos de Vehiculo
+        super().reset()
+        for key, value in self.estado_inicial.items():
+            setattr(self, key, value)
+
     def avanzar_estado(self, tecnico, bloques):
         # Avanza al siguiente estado del vehículo en el proceso secuencial;
         #solo puede avanzar el estado si se especifica el técnico que lo atenderá
 
-        if bloques == None:
+        if bloques is None:
             siguiente_estado = orden_procesos[orden_procesos.index(self.estado) + 1]      #Obtiene el siguiente estado o proceso de la secuencia
             self.estado = siguiente_estado
             return
@@ -151,7 +181,7 @@ class Vehiculo(VehiculoBase):               #Es cada vehiculo único que pasa po
  
 
 personal = []
-class Tecnico:                                  # Es cada técnico con nombre e ID
+class Tecnico():                                  # Es cada técnico con nombre e ID
     
     def __init__(self, id_tecnico, nombre, especializacion):
 
@@ -167,6 +197,16 @@ class Tecnico:                                  # Es cada técnico con nombre e 
                 self.libre = None
                 self.vehiculo_actual = None
                 self.historico_asignacion = []
+                self.estado_inicial = {         # Guardar el estado inicial
+                    'id_tecnico': id_tecnico,
+                    'nombre': nombre,
+                    'especializacion': especializacion,
+                    'comienza': 0,
+                    'termina': 0,
+                    'libre': None,
+                    'vehiculo_actual': None,
+                    'historico_asignacion': []
+                }
             else:
                 print(f"Técnico con ID {id_tecnico} ya está en la lista.")
                 return
@@ -180,11 +220,23 @@ class Tecnico:                                  # Es cada técnico con nombre e 
             self.libre = None
             self.vehiculo_actual = None
             self.historico_asignacion = []
+            self.estado_inicial = {         # Guardar el estado inicial
+                'id_tecnico': id_tecnico,
+                'nombre': nombre,
+                'especializacion': especializacion,
+                'comienza': 0,
+                'termina': 0,
+                'libre': None,
+                'vehiculo_actual': None,
+                'historico_asignacion': []
+            }
         
         personal.append(self)        
         #print(f"se agregó {id_tecnico}")
 
-
+    def reset(self):
+        for key, value in self.estado_inicial.items():
+            setattr(self, key, value)
 
 
     def asignar_vehiculo(self, vehiculo, fechaStart, horaStart):          # Asigna el vehículo al técnico que se pasa por parámetro,
@@ -275,9 +327,20 @@ class Pedido:
         self.plazo_entrega = plazo_entrega
         self.vehiculos = vehiculos
         self.estado = estado
+
+        self.estado_inicial ={
+            "id_pedido" : id_pedido,
+            "plazo_entrega" : plazo_entrega,
+            "vehiculos" : vehiculos,
+            "estado" : estado
+        }
         for vehiculo in vehiculos:
             vehiculo.fecha = plazo_entrega
     
+    def reset(self):
+        for key, value in self.estado_inicial.items():
+            setattr(self, key, value)
+
     def cambia_estado():
         pass
 
