@@ -1,6 +1,7 @@
 import sqlite3
 import pandas as pd
 import os
+import ventanas_emergentes as ventEmerg
 #from planta import modelos, marcas, tiempos
 
 ###########################################################################
@@ -32,7 +33,7 @@ def eliminar_tabla(bbdd, nombre_tabla):
 
 
 ###########################################################################
-############################# CRUD PARA MODELOS ###########################
+############################# PARA PARA INSERTAR ###########################
 ###########################################################################
 
 def insertar_proceso(bbdd, id, proceso, descripcion):
@@ -48,7 +49,7 @@ def insertar_proceso(bbdd, id, proceso, descripcion):
         print("Registro añadido")
         
     except sqlite3.Error as e:
-        print(f"Error al insertar el registro: {e}")
+        print(f"Error al insertar el proceso: {e}")
 
     except UnboundLocalError as e:
         print(f"No se llenaron todos los campos: {e}") 
@@ -69,7 +70,7 @@ def insertar_modelo(bbdd, id, marca, modelo):
         print("Registro añadido")
         
     except sqlite3.Error as e:
-        print(f"Error al insertar el registro: {e}")
+        print(f"Error al insertar el modelo: {e}")
 
     except UnboundLocalError as e:
         print(f"No se llenaron todos los campos: {e}") 
@@ -90,14 +91,13 @@ def insertar_tiempo_modelo(bbdd, procmodel, id_proceso, id_modelo, tiempo):
         print("Registro añadido")
         
     except sqlite3.Error as e:
-        print(f"Error al insertar el registro: {e}")
+        print(f"Error al insertar el tiempo: {e}")
 
     except UnboundLocalError as e:
         print(f"No se llenaron todos los campos: {e}") 
 
     finally:
         conn.close()
-
 
 def insertar_tecnico(bbdd, id, nombre, apellido, especialidad):
     try:
@@ -120,14 +120,89 @@ def insertar_tecnico(bbdd, id, nombre, apellido, especialidad):
     finally:
         conn.close()
 
+def insertar_vehiculo(bbdd, chasis, fecha_ingreso, id_modelo, color, estado, novedades, subcontratar, id_pedido):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
 
+        if all(item is not None for item in (chasis, id_modelo, color, estado, id_pedido,)):
+            
+            insert_data_script = """INSERT INTO vehiculos 
+                                    (CHASIS, FECHA_INGRESO, ID_MODELO, COLOR, ESTADO, NOVEDADES, SUBCONTRATAR, ID_PEDIDO)
+                                    VALUES  (?, ?, ?, ?, ?, ?, ?, ?)
+                                """
+            
+        cursor.execute(insert_data_script, (chasis, fecha_ingreso, id_modelo, color, estado, novedades, subcontratar, id_pedido))
+        conn.commit()
+        print("Registro añadido")
+        
+    except sqlite3.Error as e:
+        print(f"Error al insertar el vehículo: {e}")
+
+    except UnboundLocalError as e:
+        print(f"No se llenaron todos los campos: {e}") 
+
+    finally:
+        conn.close()
+
+def insertar_tiempo_vehiculo(bbdd, procvehi, id_proceso, chasis, tiempo):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()          
+        insert_data_script = """INSERT INTO TIEMPOS_VEHICULOS
+                                    (PROCESO_CHASIS, ID_PROCESO, CHASIS, TIEMPO)
+                                    VALUES (?, ?, ?, ?)
+                                """
+        cursor.execute(insert_data_script, (procvehi, id_proceso, chasis, tiempo))
+        conn.commit()
+        print("Registro añadido")
+        
+    except sqlite3.Error as e:
+        print(f"Error al insertar el tiempo: {e}")
+
+    except UnboundLocalError as e:
+        print(f"No se llenaron todos los campos: {e}") 
+
+    finally:
+        conn.close()
+
+def insertar_pedido(bbdd, id_pedido, cliente, fecha_recepcion, entrega_estimada, fecha_entrega):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()          
+        insert_data_script = """INSERT INTO TECNICOS 
+                                    (ID_PEDIDO, CLIENTE, FECHA_RECEPCION, ENTREGA_ESTIMADA, FECHA_ENTREGA)
+                                    VALUES (?, ?, ?, ?)
+                                """
+        cursor.execute(insert_data_script, (id, id_pedido, cliente, fecha_recepcion, entrega_estimada, fecha_entrega))
+        conn.commit()
+        print("Registro añadido")
+        
+    except sqlite3.Error as e:
+        print(f"Error al insertar el pedido: {e}")
+
+    except UnboundLocalError as e:
+        print(f"No se llenaron todos los campos: {e}") 
+
+    finally:
+        conn.close()
+
+
+
+###########################################################################
+############################ PARA PARA LEER ###############################
+###########################################################################
 
 def leer_procesos(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()          
-        cursor.execute("SELECT * FROM PROCESOS")
+        cursor.execute("SELECT NOMBRE FROM PROCESOS ")
         datos = cursor.fetchall()
+        registros =[]
+        for tupla in datos:             #ciclo para desempaquetar el formato de tuplas que arroja la lectura
+            nombreProceso = tupla[0]
+            registros.append(nombreProceso)
         conn.commit()
         
     except sqlite3.Error as e:
@@ -135,7 +210,7 @@ def leer_procesos(bbdd):
 
     finally:
         conn.close()
-        return datos
+        return registros
 
 def leer_modelos(bbdd):
     try:
@@ -152,8 +227,6 @@ def leer_modelos(bbdd):
         conn.close()
         return datos
     
-
-
 def leer_tecnicos(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
@@ -167,7 +240,6 @@ def leer_tecnicos(bbdd):
         conn.close()
     
     return datos
-
 
 def leer_tecnicos_modificado(bbdd):
     try:
@@ -191,6 +263,24 @@ def leer_tecnicos_modificado(bbdd):
     
     return datos_modificados
 
+def leer_vehiculo(bbdd, chasis):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+
+        vehiculo = chasis
+        cursor.execute('SELECT * FROM vehiculos WHERE CHASIS=?', (vehiculo,))
+        registro = cursor.fetchone()
+        print(registro)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer el vehiculo: {e}")
+        datos_modificados = []  # Inicializar como lista vacía en caso de error
+
+    finally:
+        conn.close()
+
+    return registro
 
 
 
@@ -204,7 +294,6 @@ def calcula_tecnicos(bbdd):
 
     conn.close()
     return numero_registros
-
 
 def calcula_modelos(bbdd):
 
@@ -228,14 +317,45 @@ def calcula_procesos(bbdd):
     conn.close()
     return numero_registros
 
-print(calcula_procesos('planta_manta.db'))
 
 
+def obtener_id_modelo(bbdd, modelo):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+        
+        # Obtener el ID_MODELO usando un parámetro
+        cursor.execute("SELECT DISTINCT ID_MODELO FROM MODELOS WHERE MODELO=?", (modelo,))
+        id_modelo = cursor.fetchone()  # devuelve una tupla o None si no hay resultados
+        conn.commit()
 
+    except sqlite3.Error as e:
+        print(f"Error al obtener el ID_MODELO: {e}")
+        id_modelo = None
 
+    finally:
+        conn.close()  # Cerrar la conexión después de usarla
 
+    return id_modelo[0]
 
-######### CONSULTAS PARA LEER Y ORGANIZAR TIEMPOS ########
+def obtener_id_proceso(bbdd, proceso):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+        
+        cursor.execute("SELECT DISTINCT ID_PROCESO FROM TIEMPOS_MODELOS WHERE NOMBRE=?", (proceso,))
+        id_proceso = cursor.fetchone()  # Devuelve una tupla o None si no hay resultados
+        conn.commit()
+
+    except sqlite3.Error as e:
+        print(f"Error al obtener los ID_PROCESO: {e}")
+        id_proceso = None
+
+    finally:
+        conn.close()
+
+    return id_proceso[0]
+
 def obtener_id_procesos(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
@@ -295,17 +415,84 @@ def leer_tiempos_procesos(bbdd):
         print(f"Error en la consulta: {e}")
         return None
 
-# Ejemplo de uso:
-df = leer_tiempos_procesos(bbdd = 'planta_manta.db')
-#print(df)
+
+####################################################################
+########################## ELIMINAR REGISTROS ######################
+
+def eliminar_modelo(bbdd, modelo):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM MODELOS WHERE MODELO=?", (modelo,))
+        conn.commit()
+        print(f"El modelo {modelo} se eliminó correctamente de la tabla MODELOS")
+
+    except sqlite3.Error as e:
+        print(f"Error al eliminar el modelo {modelo}: {e}")
+
+    finally:
+        conn.close()  # Cerrar la conexión después de usarla
+
+def eliminar_tiempo_modelo(bbdd, modelo):
+    id_modelo = obtener_id_modelo(bbdd, modelo)
+
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM TIEMPOS_MODELOS WHERE ID_MODELO=?", (id_modelo,))
+        conn.commit()
+        print(f"Los registro del modelo {modelo} se eliminaron correctamente de la tabla TIEMPOS_MODELOS")
+
+    except sqlite3.Error as e:
+        print(f"Error al eliminar el modelo {modelo}: {e}")
+
+    finally:
+        conn.close()  # Cerrar la conexión después de usarla
+
+def eliminar_modelo_completo(bbdd, modelo):
+    if ventEmerg.msg_eliminar_mod(modelo):
+        eliminar_tiempo_modelo(bbdd, modelo)   #eliminar primero el registro con clave foranea
+        eliminar_modelo(bbdd, modelo)          #eliminar después el registro con clave primaria
 
 
 
+def eliminar_vehiculo(bbdd, chasis):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM VEHICULOS WHERE CHASIS=?", (chasis,))
+        conn.commit()
+        print(f"El modelo {chasis} se eliminó correctamente de la tabla VEHICULOS")
 
+    except sqlite3.Error as e:
+        print(f"Error al eliminar el Vehiculo con chasis {chasis}: {e}")
 
+    finally:
+        conn.close()  # Cerrar la conexión después de usarla
 
+def eliminar_tiempo_vehiculo(bbdd, chasis):
 
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM TIEMPOS_VEHICULOS WHERE CHASIS=?", (chasis,))
+        conn.commit()
+        print(f"Los registro del vehiculo {chasis} se eliminaron correctamente de la tabla TIEMPOS_VEHICULOS")
 
+    except sqlite3.Error as e:
+        print(f"Error al eliminar el vehiculo con chasis {chasis}: {e}")
+
+    finally:
+        conn.close()  # Cerrar la conexión después de usarla
+
+def eliminar_vehiculo_completo(bbdd, chasis):
+    if ventEmerg.msg_eliminar_veh(chasis):
+        eliminar_tiempo_vehiculo(bbdd, chasis)   #eliminar primero el registro con clave foranea
+        eliminar_vehiculo(bbdd, chasis)          #eliminar después el registro con clave primaria
 
 """
 marcas = {
@@ -485,130 +672,4 @@ for tecnico in lista_de_tecnicos:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-"""
-procesos=[
-    ("TEL", "TELEQUINOX", "Instalacion de accesorios Packs y Recubrimientos"),
-    ("PDI", "PDI MECANICO", "Revision exterior, interior, habitaculo"),
-    ("LAV", "LAVADO", "Operaciones de lavado y secado"),
-    ("PIN", "PINTURA", "Micropulidos Pulidos Latoneria y Pintura"),
-    ("CAL", "CALIDAD", "Inspeccion de rutina")
-]
-
-for proceso in procesos:
-    insertar_procesos('planta_manta.db', proceso[0], proceso[1], proceso[2])
-
-
-
-
-
-marcas = {
-    "NISSAN":   ["ALTIMA","FRONTIER","KICKS","QASHQAI","LEAFT","VERSA","PATHFINDER","XTRAIL",],
-    "RENAULT":  ["CAPTUR","KOLEOS","KWID",],
-    "BAIC":     ["BJ20","BJ40","D50","NX55","X35","X55","U5P",],
-    "FOTON":    ["AUMARK","AUMAN","TUNLAND","VIEW","TOANO",],
-    "GEELY":    ["AZKARRA","COOLRAY",],
-    "MG":       ["RX8","RX5","MG5","ZS","ONE"]
-}
-
-
-for marca, modelos in marcas.items():
-    for modelo in modelos:
-        id_marcamodelo = marca + "-" + modelo
-        insertar_modelo('planta_manta.db', id_marcamodelo, marca, modelo)
-
-
-        
-procesos = leer_procesos('planta_manta.db')
-modelos = leer_modelos('planta_manta.db')
-datosTiemposModelos =[]
-
-print(procesos)
-print(modelos)
-diccionario={}
-
-for datos in modelos:
-    diccionario[datos[2]]= datos[0]
-
-print(diccionario)
-
-for modelo, tiempos in dictiempos.items():
-    for proceso, tiempo in zip(procesos, tiempos):
-        proceso_modelo = proceso[0] + "-" + modelo
-        datosTiemposModelos.append([proceso_modelo, proceso[0], diccionario[modelo], tiempo])
-        insertar_tiempo_modelo('planta_manta.db', proceso_modelo, proceso[0], diccionario[modelo], tiempo)
-
-for dato in datosTiemposModelos:
-    print(dato)
-    
-
-    
-
-marcas = {
-    "NISSAN":   ["ALTIMA","FRONTIER","KICKS","QASHQAI","LEAFT","VERSA","PATHFINDER","XTRAIL",],
-    "RENAULT":  ["CAPTUR","KOLEOS","KWID",],
-    "BAIC":     ["BJ20","BJ40","D50","NX55","X35","X55","U5P",],
-    "FOTON":    ["AUMARK","AUMAN","TUNLAND","VIEW","TOANO",],
-    "GEELY":    ["AZKARRA","COOLRAY",],
-    "MG":       ["RX8","RX5","MG5","ZS","ONE"]
-}
-
-
-#Tiempo de los 5 procesos para cada modelo
-dictiempos = {
-    "ALTIMA":       [0,   60,  60,  30,   15],
-    "FRONTIER":     [420, 128, 55,  23,   15],
-    "KICKS":        [150, 123, 55,  23,   15],
-    "QASHQAI":      [330, 63,  55,  23,   15],
-    "LEAFT":        [0,   63,  50,  23,   15],
-    "VERSA":        [390, 123, 55,  23,   15],
-    "PATHFINDER":   [60,  63,  60,  23,   15],
-    "XTRAIL":       [60,  63,  55,  23,   15],
-    "CAPTUR":       [60,  60,  60,  30,   15],
-    "KOLEOS":       [60,  63,  60,  48,   15],
-    "KWID":         [60,  68,  50,  48,   15],
-    "BJ20":         [0,   72,  55,  52,   15],
-    "BJ40":         [0,   72,  55,  52,   15],
-    "D50":          [270, 72,  55,  52,   15],
-    "NX55":         [240, 72,  55,  52,   15],
-    "X35":          [270, 72,  55,  52,   15],
-    "X55":          [0,   72,  55,  52,   15],
-    "U5P":          [270, 72,  55,  52,   15],
-    "AUMARK":       [0,   365, 120, 300,  15],
-    "AUMAN":        [0,   960, 120, 1920, 15],
-    "TUNLAND":      [270, 240, 120, 185,  15],
-    "VIEW":         [240, 295, 90,  685,  15],
-    "TOANO":        [240, 240, 90,  685,  15],
-    "AZKARRA":      [0,   72,  55,  22,   15],
-    "COOLRAY":      [0,   72,  55,  22,   15],
-    "RX8":          [0,   92,  50,  15,   15],
-    "RX5":          [0,   210, 50,  15,   15],
-    "MG5":          [0,   105, 50,  15,   15],
-    "ZS":           [0,   110, 50,  15,   15],
-    "ONE":          [0,   200, 50,  15,   15]
-}
-
-
-"""
 

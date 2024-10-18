@@ -163,7 +163,7 @@ class TablaVehiculos():
         self.datos = eventos.leepedidoBBDD()
 
         if self.datos is not None:
-            # Modificamos la lista con datos para que agrupe los tiempos
+            # Modificar la lista con datos para que agrupe los tiempos
             for i in range(len(self.datos)):
                 registro = self.datos[i]                                                            # Convertir los elementos en las posiciones 6 a 10 a una tupla
                 tupla_tiempos = tuple(registro[6:11])                                               # Crear una lista modificable con los elementos excepto los que van a ser reemplazados           

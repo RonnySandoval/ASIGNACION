@@ -4,6 +4,7 @@ import  menu_principal
 import root_frame_modelos as frameVh
 import root_frame_tecnicos as frameTec
 import root_frame_vehiculos as framePed
+import glo
 
 # Configuración global del estilo de customtkinter
 ctk.set_appearance_mode("dark")  # Modo oscuro por defecto
@@ -80,11 +81,24 @@ class ventanaRoot(ctk.CTk):
 
 root = ventanaRoot(bbdd='planta_manta.db')
 menu_principal.crearMenuPrincipal(root)
+
+
 # Añadir contenidos a los frames
-frameVh.ContenidoModelos(root.creaframeModelos(), bbdd='planta_manta.db')
-frameTec.ContenidoTecnicos(root.creaframeTecnicos(), bbdd='planta_manta.db')
-contenidoDeVehiculos = framePed.ContenidoVehiculos(root.frameVehiculos)
-vehiculos = framePed.TablaVehiculos(contenidoDeVehiculos, root.frameVehiculos, root)
-filtro = framePed.FiltrosVehiculos(vehiculos, contenidoDeVehiculos)
+glo.stateFrame.contenidoDeModelos   = frameVh.ContenidoModelos(root.creaframeModelos(),
+                                                               bbdd='planta_manta.db')
+
+glo.stateFrame.contenidoDeTecnicos  = frameTec.ContenidoTecnicos(root.creaframeTecnicos(),
+                                                                 bbdd='planta_manta.db')
+
+glo.stateFrame.contenidoDeVehiculos = framePed.ContenidoVehiculos(root.frameVehiculos)
+
+glo.stateFrame.vehiculos = framePed.TablaVehiculos(glo.stateFrame.contenidoDeVehiculos,
+                                                   root.frameVehiculos, root)
+
+glo.stateFrame.filtro    = framePed.FiltrosVehiculos(glo.stateFrame.vehiculos,
+
+                                                     glo.stateFrame.contenidoDeVehiculos)
+
+
 
 root.mainloop()

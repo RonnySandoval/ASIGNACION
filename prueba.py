@@ -1,70 +1,41 @@
+import tkinter as tk
 import customtkinter as ctk
-import estilos
+from estilos import grisAzuladoClaro, grisAzuladoMedio, grisAzuladoOscuro, grisMedio, grisOscuro, textoGrande, naranjaOscuro, blancoFrio, amarilloClaro, amarilloMedio, azulOscuro, moradoOscuro, moradoClaro, texto1Bajo, numerosMedianos, naranjaMedio, blancoHueso, azulMedio, moradoMedio, amarilloOscuro, grisVerdeMedio
 
-class Aplicacion(ctk.CTk):
-    def __init__(self):
-        super().__init__()
 
-        self.title("Aplicación con Navegación")
-        self.geometry("400x300")
 
-        # Crear un Frame principal
-        self.frame_principal = ctk.CTkFrame(self)
-        self.frame_principal.pack(fill=ctk.BOTH, expand=True)
+class VentanaGestionaVehiculos():
+    def __init__(self, accion, bbdd):
 
-        # Crear los frames para mostrar
-        self.Vehiculos = ctk.CTkFrame(self.frame_principal, fg_color="lightblue")
-        self.Planta = ctk.CTkFrame(self.frame_principal, fg_color="lightgreen")
-        self.Pedidos = ctk.CTkFrame(self.frame_principal, fg_color="lightcoral")
-        self.Ordenes = ctk.CTkFrame(self.frame_principal, fg_color="lightgreen")
-        self.Historicos = ctk.CTkFrame(self.frame_principal, fg_color="lightcoral")
 
-        
+        self.varTel = tk.StringVar() 
+        self.varPdi = tk.StringVar() 
+        self.varLav = tk.StringVar() 
+        self.varPin = tk.StringVar()
+        self.varCal= tk.StringVar()
 
-        # Contenido de los frames
-        ctk.CTkLabel(self.Vehiculos, text="Vehiculos", ).pack(pady=20)
-        ctk.CTkButton(self.Vehiculos, text="Boton 1").pack(side=ctk.LEFT, padx=5, pady=5)
-        ctk.CTkButton(self.Vehiculos, text="Boton 2").pack(side=ctk.RIGHT, padx=5, pady=5)
+        self.labelTimeTel  = ctk.CTkLabel(self.frameEntradas, text = "Tiempos TELEQUINOX", font = texto1Bajo, anchor="w")
+        self.labelTimeTel.grid(row=6,column=0, sticky="ew", padx=20, pady=2)
+        self.entryTel = ctk.CTkEntry     (self.frameEntradas, font = numerosMedianos, width=20, textvariable=self.varTel)
+        self.entryTel.grid(row=6 ,column=1, sticky="ew", pady=2)
 
-        ctk.CTkLabel(self.Planta, text="Técnicos").pack(pady=20)
-        ctk.CTkButton(self.Planta, text="Boton 1").pack(side=ctk.LEFT, padx=5, pady=5)
-        ctk.CTkButton(self.Planta, text="Boton 2").pack(side=ctk.RIGHT, padx=5, pady=5)
-        
-        ctk.CTkLabel(self.Pedidos, text="Pedidos").pack(pady=20)
-        ctk.CTkButton(self.Pedidos, text="Boton 1").pack(side=ctk.LEFT, padx=5, pady=5)
-        ctk.CTkButton(self.Pedidos, text="Boton 2").pack(side=ctk.RIGHT, padx=5, pady=5)
+        self.labelTimePdi  = ctk.CTkLabel(self.frameEntradas, text = "Tiempos PDI" , font = texto1Bajo, anchor="w")
+        self.labelTimePdi.grid(row=7,column=0, sticky="ew", padx=20, pady=2)
+        self.entryPdi = ctk.CTkEntry     (self.frameEntradas, font = numerosMedianos, width=20, textvariable=self.varPdi)
+        self.entryPdi.grid(row=7 ,column=1, sticky="ew", pady=2)
 
-        ctk.CTkLabel(self.Ordenes, text="Órdenes").pack(pady=20)
-        ctk.CTkButton(self.Ordenes, text="Boton 1").pack(side=ctk.LEFT, padx=5, pady=5)
-        ctk.CTkButton(self.Ordenes, text="Boton 2").pack(side=ctk.RIGHT, padx=5, pady=5)
 
-        ctk.CTkLabel(self.Historicos, text="Históricos").pack(pady=20)
-        ctk.CTkButton(self.Historicos, text="Boton 1").pack(side=ctk.LEFT, padx=5, pady=5)
-        ctk.CTkButton(self.Historicos, text="Boton 2").pack(side=ctk.RIGHT, padx=5, pady=5)
+        self.labelTimeLav  = ctk.CTkLabel(self.frameEntradas, text = "Tiempos LAVADO", font = texto1Bajo, anchor="w")
+        self.labelTimeLav.grid(row=8,column=0, sticky="ew", padx=20, pady=2)
+        self.entryLav = ctk.CTkEntry     (self.frameEntradas, font = numerosMedianos, width=20, textvariable=self.varLav)
+        self.entryLav.grid(row=8 ,column=1, sticky="ew", pady=2)
 
-        # Crear la barra de navegación
-        self.nav_frame = ctk.CTkFrame(self)
-        self.nav_frame.pack(side=ctk.TOP, fill=ctk.X)
+        self.labelTimePin  = ctk.CTkLabel(self.frameEntradas, text = "Tiempos PINTURA", font = texto1Bajo, anchor="w")
+        self.labelTimePin.grid(row=9,column=0, sticky="ew", padx=20, pady=2)
+        self.entryPin = ctk.CTkEntry     (self.frameEntradas, font = numerosMedianos, width=20, textvariable=self.varPin)
+        self.entryPin.grid(row=9 ,column=1, sticky="ew", pady=2)
 
-        # Botones de navegación
-        ctk.CTkButton(self.nav_frame, text="Vehículos", command=lambda: self.mostrar_frame(self.Vehiculos)).pack(side=ctk.LEFT, padx=5, pady=5)
-        ctk.CTkButton(self.nav_frame, text="Planta", command=lambda: self.mostrar_frame(self.Planta)).pack(side=ctk.LEFT, padx=5, pady=5)
-        ctk.CTkButton(self.nav_frame, text="Pedidos", command=lambda: self.mostrar_frame(self.Pedidos)).pack(side=ctk.LEFT, padx=5, pady=5)
-        ctk.CTkButton(self.nav_frame, text="Órdenes", command=lambda: self.mostrar_frame(self.Ordenes)).pack(side=ctk.LEFT, padx=5, pady=5)
-        ctk.CTkButton(self.nav_frame, text="Históricos", command=lambda: self.mostrar_frame(self.Historicos)).pack(side=ctk.LEFT, padx=5, pady=5)
-
-        # Mostrar el primer frame por defecto
-        self.mostrar_frame(self.Planta)
-
-    def mostrar_frame(self, frame):
-        # Ocultar todos los frames
-        for f in (self.Vehiculos, self.Planta, self.Pedidos, self.Ordenes, self.Historicos):
-            f.pack_forget()
-        # Mostrar el frame seleccionado
-        frame.pack(fill=ctk.BOTH, expand=True)
-
-if __name__ == "__main__":
-    ctk.set_appearance_mode("dark")  # Modo oscuro
-    ctk.set_default_color_theme("dark-blue")  # Tema azul oscuro
-    app = Aplicacion()
-    app.mainloop()
+        self.labelTimeCal  = ctk.CTkLabel(self.frameEntradas, text = "Tiempos CALIDAD", font = texto1Bajo, anchor="w")
+        self.labelTimeCal.grid(row=10,column=0, sticky="ew", padx=20, pady=2)
+        self.entryCal = ctk.CTkEntry     (self.frameEntradas, font = numerosMedianos, width=20, textvariable=self.varCal)
+        self.entryCal.grid(row=10,column=1, sticky="ew", pady=2)

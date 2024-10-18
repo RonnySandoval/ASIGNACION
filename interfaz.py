@@ -3,7 +3,7 @@ from    tkinter import ttk
 import  CRUD as CRUD
 import  eventos as eventos
 import  re
-import  dicc_variables
+import  glob
 from    estilos import *
 import  Mod_clases
 import  Mod_objetos
@@ -81,9 +81,9 @@ button_CrearModelo.grid(row=0, column=7, padx=3)
 #button_variables_camMod = {}              #Diccionario para almacenar nombres de Botones de editar modelos
 for filasCambiarMod in range (1, CRUD.calcula_modelos()+1):
     button_name = f"ButtonAgregar{filasCambiarMod}"
-    dicc_variables.button_variables_camMod[button_name] = tk.Button(frameVehiculosInterior,text="Editar", font=textoMinimo, bg=grisAzuladoMedio, fg=blancoHueso,
+    glob.btt_editModelos[button_name] = tk.Button(frameVehiculosInterior,text="Editar", font=textoMinimo, bg=grisAzuladoMedio, fg=blancoHueso,
                                                                     command=lambda varBoton=button_name:eventos.editar_modelo(varBoton))
-    dicc_variables.button_variables_camMod[button_name].grid(row=filasCambiarMod, column=0, padx=3)
+    glob.btt_editModelos[button_name].grid(row=filasCambiarMod, column=0, padx=3)
 
 
 #label_variables_vehiculos = {}            # Diccionario para almacenar las variables de los Labels y sus textos
@@ -94,9 +94,9 @@ for filasVehiculos, textos in zip(range(1, CRUD.calcula_modelos()+1), CRUD.leer_
     print(label_name_vehiculo)
 
     # Crear etiquetas para vehículos con nombres segun BD
-    dicc_variables.label_variables_vehiculos[label_name_vehiculo] = tk.Label(frameVehiculosInterior, text=textos[0]+" - "+textos[1],
+    glob.lbl_Modelos[label_name_vehiculo] = tk.Label(frameVehiculosInterior, text=textos[0]+" - "+textos[1],
                                                                              font=texto1Bajo, bg=grisAzuladoClaro, fg=blancoHueso, anchor="w")
-    dicc_variables.label_variables_vehiculos[label_name_vehiculo].grid(row=filasVehiculos, column=1, sticky="ew")
+    glob.lbl_Modelos[label_name_vehiculo].grid(row=filasVehiculos, column=1, sticky="ew")
 
 
 
@@ -112,19 +112,19 @@ for columnastimes in range (1,6):
         string_name = f"textExtryTime{filastimes}_{columnastimes}"
         #print(string_name)
         #Relacionamos el nombre a la variable
-        dicc_variables.string_variables[string_name] = tk.StringVar()
+        glob.strVar_Tiempos[string_name] = tk.StringVar()
         #Extraemos el texto del label correspondiente a la marca-modelo
-        texto_label = dicc_variables.label_variables_vehiculos[f"labelVehiculo{filastimes}"].cget("text")
+        texto_label = glob.lbl_Modelos[f"labelVehiculo{filastimes}"].cget("text")
         #Filtramos la última palabra: "modelo"
         palabra_modelo = re.search(r'\b(\w+)\b$', texto_label).group(1)
 
         #Buscamos en BD el tiempo de proceso correspondiente al modelo
-        dicc_variables.string_variables[string_name].set(CRUD.leer_tiempo(palabra_modelo, columnastimes + 1))
+        glob.strVar_Tiempos[string_name].set(CRUD.leer_tiempo(palabra_modelo, columnastimes + 1))
         entry_name = f"ExtryTime{filastimes}_{columnastimes}"
         #print(entry_name)
-        dicc_variables.entry_variables[entry_name] = tk.Entry(frameVehiculosInterior, font=numerosPequeños, width=4, bg=grisAzuladoClaro, fg=blancoHueso,
-                                                              textvariable=dicc_variables.string_variables[string_name])
-        dicc_variables.entry_variables[entry_name].grid(row=filastimes, column=columnastimes + 1)
+        glob.ent_Tiempos[entry_name] = tk.Entry(frameVehiculosInterior, font=numerosPequeños, width=4, bg=grisAzuladoClaro, fg=blancoHueso,
+                                                              textvariable=glob.strVar_Tiempos[string_name])
+        glob.ent_Tiempos[entry_name].grid(row=filastimes, column=columnastimes + 1)
 
 button_variables_agregVh = {}
 for filasAgregarVH in range (1, CRUD.calcula_modelos()+1):
@@ -437,9 +437,9 @@ for filasTecnicos  in CRUD.leer_tecnicos():
         print(label_name_tecnico)
 
         # Crear etiquetas para vehículos con nombres segun BD
-        dicc_variables.label_variables_tecnicos[label_name_tecnico] = tk.Label(frameTecnicosInterior, text=columnasTecnicos,
+        glob.lbl_Tecnicos[label_name_tecnico] = tk.Label(frameTecnicosInterior, text=columnasTecnicos,
                                                                                 font=texto1Bajo, bg=moradoOscuro, fg=blancoHueso, anchor="w")
-        dicc_variables.label_variables_tecnicos[label_name_tecnico].grid(row = 1 + fila, column = 0 + columna, sticky="ew")
+        glob.lbl_Tecnicos[label_name_tecnico].grid(row = 1 + fila, column = 0 + columna, sticky="ew")
         columna +=1
     fila += 1
 

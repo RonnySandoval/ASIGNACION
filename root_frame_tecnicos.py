@@ -2,7 +2,7 @@ import tkinter as tk
 import customtkinter as ctk
 import BBDD
 import eventos
-import dicc_variables
+import glo
 from estilos import *
 
 class ContenidoTecnicos:
@@ -47,10 +47,10 @@ class ContenidoTecnicos:
                 print(label_name_tecnico)
 
                 # Crear etiquetas para técnicos con nombres desde la BD
-                dicc_variables.label_variables_tecnicos[label_name_tecnico] = ctk.CTkLabel(
+                glo.lbl_Tecnicos[label_name_tecnico] = ctk.CTkLabel(
                     frameTecnicosInterior, text=columnasTecnicos,
                     font=texto1Bajo, fg_color=moradoOscuro, bg_color=blancoHueso, anchor="w", width=50)  # Ancho especificado
-                dicc_variables.label_variables_tecnicos[label_name_tecnico].grid(row=1 + fila, column=0 + columna, sticky="ew", padx=0, pady=0)
+                glo.lbl_Tecnicos[label_name_tecnico].grid(row=1 + fila, column=0 + columna, sticky="ew", padx=0, pady=0)
                 columna += 1
             fila += 1
 
