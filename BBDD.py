@@ -227,6 +227,21 @@ def leer_modelos(bbdd):
         conn.close()
         return datos
     
+def leer_modelo(bbdd, id_modelo):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()          
+        id = id_modelo
+        cursor.execute("SELECT * FROM MODELOS WHERE ID_MODELO=?", (id,))
+        datos = cursor.fetchone()
+        print(datos)
+    except sqlite3.Error as e:
+        print(f"Error al leer el registro: {e}")
+
+    finally:
+        conn.close()
+        return datos
+
 def leer_tecnicos(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
@@ -275,14 +290,115 @@ def leer_vehiculo(bbdd, chasis):
 
     except sqlite3.Error as e:
         print(f"Error al leer el vehiculo: {e}")
-        datos_modificados = []  # Inicializar como lista vacía en caso de error
 
     finally:
         conn.close()
 
     return registro
 
+def leer_tiempos_vehiculo(bbdd, chasis):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
 
+        vehiculo = chasis
+        cursor.execute('SELECT ID_PROCESO, TIEMPO FROM TIEMPOS_VEHICULOS WHERE CHASIS=?', (vehiculo,))
+        registro = cursor.fetchall()
+        print(registro)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la Tabla de Tiempos_Vehiculos: {e}")
+
+    finally:
+        conn.close()
+
+    return registro
+
+def leer_vehiculo_completo(bbdd, chasis):
+    registros = None  # Inicializa registros para manejar el caso de que no se encuentren resultados
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+
+        vehiculo = chasis
+        cursor.execute('''
+                        SELECT VEHICULOS.*, TIEMPOS_VEHICULOS.ID_PROCESO, TIEMPOS_VEHICULOS.TIEMPO
+                        FROM VEHICULOS LEFT JOIN TIEMPOS_VEHICULOS
+                        ON VEHICULOS.CHASIS = TIEMPOS_VEHICULOS.CHASIS
+                        WHERE VEHICULOS.CHASIS = ?
+                        ''', (vehiculo,))
+        
+        registros = cursor.fetchall()  # Esto puede ser None si no hay resultados
+        if registros is not None:
+            print(registros)
+        else:
+            print("No se encontraron registros para el chasis proporcionado.")
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la Tabla de Tiempos_Vehiculos y de Vehiculos: {e}")
+
+    finally:
+        conn.close()    # Cierra la conexión
+    
+    return registros
+
+def leer_vehiculos(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+
+        cursor.execute('SELECT * FROM VEHICULOS')
+        registros = cursor.fetchall()
+        print(registros)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la Tabla de Vehiculos: {e}")
+
+    finally:
+        conn.close()
+
+    return registros
+
+def leer_tiempos_vehiculos(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+
+        cursor.execute('SELECT * FROM TIEMPOS_VEHICULOS')
+        registros = cursor.fetchall()
+        print(registros)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la Tabla de Vehiculos: {e}")
+
+    finally:
+        conn.close()
+
+    return registros
+
+def leer_vehiculos_completos(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+
+        cursor.execute('''
+                        SELECT VEHICULOS.*,
+                        COALESCE(GROUP_CONCAT(TIEMPOS_VEHICULOS.ID_PROCESO || ': ' || TIEMPOS_VEHICULOS.TIEMPO, '  |  '), 'Sin procesos') AS PROCESOS_TIEMPOS
+                        FROM VEHICULOS LEFT JOIN TIEMPOS_VEHICULOS
+                        ON VEHICULOS.CHASIS = TIEMPOS_VEHICULOS.CHASIS
+                        GROUP BY VEHICULOS.CHASIS;
+                        ''')
+        registros = cursor.fetchall()
+        print(registros)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la Tabla de Tiempos_Vehiculos y de Vehiculos: {e}")
+        registros = None
+
+    finally:
+        conn.close()    # Cierra la conexión
+    
+    return registros
 
 def calcula_tecnicos(bbdd):
 
@@ -365,6 +481,7 @@ def obtener_id_procesos(bbdd):
         cursor.execute("SELECT DISTINCT ID_PROCESO FROM TIEMPOS_MODELOS")
         id_procesos = [row[0] for row in cursor.fetchall()]  # Lista de procesos
         conn.commit()
+        id_procesos.sort()
 
     except sqlite3.Error as e:
         print(f"Error al obtener los ID_PROCESO: {e}")
@@ -375,7 +492,7 @@ def obtener_id_procesos(bbdd):
 
     return id_procesos
 
-def generar_consulta_dinamica(bbdd):
+def generar_consulta_tiempos_modelos(bbdd):
     # Obtener la lista de procesos
     id_procesos = obtener_id_procesos(bbdd)
 
@@ -396,10 +513,10 @@ def generar_consulta_dinamica(bbdd):
     """
     return consulta_sql
 
-def leer_tiempos_procesos(bbdd):
+def leer_tiempos_modelos_procesos(bbdd):
     try:
         # Generar consulta SQL
-        consulta = generar_consulta_dinamica(bbdd)
+        consulta = generar_consulta_tiempos_modelos(bbdd)
 
         if consulta is None:
             return None
@@ -415,6 +532,47 @@ def leer_tiempos_procesos(bbdd):
         print(f"Error en la consulta: {e}")
         return None
 
+def generar_consulta_tiempos_vehiculos(bbdd):
+    # Obtener la lista de procesos
+    id_procesos = obtener_id_procesos(bbdd)
+
+    if not id_procesos:
+        return None
+
+    # Construir dinámicamente la parte del CASE
+    case_statements = []
+    for proceso in id_procesos:
+        case_statements.append(f"MAX(CASE WHEN TIEMPOS_VEHICULOS.ID_PROCESO = '{proceso}' THEN TIEMPOS_VEHICULOS.TIEMPO END) AS '{proceso}'")
+
+    # Unir las partes para generar la consulta completa
+    consulta_sql = f"""
+    SELECT VEHICULOS.CHASIS, {', '.join(case_statements)}
+    FROM VEHICULOS
+    LEFT JOIN TIEMPOS_VEHICULOS ON VEHICULOS.CHASIS = TIEMPOS_VEHICULOS.CHASIS
+    GROUP BY VEHICULOS.CHASIS;
+    """
+    return consulta_sql
+
+def leer_tiempos_vehiculos_procesos(bbdd):
+    try:
+        # Generar consulta SQL
+        consulta = generar_consulta_tiempos_vehiculos(bbdd)
+
+        if consulta is None:
+            return None
+
+        # Conectar a la base de datos y ejecutar la consulta
+        conn = sqlite3.connect(bbdd)
+        df = pd.read_sql_query(consulta, conn)  # Leer los resultados como un DataFrame de pandas
+        conn.close()
+
+        return df  # Retornar el DataFrame
+
+    except sqlite3.Error as e:
+        print(f"Error en la consulta: {e}")
+        return None
+
+print(leer_tiempos_vehiculos_procesos('planta_manta.db'))
 
 ####################################################################
 ########################## ELIMINAR REGISTROS ######################
@@ -481,7 +639,7 @@ def eliminar_tiempo_vehiculo(bbdd, chasis):
         
         cursor.execute("DELETE FROM TIEMPOS_VEHICULOS WHERE CHASIS=?", (chasis,))
         conn.commit()
-        print(f"Los registro del vehiculo {chasis} se eliminaron correctamente de la tabla TIEMPOS_VEHICULOS")
+        print(f"Los registro del vehiculo {chasis} se eliminó correctamente de la tabla TIEMPOS_VEHICULOS")
 
     except sqlite3.Error as e:
         print(f"Error al eliminar el vehiculo con chasis {chasis}: {e}")
@@ -493,6 +651,83 @@ def eliminar_vehiculo_completo(bbdd, chasis):
     if ventEmerg.msg_eliminar_veh(chasis):
         eliminar_tiempo_vehiculo(bbdd, chasis)   #eliminar primero el registro con clave foranea
         eliminar_vehiculo(bbdd, chasis)          #eliminar después el registro con clave primaria
+
+
+
+#####################################################################
+########################## MODIFICAR REGISTROS ######################
+def actualizar_vehiculo(bbdd, chasis, fecha_ingreso, id_modelo, color, estado, novedades, subcontratar, id_pedido, chasis_anterior):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+
+        # Asegurar que los valores clave no sean None
+        if all(item is not None for item in (chasis, id_modelo, color, estado, id_pedido)):
+            
+            update_data_script = """UPDATE VEHICULOS 
+                                    SET CHASIS = ?,
+                                        FECHA_INGRESO = ?, 
+                                        ID_MODELO = ?, 
+                                        COLOR = ?, 
+                                        ESTADO = ?, 
+                                        NOVEDADES = ?, 
+                                        SUBCONTRATAR = ?, 
+                                        ID_PEDIDO = ?
+                                    WHERE CHASIS = ?
+                                """
+            
+            cursor.execute(update_data_script, (chasis, fecha_ingreso, id_modelo, color, estado, novedades, subcontratar, id_pedido, chasis_anterior))
+            conn.commit()
+            print("Registro actualizado")
+
+    except sqlite3.Error as e:
+        print(f"Error al actualizar el vehículo: {e}")
+
+    finally:
+        conn.close()
+
+def actualizar_tiempo_vehiculo(bbdd, procvehi, id_proceso, chasis, tiempo, procvehi_anterior):
+    try:
+        # Conectar a la base de datos
+        with sqlite3.connect(bbdd) as conn:
+            cursor = conn.cursor()
+
+            # Consulta de actualización
+            update_data_script = """UPDATE TIEMPOS_VEHICULOS
+                                    SET PROCESO_CHASIS = ?,
+                                        ID_PROCESO = ?, 
+                                        CHASIS = ?,
+                                        TIEMPO = ?
+                                    WHERE PROCESO_CHASIS = ?
+                                """
+
+            # Ejecutar la consulta
+            cursor.execute(update_data_script, (procvehi, id_proceso, chasis, tiempo, procvehi_anterior))
+            conn.commit()
+
+            print(f"Registro de Tiempo_vehiculo de {procvehi_anterior} actualizado")
+
+
+
+    except sqlite3.Error as e:
+        print(f"Error al actualizar el tiempo: {e}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 """
 marcas = {

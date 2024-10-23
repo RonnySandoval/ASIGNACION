@@ -68,7 +68,7 @@ class ContenidoModelos():
             glo.btt_editModelos[button_name] = ctk.CTkButton(master=self.frameVehiculosInterior,text="Editar", font=textoMinimo,
                                                              hover_color=grisAzuladoMedio, fg_color=grisAzuladoOscuro, width=40, corner_radius=10,
                                                             command=lambda varBoton=button_name:eventos.editar_modelo(varBoton, bbdd))
-            glo.btt_editModelos[button_name].grid(row=filasCambiarMod, column=0, padx=3)
+            glo.btt_editModelos[button_name].grid(row=1+filasCambiarMod, column=0, padx=3)
 
 
         #############################################################
@@ -82,22 +82,40 @@ class ContenidoModelos():
             # Crear etiquetas para vehículos con nombres segun BD
             glo.lbl_Modelos[label_name_modelo] = ctk.CTkLabel(self.frameVehiculosInterior, text=textos[0],
                                                                                    font=texto1Bajo, fg_color=grisAzuladoClaro, anchor="w")
-            glo.lbl_Modelos[label_name_modelo].grid(row=filasModelos, column=1, sticky="ew")
+            glo.lbl_Modelos[label_name_modelo].grid(row=1+filasModelos, column=1, sticky="ew")
 
 
         #############################################################
         ################# ENTRY PARA TIEMPOS ########################
         #############################################################
-        dfTiempos=BBDD.leer_tiempos_procesos(bbdd)
+
+        # CREAR LOS LABEL PARA ID DE PROCESOS
+        dfTiempos = BBDD.leer_tiempos_modelos_procesos(bbdd)
         print(dfTiempos)
+        titlesDf = dfTiempos.columns.tolist()
+        titlesDf.pop(0)
+        titlesDf.sort()
+        columnaProceso = 0
+        #CONSTRUIR LABEL EN UNA FILA CON TANTAS COLUMNAS COMO PROCESOS HAYA
+        for proceso in titlesDf:
+            columnaProceso += 1
+            label_proceso_modelo = f"labelproceso_{proceso}_{columnaProceso}"
+            print(label_proceso_modelo)
+
+            glo.lbl_modelProcesos[label_proceso_modelo] = ctk.CTkLabel(
+                self.frameVehiculosInterior, text=proceso,
+                font=texto1Bajo, fg_color=grisOscuro, bg_color=blancoHueso, anchor="w")
+            glo.lbl_modelProcesos[label_proceso_modelo].grid(row=0, column=1+columnaProceso, sticky="ew", padx=0, pady=0)
+            
+
         #Crea los campos con los tiempos de proceso 
         for columnastimes in range (1, BBDD.calcula_procesos(bbdd)+1):
 
             for filastimes in range (1, BBDD.calcula_modelos(bbdd)+1):
-                string_name = f"textExtryTime{filastimes}_{columnastimes}"                              #Damos un nombre a la variable objeto
-                glo.strVar_Tiempos[string_name] = tk.StringVar()                           #Relacionamos el nombre a la variable
-                texto_label = glo.lbl_Modelos[f"labelVehiculo{filastimes}"].cget("text")      #Extraemos el texto del label correspondiente a la marca-modelo
-                palabra_modelo = re.search(r'\b(\w+)\b$', texto_label).group(1)                         #Filtramos la última palabra: "modelo"
+                string_name = f"textExtryTime{filastimes}_{columnastimes}"                     #Damos un nombre a la variable objeto
+                glo.strVar_Tiempos[string_name] = tk.StringVar()                               #Relacionamos el nombre a la variable
+                texto_label = glo.lbl_Modelos[f"labelVehiculo{filastimes}"].cget("text")       #Extraemos el texto del label correspondiente a la marca-modelo
+                palabra_modelo = re.search(r'\b(\w+)\b$', texto_label).group(1)                #Filtramos la última palabra: "modelo"
                 indice_fila = dfTiempos.index[dfTiempos['MODELO'] == palabra_modelo].tolist()  # Obtiene el índice de la fila
                 titulo_columna=dfTiempos.columns[columnastimes]
                 print("fila=", indice_fila, ". columna=", columnastimes + 1)
@@ -110,7 +128,7 @@ class ContenidoModelos():
                 print(entry_name, glo.strVar_Tiempos[string_name])
                 glo.ent_Tiempos[entry_name] = tk.Entry(self.frameVehiculosInterior, font=numerosPequeños, width=4, bg=grisOscuro, fg=blancoCalido,
                                                                     textvariable=glo.strVar_Tiempos[string_name])
-                glo.ent_Tiempos[entry_name].grid(row=filastimes, column=columnastimes + 1)
+                glo.ent_Tiempos[entry_name].grid(row=1+filastimes, column=columnastimes + 1)
 
 
         ############################################################
@@ -125,7 +143,7 @@ class ContenidoModelos():
             button_name = f"ButtonAgregar{filasAgregarVH}"
             self.button_variables_agregMod[button_name] = ctk.CTkButton(master=self.frameVehiculosInterior,text="Añadir a Pedido", font=textoMinimo, hover_color=moradoMedio, fg_color=grisAzuladoOscuro, width=40, corner_radius=20,
                                                             command=lambda varBoton=button_name:eventos.agregar_a_pedido(varBoton, bbdd))
-            self.button_variables_agregMod[button_name].grid(row=filasAgregarVH, column= 7, padx=3)
+            self.button_variables_agregMod[button_name].grid(row=1+filasAgregarVH, column= 7, padx=3)
 
     def actualizar_contenido(self, bbdd):
         for widget in self.frameVehiculosInterior.winfo_children():

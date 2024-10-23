@@ -8,6 +8,9 @@ import ventanas_emergentes
 import Mod_clases, Mod_objetos
 import graficaGantt
 
+#####################################################################
+################EVENTOS PARA SECCION DE MODELOS######################
+#####################################################################
 def crear_modelo(bbdd):
     print("pusó el botón crear modelo")
     ventana = ventanas_auxiliares.VentanaCreaEdita("CREAR", bbdd)              #Llamar al constructor del objeto ventana
@@ -16,7 +19,7 @@ def crear_modelo(bbdd):
 def recoger_datos_modelo(filaBoton, bbdd):
     print(filaBoton)
     fila = re.search(r'(\d+)$', filaBoton).group(1)                             #extraer el numero de la fila
-    marca_modelo = glo.lbl_Modelos[f"labelVehiculo{fila}"].cget("text")        #obtener la marca y el modelo apartir del numero de la fila
+    marca_modelo = glo.lbl_Modelos[f"labelVehiculo{fila}"].cget("text")         #obtener la marca y el modelo apartir del numero de la fila
     marca = re.search(r'^(.*?)\s*-\s*(.*?)$', marca_modelo).group(1).strip()    #expresion regular para truncar solo la marca
     modelo = re.search(r'^(.*?)\s*-\s*(.*?)$', marca_modelo).group(2).strip()   #expresion regular para truncar solo el modelo
     print(f"marca={marca} modelo={modelo}")         
@@ -73,15 +76,11 @@ def guardar_modelo_actualizado(ventana, bbdd):
     CRUD.insertar_modelo(*datos)
     ventana.rootAux.destroy()
 
-
-
-
-
 def agregar_a_pedido(botonPulsado, bbdd):
     datos = recoger_datos_modelo(botonPulsado, bbdd)
     print(datos)
     ventana = ventanas_auxiliares.VentanaGestionaVehiculos("AGREGAR", bbdd)
-    ventana.set_values(datos)
+    ventana.set_values(datos, None, "AGREGAR")
     ventana.asignafuncionBoton(lambda:agregarVH_pedido(ventana, bbdd), lambda:cancelar(ventana))
     ventana.rootAux.destroy()
 
@@ -126,58 +125,97 @@ def agregarVH_pedido(ventana, bbdd):
     #actualizamos el frame de modelos en la ventana
     #glo.stateFrame.contenidoDeModelos.actualizar_contenido(bbdd)
 
+#####################################################################
+#####################################################################
+#####################################################################
 
 
 
-def modificarVH_en_BBDD(ventana, chasis_anterior):
+
+#####################################################################
+################EVENTOS PARA SECCION DE VEHICULOS####################
+#####################################################################
+def leeVehiculosBBDD(bbdd):
+    return BBDD.leer_vehiculos_completos(bbdd)
+
+def recoger_datos_vehiculo(chasis, bbdd):
+    return BBDD.leer_vehiculo(bbdd, chasis)
+
+def modificar_vehiculo_pedido(chasis_anterior, bbdd):
+
+    datos = list(recoger_datos_vehiculo(chasis_anterior, bbdd))                     #LEER DE LA BASE DATOS EL VEHICULO
+    marcamodelo = list(BBDD.leer_modelo(bbdd, datos[2]))
+    datos.pop(2)
+    datos.insert(2, marcamodelo[1])
+    datos.insert(2, marcamodelo[2])
+    tiempos = BBDD.leer_tiempos_vehiculo(bbdd, chasis_anterior)                     #LEER LOS TIEMPOS DEL VEHICULO
+
+    print("Los datos en el modulo eventos son: ", datos)
+    print("Los tiempos en el modulo eventos son: ", tiempos)
+    ventana = ventanas_auxiliares.VentanaGestionaVehiculos("MODIFICAR", bbdd)       #CREAR LA VENTANA EMERGENTE PARA EDITAR EL VEHICULO
+    ventana.set_values(datos, tiempos, "MODIFICAR")                                        #AGREGAR LOS DATOS DE LA BBDD A LA VENTANA
+    ventana.asignafuncionBoton(lambda:modificarVH_en_BBDD(ventana, chasis_anterior, bbdd), lambda:cancelar(ventana))  #ASIGNAR BOTONES
+    ventana.rootAux.destroy()
+
+def modificarVH_en_BBDD(ventana, chasis_anterior, bbdd):
     #Se recogen los datos de la fila
-    datos = (ventana.varChasis.get(),
-            ventana.varFecha.get(),
-            ventana.varMarca.get(),
-            ventana.varModelo.get(),
-            ventana.varColor.get(),
-            ventana.varEstado.get(),
-            ventana.varTel.get(),
-            ventana.varPdi.get(),
-            ventana.varLav.get(),
-            ventana.varPin.get(),
-            ventana.varCal.get(),
-            ventana.varNoved.get(),
-            ventana.varSubcon.get(),
-            ventana.varPedido.get()
+    tiempos = []
+    for clave in glo.strVar_nuevosTiemposVeh:
+        tiempos.append(glo.strVar_nuevosTiemposVeh[clave].get())
+    
+
+    id_modelo = BBDD.leer_vehiculo(bbdd, chasis_anterior)[2]
+    datos = (
+        ventana.varChasis.get(),
+        ventana.varFecha.get(),
+        id_modelo,
+        ventana.varColor.get(),
+        ventana.varEstado.get(),
+        ventana.varNoved.get(),
+        ventana.varSubcon.get(),
+        ventana.varPedido.get(),
     )
     print(chasis_anterior)
 
     for dato in datos:
         print (dato)
+    print(tiempos)
     #Modifica el registro en la base de datos
-    CRUD.modificar_vehiculo(datos, chasis_anterior)
-    ventana.rootAux.destroy()
+    BBDD.actualizar_vehiculo(bbdd, *datos, chasis_anterior)
 
-def recoger_datos_vehiculo(id_chasis):
-    return CRUD.leer_vehiculo(id_chasis)
+    id_procesos = BBDD.obtener_id_procesos(bbdd)
+    id_procesos.sort()
+    #insertamos en la tabla de tiempos_vehiculoss
+    for id_proceso, tiempo in zip(id_procesos, tiempos):
+        proc_chasis_anterior = f"{id_proceso}-{chasis_anterior}"
+        proc_chasis = f"{id_proceso}-{datos[0]}"
+        BBDD.actualizar_tiempo_vehiculo(bbdd,
+                                        proc_chasis, 
+                                        id_proceso,
+                                        datos[0],
+                                        tiempo,
+                                        proc_chasis_anterior)
 
-def modificar_vehiculo_pedido(chasis_anterior):
-    ventana = ventanas_auxiliares.VentanaGestionaVehiculos("MODIFICAR")
-    valores = recoger_datos_vehiculo(chasis_anterior)
-    print(valores)
-    ventana.set_values(valores, 'MODIFICAR')
-    ventana.asignafuncionBoton(lambda:modificarVH_en_BBDD(ventana, chasis_anterior), lambda:cancelar(ventana))
-    ventana.rootAux.destroy()
+    ventana.rootAux.destroy()   #cerramos la ventana auxiliar
+
+    #ventana.rootAux.destroy()
 
 def eliminar_VH_pedido(chasis):
     if ventanas_emergentes.msg_eliminar_vh(chasis) == "Aceptar":
         CRUD.eliminar_vehiculo(chasis)
 
+def ventanaAsignarUnVehiculo(vehiculo):
+    ventana = ventanas_auxiliares.AsignaVehiculo(vehiculo)
+    ventana.asignaFuncion(lambda:aceptarAsignarUnVehiculo(ventana, vehiculo), lambda:cancelar(ventana))
+
+def aceptarAsignarUnVehiculo(ventana, vehiculo):
+    pass
 
 
-def cancelar(ventana):
-    ventana.rootAux.destroy()
 
-def leepedidoBBDD():
-    return CRUD.leer_vehiculos()
-
-
+#####################################################################
+#####################################################################
+#####################################################################
 
 
 def abrirFechayHora(tipoPrograma):
@@ -211,18 +249,7 @@ def aceptarFechayHora(ventana, tipoPrograma):
 def nombraArchivoExcel(programa):
     return programa + 'Numero__' + '.xlsx'
 
-
-
-
-############################################EVENTOS CON NUEVA BASE DE DATOS####################################
-
-
-def guardar_modeloCRUD(ventana, bbdd):
-    print(ventana)
-    datos = (ventana.varMarca.get(),
-            ventana.varModelo.get())
-    for clave, valor in glo.dicc_variables.strVar_nuevosTiemposMod.items():
-        datos.append(valor.get())
-
-    CRUD.insertar_modelo(*datos)
+def cancelar(ventana):
     ventana.rootAux.destroy()
+
+############################################EVENTOS CON ANTIGUA BASE DE DATOS####################################

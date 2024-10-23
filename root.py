@@ -24,8 +24,8 @@ class ventanaRoot(ctk.CTk):
         self.nav_frame.pack(side=ctk.TOP, fill=ctk.X)
 
         # Botones de navegación
-        ctk.CTkButton(self.nav_frame, text="Vehículos",  command=lambda: self.mostrar_frame(self.frameVehiculos), fg_color=grisAzuladoOscuro, hover_color=azulClaro).pack(side=ctk.LEFT, padx=5, pady=5)
-        ctk.CTkButton(self.nav_frame, text="Planta",     command=lambda: self.mostrar_frame(self.framePlanta), fg_color=moradoMedio, hover_color=moradoClaro).pack(side=ctk.LEFT, padx=5, pady=5)
+        ctk.CTkButton(self.nav_frame, text="Vehículos",  command=lambda: self.mostrar_frame(self.frameVehiculos), fg_color=moradoMedio, hover_color=moradoClaro).pack(side=ctk.LEFT, padx=5, pady=5)
+        ctk.CTkButton(self.nav_frame, text="Planta",     command=lambda: self.mostrar_frame(self.framePlanta), fg_color=grisAzuladoOscuro, hover_color=azulClaro).pack(side=ctk.LEFT, padx=5, pady=5)
         ctk.CTkButton(self.nav_frame, text="Pedidos",    command=lambda: self.mostrar_frame(self.framePedidos), fg_color=azulOscuro, hover_color=azulClaro).pack(side=ctk.LEFT, padx=5, pady=5)
         ctk.CTkButton(self.nav_frame, text="Órdenes",    command=lambda: self.mostrar_frame(self.frameOrdenes), fg_color=grisVerdeOscuro, hover_color=grisVerdeClaro).pack(side=ctk.LEFT, padx=5, pady=5)
         ctk.CTkButton(self.nav_frame, text="Históricos", command=lambda: self.mostrar_frame(self.frameHistoricos), fg_color=rojoOscuro, hover_color=rojoClaro).pack(side=ctk.LEFT, padx=5, pady=5)
@@ -35,8 +35,8 @@ class ventanaRoot(ctk.CTk):
         
         
         # Creación de los frames principales usando customtkinter CTkFrame
-        self.framePlanta = ctk.CTkFrame   (self, fg_color=grisAzuladoMedio)
-        self.frameVehiculos = ctk.CTkFrame (self, fg_color=moradoMedio)
+        self.framePlanta = ctk.CTkFrame   (self, fg_color=moradoMedio)
+        self.frameVehiculos = ctk.CTkFrame (self, fg_color=grisAzuladoMedio)
         self.framePedidos = ctk.CTkFrame   (self, fg_color=azulOscuro)
         self.frameOrdenes = ctk.CTkFrame   (self, fg_color=grisVerdeOscuro)
         self.frameHistoricos = ctk.CTkFrame(self, fg_color=rojoOscuro)
@@ -93,12 +93,10 @@ glo.stateFrame.contenidoDeTecnicos  = frameTec.ContenidoTecnicos(root.creaframeT
 glo.stateFrame.contenidoDeVehiculos = framePed.ContenidoVehiculos(root.frameVehiculos)
 
 glo.stateFrame.vehiculos = framePed.TablaVehiculos(glo.stateFrame.contenidoDeVehiculos,
-                                                   root.frameVehiculos, root)
+                                                   root.frameVehiculos, root, bbdd='planta_manta.db')
 
 glo.stateFrame.filtro    = framePed.FiltrosVehiculos(glo.stateFrame.vehiculos,
-
-                                                     glo.stateFrame.contenidoDeVehiculos)
-
-
+                                                     glo.stateFrame.contenidoDeVehiculos, 
+                                                     bbdd='planta_manta.db')
 
 root.mainloop()

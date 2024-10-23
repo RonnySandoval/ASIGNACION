@@ -1,41 +1,40 @@
-import tkinter as tk
-import customtkinter as ctk
-from estilos import grisAzuladoClaro, grisAzuladoMedio, grisAzuladoOscuro, grisMedio, grisOscuro, textoGrande, naranjaOscuro, blancoFrio, amarilloClaro, amarilloMedio, azulOscuro, moradoOscuro, moradoClaro, texto1Bajo, numerosMedianos, naranjaMedio, blancoHueso, azulMedio, moradoMedio, amarilloOscuro, grisVerdeMedio
+import matplotlib.pyplot as plt
+import networkx as nx
 
+# Crear un gráfico vacío
+G = nx.DiGraph()
 
+# Definir los nodos y las relaciones entre ellos (aristas)
+# Este ejemplo se basa en un árbol de decisiones para el problema planteado
+G.add_edges_from([
+    ("Inicio", "Estudio Piloto"),
+    ("Estudio Piloto", "Favorable"),
+    ("Estudio Piloto", "Desfavorable"),
+    ("Favorable", "Planta Grande"),
+    ("Favorable", "Planta Pequeña"),
+    ("Desfavorable", "No construir"),
+    ("Planta Grande", "Mercado Favorable"),
+    ("Planta Grande", "Mercado Desfavorable"),
+    ("Planta Pequeña", "Mercado Favorable"),
+    ("Planta Pequeña", "Mercado Desfavorable")
+])
 
-class VentanaGestionaVehiculos():
-    def __init__(self, accion, bbdd):
+# Posiciones de los nodos para el gráfico (lo hacemos manual para que quede con formato de árbol)
+pos = {
+    "Inicio": (0, 4),
+    "Estudio Piloto": (0, 3),
+    "Favorable": (-1, 2),
+    "Desfavorable": (1, 2),
+    "Planta Grande": (-2, 1),
+    "Planta Pequeña": (0, 1),
+    "No construir": (2, 1),
+    "Mercado Favorable": (-3, 0),
+    "Mercado Desfavorable": (-1, 0)
+}
 
+# Dibujar los nodos y las aristas
+nx.draw(G, pos, with_labels=True, node_size=3000, node_color='skyblue', font_size=10, font_weight='bold', arrows=True)
 
-        self.varTel = tk.StringVar() 
-        self.varPdi = tk.StringVar() 
-        self.varLav = tk.StringVar() 
-        self.varPin = tk.StringVar()
-        self.varCal= tk.StringVar()
-
-        self.labelTimeTel  = ctk.CTkLabel(self.frameEntradas, text = "Tiempos TELEQUINOX", font = texto1Bajo, anchor="w")
-        self.labelTimeTel.grid(row=6,column=0, sticky="ew", padx=20, pady=2)
-        self.entryTel = ctk.CTkEntry     (self.frameEntradas, font = numerosMedianos, width=20, textvariable=self.varTel)
-        self.entryTel.grid(row=6 ,column=1, sticky="ew", pady=2)
-
-        self.labelTimePdi  = ctk.CTkLabel(self.frameEntradas, text = "Tiempos PDI" , font = texto1Bajo, anchor="w")
-        self.labelTimePdi.grid(row=7,column=0, sticky="ew", padx=20, pady=2)
-        self.entryPdi = ctk.CTkEntry     (self.frameEntradas, font = numerosMedianos, width=20, textvariable=self.varPdi)
-        self.entryPdi.grid(row=7 ,column=1, sticky="ew", pady=2)
-
-
-        self.labelTimeLav  = ctk.CTkLabel(self.frameEntradas, text = "Tiempos LAVADO", font = texto1Bajo, anchor="w")
-        self.labelTimeLav.grid(row=8,column=0, sticky="ew", padx=20, pady=2)
-        self.entryLav = ctk.CTkEntry     (self.frameEntradas, font = numerosMedianos, width=20, textvariable=self.varLav)
-        self.entryLav.grid(row=8 ,column=1, sticky="ew", pady=2)
-
-        self.labelTimePin  = ctk.CTkLabel(self.frameEntradas, text = "Tiempos PINTURA", font = texto1Bajo, anchor="w")
-        self.labelTimePin.grid(row=9,column=0, sticky="ew", padx=20, pady=2)
-        self.entryPin = ctk.CTkEntry     (self.frameEntradas, font = numerosMedianos, width=20, textvariable=self.varPin)
-        self.entryPin.grid(row=9 ,column=1, sticky="ew", pady=2)
-
-        self.labelTimeCal  = ctk.CTkLabel(self.frameEntradas, text = "Tiempos CALIDAD", font = texto1Bajo, anchor="w")
-        self.labelTimeCal.grid(row=10,column=0, sticky="ew", padx=20, pady=2)
-        self.entryCal = ctk.CTkEntry     (self.frameEntradas, font = numerosMedianos, width=20, textvariable=self.varCal)
-        self.entryCal.grid(row=10,column=1, sticky="ew", pady=2)
+# Mostrar el gráfico
+plt.title("Árbol de Decisiones de Karime")
+plt.show()

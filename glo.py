@@ -1,9 +1,11 @@
-#FRAME DE MODELOS
-btt_editModelos = {}            # Diccionario para almacenar nombres de Botones de editar modelos
+#FRAME DE MODELOS y TECNICOS
+btt_editModelos = {}        # Diccionario para almacenar nombres de Botones de editar modelos
 lbl_Modelos = {}            # Diccionario para almacenar las variables de los Labels de modelos y sus textos
 lbl_Tecnicos = {}           # Diccionario para almacenar las variables de los Labels de tecnicos y sus textos
+lbl_modelProcesos = {}      # Diccionarios para almacenar los textos de los ID procesos para el frame de modelos
 strVar_Tiempos = {}         # Diccionarios para almacenar las variables de los entry de tiempos por filas_columnas, ejemplo textExtryTime1_9
 ent_Tiempos = {}            # Diccionarios para almacenar los textos de los entry de tiempos por filas_columnas, ejemplo textExtryTime1_9
+
 
 #VENTANA CREA-EDITA MODELO
 lbl_nuevosTiemposMod = {}              # Diccionario para almacenar los nombres de los label del item tiempo de crear o editar un modelo
@@ -26,5 +28,8 @@ class Contenidos:
         self.contenidoDeVehiculos = None
         self.vehiculos = None
         self.filtro = None
+
+    def __repr__(self):
+        return [self.contenidoDeModelos, self.contenidoDeTecnicos, self.contenidoDeVehiculos, self.vehiculos, self.filtro]
 
 stateFrame = Contenidos()
