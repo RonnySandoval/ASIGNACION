@@ -4,6 +4,7 @@ import  menu_principal
 import root_frame_modelos as frameVh
 import root_frame_tecnicos as frameTec
 import root_frame_vehiculos as framePed
+import root_frame_procesos as framePro
 import glo
 
 # Configuración global del estilo de customtkinter
@@ -57,11 +58,11 @@ class ventanaRoot(ctk.CTk):
         self.mostrar_frame(self.framePlanta)
 
     def mostrar_frame(self, frame):
-        # Ocultar todos los frames
+
         for f in (self.frameVehiculos, self.framePlanta, self.framePedidos, self.frameOrdenes, self.frameHistoricos):
-            f.pack_forget()
-        # Mostrar el frame seleccionado
-        frame.pack(fill=ctk.BOTH, expand=True)
+            f.pack_forget()                             # Ocultar todos los frames
+
+        frame.pack(fill=ctk.BOTH, expand=True)          # Mostrar el frame seleccionado
     
     def creaframeModelos(self):
         self.frameModelos = ctk.CTkFrame  (self.framePlanta, fg_color=grisAzuladoMedio)
@@ -75,7 +76,7 @@ class ventanaRoot(ctk.CTk):
         
     def creaframeProcesos(self):
         self.frameProcesos = ctk.CTkFrame (self.framePlanta, fg_color=grisAzuladoMedio)
-        self.frameTecnicos.grid(row=0, column=2, sticky="nsew")
+        self.frameProcesos.grid(row=0, column=2, sticky="nsew")
         return self.frameProcesos
 
 
@@ -88,6 +89,9 @@ glo.stateFrame.contenidoDeModelos   = frameVh.ContenidoModelos(root.creaframeMod
                                                                bbdd='planta_manta.db')
 
 glo.stateFrame.contenidoDeTecnicos  = frameTec.ContenidoTecnicos(root.creaframeTecnicos(),
+                                                                 bbdd='planta_manta.db')
+
+glo.stateFrame.contenidoDeProcesos  = framePro.ContenidoProcesos(root.creaframeProcesos(),
                                                                  bbdd='planta_manta.db')
 
 glo.stateFrame.contenidoDeVehiculos = framePed.ContenidoVehiculos(root.frameVehiculos)

@@ -54,8 +54,10 @@ class ContenidoModelos():
         #####################################################
         ############Botón de CREAR modelo nuevo##############
         #####################################################
-        self.button_CrearModelo = ctk.CTkButton(master=self.frameVehiculosInterior,text="Crear Modelo", font=textoBajo, hover_color=grisOscuro, fg_color=grisAzuladoClaro, width=40, corner_radius=10,
-                                    command= lambda:eventos.crear_modelo(bbdd))
+        self.button_CrearModelo = ctk.CTkButton(master=self.frameVehiculosInterior,text="Crear Modelo", font=textoBajo,
+                                                hover_color=grisOscuro, fg_color=grisAzuladoClaro, border_color=blancoFrio,
+                                                border_width=1,width=40, corner_radius=10,
+                                                command= lambda:eventos.crear_modelo(bbdd))
         self.button_CrearModelo.grid(row=0, column=7, padx=3)
         
 
@@ -65,8 +67,8 @@ class ContenidoModelos():
         for filasCambiarMod in range (1, BBDD.calcula_modelos(bbdd)+1):
 
             button_name = f"ButtonAgregar{filasCambiarMod}"
-            glo.btt_editModelos[button_name] = ctk.CTkButton(master=self.frameVehiculosInterior,text="Editar", font=textoMinimo,
-                                                             hover_color=grisAzuladoMedio, fg_color=grisAzuladoOscuro, width=40, corner_radius=10,
+            glo.btt_editModelos[button_name] = ctk.CTkButton(master=self.frameVehiculosInterior,text="Editar", font=textoBajo,
+                                                             fg_color=grisAzuladoOscuro, width=40, corner_radius=10,
                                                             command=lambda varBoton=button_name:eventos.editar_modelo(varBoton, bbdd))
             glo.btt_editModelos[button_name].grid(row=1+filasCambiarMod, column=0, padx=3)
 
@@ -81,7 +83,7 @@ class ContenidoModelos():
             print(label_name_modelo, textos[1], textos[2])
             # Crear etiquetas para vehículos con nombres segun BD
             glo.lbl_Modelos[label_name_modelo] = ctk.CTkLabel(self.frameVehiculosInterior, text=textos[0],
-                                                                                   font=texto1Bajo, fg_color=grisAzuladoClaro, anchor="w")
+                                                                                   font=texto1Medio, fg_color=grisAzuladoClaro, anchor="w")
             glo.lbl_Modelos[label_name_modelo].grid(row=1+filasModelos, column=1, sticky="ew")
 
 
@@ -102,10 +104,9 @@ class ContenidoModelos():
             label_proceso_modelo = f"labelproceso_{proceso}_{columnaProceso}"
             print(label_proceso_modelo)
 
-            glo.lbl_modelProcesos[label_proceso_modelo] = ctk.CTkLabel(
-                self.frameVehiculosInterior, text=proceso,
-                font=texto1Bajo, fg_color=grisOscuro, bg_color=blancoHueso, anchor="w")
-            glo.lbl_modelProcesos[label_proceso_modelo].grid(row=0, column=1+columnaProceso, sticky="ew", padx=0, pady=0)
+            glo.lbl_modelProcesos[label_proceso_modelo] = ctk.CTkLabel(self.frameVehiculosInterior, text=proceso,
+                                                                        font=textoBajo, fg_color=grisOscuro, bg_color=blancoHueso, anchor="w")
+            glo.lbl_modelProcesos[label_proceso_modelo].grid(row=0, column=1+columnaProceso, sticky="nsew", padx=1, pady=1)
             
 
         #Crea los campos con los tiempos de proceso 
@@ -120,11 +121,9 @@ class ContenidoModelos():
                 titulo_columna=dfTiempos.columns[columnastimes]
                 print("fila=", indice_fila, ". columna=", columnastimes + 1)
 
-                #print(palabra_modelo)
                 #Buscamos en BD el tiempo de proceso correspondiente al modelo
                 glo.strVar_Tiempos[string_name].set(dfTiempos.loc[indice_fila[0], titulo_columna])
-                #dicc_variables.string_variables[string_name].set(CRUD.leer_tiempo(palabra_modelo, columnastimes + 1))
-                entry_name = f"ExtryTime{filastimes}_{columnastimes}"
+                entry_name = f"ExtryTime{filastimes}_{columnastimes}"                           #Damos un nombre al entry
                 print(entry_name, glo.strVar_Tiempos[string_name])
                 glo.ent_Tiempos[entry_name] = tk.Entry(self.frameVehiculosInterior, font=numerosPequeños, width=4, bg=grisOscuro, fg=blancoCalido,
                                                                     textvariable=glo.strVar_Tiempos[string_name])
@@ -141,7 +140,7 @@ class ContenidoModelos():
         self.button_variables_agregMod = {}
         for filasAgregarVH in range (1, BBDD.calcula_modelos(bbdd)+1):
             button_name = f"ButtonAgregar{filasAgregarVH}"
-            self.button_variables_agregMod[button_name] = ctk.CTkButton(master=self.frameVehiculosInterior,text="Añadir a Pedido", font=textoMinimo, hover_color=moradoMedio, fg_color=grisAzuladoOscuro, width=40, corner_radius=20,
+            self.button_variables_agregMod[button_name] = ctk.CTkButton(master=self.frameVehiculosInterior,text="Añadir a Pedido", font=textoBajo, fg_color=grisAzuladoOscuro, width=40, corner_radius=20,
                                                             command=lambda varBoton=button_name:eventos.agregar_a_pedido(varBoton, bbdd))
             self.button_variables_agregMod[button_name].grid(row=1+filasAgregarVH, column= 7, padx=3)
 

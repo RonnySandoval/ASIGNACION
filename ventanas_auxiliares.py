@@ -364,7 +364,7 @@ class EstableceFechaHora():
         self.rootAux.mainloop()
 
 
-class AsignaVehiculo():
+class VentanaAsignaVehiculo():
     def __init__(self, vehiculo):
         self.rootAux = ctk.CTkToplevel()                #crea ventana auxiliar
         self.rootAux.title("Programación de Planta")    #coloca titulo de ventana

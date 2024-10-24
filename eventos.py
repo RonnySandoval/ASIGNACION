@@ -126,8 +126,20 @@ def agregarVH_pedido(ventana, bbdd):
     #glo.stateFrame.contenidoDeModelos.actualizar_contenido(bbdd)
 
 #####################################################################
+################### EVENTOS PARA SECCION TÉCNICOS #####################
 #####################################################################
-#####################################################################
+import re  # Importa el módulo de expresiones regulares
+
+def recoge_estados_check():
+
+    checktecnicos = {}     # Crear un nuevo diccionario temporal para almacenar las claves modificadas
+    print(glo.intVar_tecnicos.items())
+    for clave, var in glo.intVar_tecnicos.items():
+        nueva_clave = re.sub(r'.*?-', '', clave)        # Expresión regular para eliminar desde el guión hacia atrás
+        checktecnicos[nueva_clave] = var.get()     # Actualizar el valor en el diccionario temporal con la nueva clave y el valor actual de IntVar
+
+    print(checktecnicos)
+    return checktecnicos
 
 
 
@@ -204,11 +216,11 @@ def eliminar_VH_pedido(chasis):
     if ventanas_emergentes.msg_eliminar_vh(chasis) == "Aceptar":
         CRUD.eliminar_vehiculo(chasis)
 
-def ventanaAsignarUnVehiculo(vehiculo):
-    ventana = ventanas_auxiliares.AsignaVehiculo(vehiculo)
-    ventana.asignaFuncion(lambda:aceptarAsignarUnVehiculo(ventana, vehiculo), lambda:cancelar(ventana))
+def ventana_AsignarUnVehiculo(vehiculo):
+    ventana = ventanas_auxiliares.VentanaAsignaVehiculo(vehiculo)
+    ventana.asignaFuncion(lambda:aceptar_AsignarUnVehiculo(ventana, vehiculo), lambda:cancelar(ventana))
 
-def aceptarAsignarUnVehiculo(ventana, vehiculo):
+def aceptar_AsignarUnVehiculo(ventana, vehiculo):
     pass
 
 

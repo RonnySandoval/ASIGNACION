@@ -218,7 +218,7 @@ class TablaVehiculos():
         def asignar_vh(valores):
             chasis = valores[0]
             print(f"asignará el vehiculo con chasis {chasis}")
-            eventos.ventanaAsignarUnVehiculo(chasis)
+            eventos.ventana_AsignarUnVehiculo(chasis)
 
         def informacion_vh(valores, bbdd):
             chasis = valores[0]
@@ -256,6 +256,7 @@ class TablaVehiculos():
 
 
     def programar_todo(self, tipoPrograma):
+        eventos.recoge_estados_check()
         eventos.abrirFechayHora(tipoPrograma)
         ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel("programar_todo"))
 
@@ -263,7 +264,7 @@ class TablaVehiculos():
     def programar_inmediato(self, tipoPrograma):
         eventos.abrirFechayHora(tipoPrograma)
         ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel("programar_inmediato"))
-
+        eventos.recoge_estados_check()
 
 
 

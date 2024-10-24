@@ -212,6 +212,21 @@ def leer_procesos(bbdd):
         conn.close()
         return registros
 
+def leer_procesos_completo(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()          
+        cursor.execute("SELECT * FROM PROCESOS")
+        datos = cursor.fetchall()
+        conn.commit()
+        
+    except sqlite3.Error as e:
+        print(f"Error al leer el registro: {e}")
+
+    finally:
+        conn.close()
+        return datos
+
 def leer_modelos(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
@@ -572,7 +587,6 @@ def leer_tiempos_vehiculos_procesos(bbdd):
         print(f"Error en la consulta: {e}")
         return None
 
-print(leer_tiempos_vehiculos_procesos('planta_manta.db'))
 
 ####################################################################
 ########################## ELIMINAR REGISTROS ######################
