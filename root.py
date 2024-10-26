@@ -113,5 +113,4 @@ glo.stateFrame.filtroHistoricos     = frameHis.FiltrosHistoricos(glo.stateFrame.
                                                      glo.stateFrame.contenidoDeHistoricos, 
                                                      bbdd='planta_manta.db')
 
-
 root.mainloop()

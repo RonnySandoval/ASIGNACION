@@ -1,18 +1,16 @@
 import tkinter as tk
+from tkinter import ttk
 import customtkinter as ctk
 from tkcalendar import Calendar
 from tkinter import simpledialog
 import time
-from estilos import grisAzuladoClaro, grisAzuladoMedio, grisAzuladoOscuro, grisMedio, grisOscuro, textoGrande, naranjaOscuro, blancoFrio, amarilloClaro, amarilloMedio, azulOscuro, moradoOscuro, moradoClaro, texto1Bajo, numerosMedianos, naranjaMedio, blancoHueso, azulMedio, moradoMedio, amarilloOscuro, grisVerdeMedio
+from estilos import grisAzuladoClaro, grisAzuladoMedio, grisAzuladoOscuro, grisMedio, grisOscuro, textoGrande, naranjaOscuro, blancoFrio, amarilloClaro, amarilloMedio, azulOscuro, moradoOscuro, moradoClaro, texto1Bajo, textoMedio, numerosMedianos, naranjaMedio, blancoHueso, azulMedio, moradoMedio, amarilloOscuro, grisVerdeMedio, rojoClaro
 import datetime
 import re
 import glo
 import BBDD
 
 
-######################################################################################################
-################################### VENTANA PARA AGREGAR Y EDITAR MODELOS ############################
-######################################################################################################
 
 class VentanaCreaEdita():
     def __init__(self, accion, bbdd):
@@ -36,7 +34,7 @@ class VentanaCreaEdita():
 
         # LABEL PARA TITULO Y CAMPOS
         self.titulo = self.accion
-        self.labelTitulo = ctk.CTkLabel(self.frameTitulo, text=self.titulo + " MODELO", font=textoGrande, text_color=self.colorfuenteLabel, )
+        self.labelTitulo = ctk.CTkLabel(self.frameTitulo, text=self.titulo + " MODELO", font=textoGrande, text_color=self.colorfuenteLabel)
         self.labelTitulo.pack(expand=True, side="top", fill="x", padx=20, pady=20)
 
         self.labelMarca = ctk.CTkLabel(self.frameEntradas, text="MARCA", font=texto1Bajo, text_color=self.colorfuenteLabel,  anchor="w")
@@ -100,11 +98,6 @@ class VentanaCreaEdita():
         self.buttonGuardar.configure(command=funcionGuardar)
         self.buttonCancelar.configure(command=funcionCancelar)
         self.rootAux.mainloop()
-
-###########################################################################################
-
-
-###########################################################################################
 
 class VentanaGestionaVehiculos():
     def __init__(self, accion, bbdd):
@@ -270,11 +263,6 @@ class VentanaGestionaVehiculos():
 
         self.rootAux.mainloop()
 
-
-
-#####################################################################################################################################
-#####################################################################################################################################
-#####################################################################################################################################
 class EstableceFechaHora():
 
     def __init__(self):
@@ -319,6 +307,7 @@ class EstableceFechaHora():
     def mostrar_calendario(self, event):
         #Muestra un calendario para seleccionar la fecha
         top = ctk.CTkToplevel(self.rootAux)
+        top.title("Seleccionar Fecha")
         top.grab_set()
         cal = Calendar(top, selectmode='day', date_pattern="yyyy-mm-dd")
         cal.pack(pady=20)
@@ -360,8 +349,8 @@ class EstableceFechaHora():
      
         self.rootAux.mainloop()
 
-
 class VentanaAsignaVehiculo():
+    
     def __init__(self, chasis, bbdd):
         self.rootAux = ctk.CTkToplevel()                #crea ventana auxiliar
         self.rootAux.title("Programación de Planta")    #coloca titulo de ventana
@@ -481,3 +470,72 @@ class VentanaAsignaVehiculo():
     def asignaFuncion(self, funcionAceptar, funcionCancelar):
         self.buttonAceptar.configure(command = funcionAceptar)
         self.buttonCancelar.configure(command = funcionCancelar)
+
+class VentanaMuestraInfoVH():
+    def __init__(self, bbdd, historicos, vehiculo):
+        self.datosGenerales = historicos[0][1], vehiculo[1], vehiculo[2]
+        self.datosEspecificos = [(tupla[3], tupla[8], tupla[2], tupla[5], tupla[6], tupla[7], tupla[4]) for tupla in historicos]
+
+        print("datos generales es :", self.datosGenerales)
+        print("datos específicos es :", self.datosEspecificos)
+
+        # Configuración de la ventana auxiliar
+        self.rootAux = ctk.CTkToplevel()                # Crea ventana auxiliar
+        self.rootAux.attributes('-topmost', True)       # Posiciona al frente de la pantalla
+        self.rootAux.title("Programación de Planta")    # Coloca título de ventana
+        self.rootAux.geometry("600x420")                # Dimensiones
+
+        # Configura el tema oscuro
+        self.rootAux.configure(bg=grisAzuladoOscuro)            # Fondo oscuro
+        ctk.set_appearance_mode("dark")                 # Establece el modo oscuro global
+
+        # Frame para los datos generales
+        self.frameDatosGenerales = ctk.CTkFrame(self.rootAux, fg_color=grisAzuladoOscuro)
+        self.frameDatosGenerales.pack(expand=True, side="top", fill="both")
+
+        # Etiqueta para datos generales
+        self.labelDatosGenerales = ctk.CTkLabel(
+            self.frameDatosGenerales,
+            text="CHASIS:  " + self.datosGenerales[0] + "\n" + "MODELO-MARCA:  " + self.datosGenerales[2] + "\n" + "FECHA DE INGRESO:  " +self.datosGenerales[1],
+            font=textoGrande,
+            text_color=blancoHueso,  # Color del texto
+            bg_color=grisAzuladoOscuro,   # Color de fondo de la etiqueta
+            anchor ="w"
+        )
+        self.labelDatosGenerales.pack(expand=True, side="top", fill="x", padx=20, pady=20)
+
+         #Crear estilo personalizado para las cabeceras y el cuerpo
+        self.styletreeviewInfo = ttk.Style()
+        self.styletreeviewInfo.configure("TreeviewInfoVehiculo.Heading", foreground=moradoMedio, font=texto1Bajo, background=grisAzuladoOscuro)
+        self.styletreeviewInfo.configure("TreeviewInfoVehiculo", background=grisAzuladoOscuro, foreground=blancoFrio, fieldbackground=grisAzuladoOscuro)
+        self.styletreeviewInfo.layout("TreeviewInfoVehiculo", [('Treeview.treearea', {'sticky': 'nswe'})])
+
+        #Crear la treeview
+        self.tree = ttk.Treeview(self.rootAux, columns=("ID_PROCESO", "ESTADO", "ID_TECNICO", "INICIO", "FIN", "DURACION", "OBSERVACION"), show='headings',  style="TreeviewInfoVehiculo")
+        
+        # Definir encabezados en un bucle
+        self.encabezados = [
+            ("ID_PROCESO", "Id_proceso"),
+            ("ESTADO", "Estado"),
+            ("ID_TECNICO", "Id_Tecnico"),
+            ("INICIO", "Inicio"),
+            ("FIN", "Fin"),
+            ("DURACION", "Duracion"),
+            ("OBSERVACION", "Observacion")
+        ]
+
+        for col, texto in self.encabezados:
+            self.tree.heading(col, text=texto)
+            self.tree.column(col, anchor="w", width=100)
+
+        for registro in self.datosEspecificos:              # Insertar los registros en el Treeview
+            self.tree.insert("", "end", values=registro)
+
+        self.tree.pack(expand=True, fill="both")            # Agregar el Treeview a la ventana
+
+        self.buttonCerrar = ctk.CTkButton(self.rootAux, text="Cerrar", font=textoMedio, fg_color=rojoClaro, text_color=moradoOscuro, hover_color=(moradoMedio, blancoFrio))
+        self.buttonCerrar.pack(pady=10)
+
+    def asignafuncionBoton(self, funcionCerrar):
+        self.buttonCerrar.configure(command=funcionCerrar)
+        self.rootAux.mainloop()

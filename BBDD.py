@@ -446,11 +446,65 @@ def leer_vehiculos_completos(bbdd):
         cursor = conn.cursor()
 
         cursor.execute('''
-                        SELECT VEHICULOS.*,
-                        COALESCE(GROUP_CONCAT(TIEMPOS_VEHICULOS.ID_PROCESO || ': ' || TIEMPOS_VEHICULOS.TIEMPO, '  |  '), 'Sin procesos') AS PROCESOS_TIEMPOS
-                        FROM VEHICULOS LEFT JOIN TIEMPOS_VEHICULOS
-                        ON VEHICULOS.CHASIS = TIEMPOS_VEHICULOS.CHASIS
-                        GROUP BY VEHICULOS.CHASIS;
+                        SELECT 
+                            VEHICULOS.CHASIS,
+                            VEHICULOS.FECHA_INGRESO,
+                            VEHICULOS.ID_MODELO,
+                            VEHICULOS.COLOR,
+                            
+                            -- Subconsulta para obtener el nombre del proceso o 'ninguno' si es NULL
+                            COALESCE(
+                                (SELECT PROCESOS.NOMBRE
+                                FROM HISTORICOS
+                                JOIN PROCESOS ON HISTORICOS.ID_PROCESO = PROCESOS.ID_PROCESO
+                                WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
+                                AND HISTORICOS.ESTADO = 'EN EJECUCION'
+                                LIMIT 1),
+                                (SELECT PROCESOS.NOMBRE
+                                FROM HISTORICOS
+                                JOIN PROCESOS ON HISTORICOS.ID_PROCESO = PROCESOS.ID_PROCESO
+                                WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
+                                AND HISTORICOS.ESTADO = 'TERMINADO'
+                                AND HISTORICOS.FIN = (
+                                    SELECT MAX(FIN)
+                                    FROM HISTORICOS AS HIST2
+                                    WHERE HIST2.CHASIS = VEHICULOS.CHASIS AND HIST2.ESTADO = 'TERMINADO'
+                                )
+                                LIMIT 1),
+                                'ninguno'
+                            ) AS NOMBRE_PROCESO,
+                            
+                            -- Subconsulta para obtener el estado o 'ninguno' si es NULL
+                            COALESCE(
+                                (SELECT HISTORICOS.ESTADO
+                                FROM HISTORICOS
+                                WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
+                                AND HISTORICOS.ESTADO = 'EN EJECUCION'
+                                LIMIT 1),
+                                (SELECT HISTORICOS.ESTADO
+                                FROM HISTORICOS
+                                WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
+                                AND HISTORICOS.ESTADO = 'TERMINADO'
+                                AND HISTORICOS.FIN = (
+                                    SELECT MAX(FIN)
+                                    FROM HISTORICOS AS HIST2
+                                    WHERE HIST2.CHASIS = VEHICULOS.CHASIS AND HIST2.ESTADO = 'TERMINADO'
+                                )
+                                LIMIT 1),
+                                'ninguno'
+                            ) AS ESTADO,
+
+                            VEHICULOS.NOVEDADES,
+                            VEHICULOS.SUBCONTRATAR,
+                            VEHICULOS.ID_PEDIDO,
+                            
+                            COALESCE(GROUP_CONCAT(TIEMPOS_VEHICULOS.ID_PROCESO || ': ' || TIEMPOS_VEHICULOS.TIEMPO, ' | '), 'Sin procesos') AS PROCESOS_TIEMPOS
+                        FROM
+                            VEHICULOS
+                        LEFT JOIN 
+                            TIEMPOS_VEHICULOS ON VEHICULOS.CHASIS = TIEMPOS_VEHICULOS.CHASIS
+                        GROUP BY
+                            VEHICULOS.CHASIS;
                         ''')
         registros = cursor.fetchall()
         print(registros)
@@ -552,6 +606,23 @@ def leer_historicos_completo(bbdd):
     finally:
         conn.close()    # Cierra la conexión
     
+    return registros
+
+def leer_historico(bbdd, chasis):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+
+        cursor.execute('SELECT * FROM HISTORICOS WHERE CHASIS = ?', (chasis,))
+        registros = cursor.fetchall()
+        print(registros)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la Tabla de Históricos: {e}")
+
+    finally:
+        conn.close()
+
     return registros
 
 def obtener_id_modelo(bbdd, modelo):

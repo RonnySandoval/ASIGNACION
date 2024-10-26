@@ -50,19 +50,21 @@ class FiltrosVehiculos():
         self.entry_marcamodelo.grid(row=1, column=2, padx=5)
         self.entry_color = ctk.CTkEntry(self.frame_filtros, fg_color=moradoMedio, text_color=blancoHueso)
         self.entry_color.grid(row=1, column=3, padx=5)
+        self.entry_proceso = ctk.CTkEntry(self.frame_filtros, fg_color=moradoMedio, text_color=blancoHueso)
+        self.entry_proceso.grid(row=1, column=4, padx=5)
         self.entry_estado = ctk.CTkEntry(self.frame_filtros, fg_color=moradoMedio, text_color=blancoHueso)
-        self.entry_estado.grid(row=1, column=4, padx=5)
+        self.entry_estado.grid(row=1, column=5, padx=5)
         self.entry_novedades = ctk.CTkEntry(self.frame_filtros, fg_color=moradoMedio, text_color=blancoHueso)
-        self.entry_novedades.grid(row=1, column=5, padx=5)
+        self.entry_novedades.grid(row=1, column=6, padx=5)
         self.entry_subcontratar = ctk.CTkEntry(self.frame_filtros, fg_color=moradoMedio, text_color=blancoHueso)
-        self.entry_subcontratar.grid(row=1, column=6, padx=5)
+        self.entry_subcontratar.grid(row=1, column=7, padx=5)
         self.entry_pedido = ctk.CTkEntry(self.frame_filtros, fg_color=moradoMedio, text_color=blancoHueso)
-        self.entry_pedido.grid(row=1, column=7, padx=5)
+        self.entry_pedido.grid(row=1, column=8, padx=5)
         self.entry_tiempos = ctk.CTkEntry(self.frame_filtros, fg_color=moradoMedio, text_color=blancoHueso)
-        self.entry_tiempos.grid(row=1, column=8, padx=5)
+        self.entry_tiempos.grid(row=1, column=9, padx=5)
 
         # Configurar el peso de las columnas para que se expandan
-        for i in range(9): 
+        for i in range(10): 
             self.frame_filtros.grid_columnconfigure(i, weight=1)
 
 
@@ -82,6 +84,7 @@ class FiltrosVehiculos():
         filtro_fecha        = self.entry_fecha.get()
         filtro_marcamodelo  = self.entry_marcamodelo.get()
         filtro_color        = self.entry_color.get()
+        filtro_proceso      = self.entry_proceso.get()
         filtro_estado       = self.entry_estado.get()
         filtro_novedades    = self.entry_novedades.get()
         filtro_subcontratar = self.entry_subcontratar.get()
@@ -98,11 +101,12 @@ class FiltrosVehiculos():
                 filtro_fecha.lower() in record[1].lower() and
                 filtro_marcamodelo.lower() in record[2].lower() and
                 filtro_color.lower() in record[3].lower() and
-                filtro_estado.lower() in record[4].lower() and
-                filtro_novedades.lower() in record[5].lower() and
-                filtro_subcontratar.lower() in record[6].lower() and
-                filtro_pedido.lower() in record[7].lower() and
-                filtro_tiempos.lower() in record[8].lower()):
+                filtro_proceso.lower() in record[4].lower() and
+                filtro_estado.lower() in record[5].lower() and
+                filtro_novedades.lower() in record[6].lower() and
+                filtro_subcontratar.lower() in record[7].lower() and
+                filtro_pedido.lower() in record[8].lower() and
+                filtro_tiempos.lower() in record[9].lower()):
 
                 vehiculos.tablaVehiculos.insert(parent='', index='end', iid=record[0], text='', values=record)
 
@@ -113,12 +117,11 @@ class TablaVehiculos():     #Tabla para pedido
          #Crear estilo personalizado para las cabeceras
         self.styletreeviewVeh = ttk.Style()
         self.styletreeviewVeh.configure("TreeviewVehiculos.Heading", foreground=moradoMedio, font=texto1Minimo)
-
         
         #Crear Tabla
         self.styletreeviewVeh.layout("TreeviewVehiculos", [('Treeview.treearea', {'sticky': 'nswe'})])
         self.tablaVehiculos = ttk.Treeview(contenido.canvas, show="headings", style="TreeviewVehiculos")
-        self.tablaVehiculos["columns"] = ("Chasis", "Fecha de entrega", "Marca - Modelo", "Color", "Estado", "Novedades", "Subcontratar", "Pedido", "Tiempos")
+        self.tablaVehiculos["columns"] = ("Chasis", "Fecha de entrega", "Marca - Modelo", "Color", "Proceso", "Estado","Novedades", "Subcontratar", "Pedido", "Tiempos")
 
         # Formatear las columnas
         for col in self.tablaVehiculos["columns"]:
@@ -213,6 +216,7 @@ class TablaVehiculos():     #Tabla para pedido
         def informacion_vh(valores, bbdd):
             chasis = valores[0]
             print(f"solicitó información de {chasis}")
+            eventos.ventana_infoVehiculo(chasis, bbdd)
 
         def mostrar_menu(evento):        # Manejar el evento del clic derecho
             try:

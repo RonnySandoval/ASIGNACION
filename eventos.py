@@ -126,6 +126,39 @@ def agregarVH_pedido(ventana, bbdd):
     #actualizamos el frame de modelos en la ventana
     #glo.stateFrame.contenidoDeModelos.actualizar_contenido(bbdd)
 
+def ventana_infoVehiculo(chasisVh, bbdd):
+    lecturaRegistros = BBDD.leer_historico(bbdd, chasisVh)
+    datosVehiculo = BBDD.leer_vehiculo(bbdd, chasisVh)
+
+    nombresTecnicos = {}
+    for tecnico in  BBDD.leer_tecnicos_modificado(bbdd):
+        nombresTecnicos[tecnico[0]] = tecnico[1]            # Adicionar solo id y nombre al diccionario de tecnicos en base a la lectura de BBDD
+
+    registros_modificados = []
+
+    for registro in lecturaRegistros:
+        id_tecnico = registro[2]                         # Tomar el tercer elemento de la tupla
+        
+        if id_tecnico in nombresTecnicos:                                    # Si el tercer elemento coincide con una clave en NombresTecnicos
+            registro_modificado = list(registro)                                # Convertir la tupla en una lista para poder modificarla
+            registro_modificado[2] = nombresTecnicos[id_tecnico]             # Reemplazar el tercer elemento con el valor correspondiente en NombresTecnicos
+            registros_modificados.append(tuple(registro_modificado))     # Volver a convertir la lista a tupla y agregarla a la lista de resultados
+       
+        else:
+            registros_modificados.append(registro)                       # Si no hay coincidencia, agregar el registro original
+
+    for registro in lecturaRegistros:
+        print("lectura", registro)
+
+    if len(registros_modificados)==0:           #Si no hay registros
+        ventanas_emergentes.messagebox.showinfo(
+            title="Información de Vehículo",
+            message="No hay registros históricos del vehiculo con chasis "+ chasisVh)
+        
+    else:
+        ventana = ventanas_auxiliares.VentanaMuestraInfoVH(bbdd, registros_modificados, datosVehiculo)
+        ventana.asignafuncionBoton(lambda:cancelar(ventana))
+
 #####################################################################
 ################### EVENTOS PARA SECCION TÉCNICOS #####################
 #####################################################################
