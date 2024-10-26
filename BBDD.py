@@ -187,6 +187,35 @@ def insertar_pedido(bbdd, id_pedido, cliente, fecha_recepcion, entrega_estimada,
     finally:
         conn.close()
 
+def insertar_historico(bbdd, codigo, chasis, tec, proc, observ, start, end, delta, estado):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+
+        if all(item is not None for item in (codigo, chasis, tec, proc, start)):
+            
+            insert_data_script = """INSERT INTO HISTORICOS 
+                                    (CODIGO_ASIGNACION, CHASIS, ID_TECNICO, ID_PROCESO, OBSERVACIONES, INICIO, FIN, DURACION, ESTADO)
+                                    VALUES  (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                """
+            
+        cursor.execute(insert_data_script, (codigo, chasis, tec, proc, observ, start, end, delta, estado))
+        conn.commit()
+        print("Registro de Histórico añadido")
+        
+    except sqlite3.Error as e:
+        print(f"Error al insertar la Asignación: {e}")
+
+    except UnboundLocalError as e:
+        print(f"No se llenaron los campos obligatorios: {e}") 
+
+    finally:
+        conn.close()
+
+
+
+
+
 
 
 ###########################################################################
@@ -280,7 +309,7 @@ def leer_tecnicos_modificado(bbdd):
         
         # Modificar los datos según lo solicitado
         datos_modificados = [
-            (tecnico[0], f"{tecnico[1]}_{tecnico[2]}", tecnico[4])
+            (tecnico[0], f"{tecnico[1]} {tecnico[2]}", tecnico[4])
             for tecnico in datos
         ]
         
@@ -328,6 +357,26 @@ def leer_tiempos_vehiculo(bbdd, chasis):
         conn.close()
 
     return registro
+
+def leer_tiempo_vehiculo(bbdd, chasis, id_proceso):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+
+        vehiculo = chasis
+        id= id_proceso
+        cursor.execute('SELECT ID_PROCESO, TIEMPO FROM TIEMPOS_VEHICULOS WHERE CHASIS=? AND ID_PROCESO = ?',
+                       (vehiculo, id))
+        registro = cursor.fetchall()
+        print(registro[0])
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la Tabla de Tiempos_Vehiculos: {e}")
+
+    finally:
+        conn.close()
+
+    return registro[0][1]
 
 def leer_vehiculo_completo(bbdd, chasis):
     registros = None  # Inicializa registros para manejar el caso de que no se encuentren resultados
@@ -448,7 +497,62 @@ def calcula_procesos(bbdd):
     conn.close()
     return numero_registros
 
+def leer_historicos(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
 
+        cursor.execute('SELECT * FROM HISTORICOS')
+        registros = cursor.fetchall()
+        print(registros)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la Tabla de Históricoss: {e}")
+
+    finally:
+        conn.close()
+
+    return registros
+
+def leer_historicos_completo(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+
+        cursor.execute('''SELECT 
+                            h.CODIGO_ASIGNACION,
+                            h.CHASIS,
+                            t.NOMBRE AS NOMBRE_TECNICO,
+                            p.NOMBRE AS NOMBRE_PROCESO,
+                            v.ID_MODELO,
+                            v.COLOR,
+                            h.INICIO,
+                            h.FIN,
+                            h.DURACION,
+                            h.ESTADO,
+                            v.NOVEDADES,
+                            h.OBSERVACIONES,
+                            v.SUBCONTRATAR,
+                            v.ID_PEDIDO
+                        FROM 
+                            HISTORICOS AS h
+                        JOIN 
+                            PROCESOS AS p ON h.ID_PROCESO = p.ID_PROCESO
+                        JOIN 
+                            TECNICOS AS t ON h.ID_TECNICO = t.ID_TECNICO
+                        JOIN 
+                            VEHICULOS AS v ON h.CHASIS = v.CHASIS''')
+        registros = cursor.fetchall()
+        print(registros)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la Tabla de Tiempos_Vehiculos y de Vehiculos: {e}")
+        registros = None
+
+    finally:
+        conn.close()    # Cierra la conexión
+    
+    return registros
 
 def obtener_id_modelo(bbdd, modelo):
     try:
@@ -586,6 +690,12 @@ def leer_tiempos_vehiculos_procesos(bbdd):
     except sqlite3.Error as e:
         print(f"Error en la consulta: {e}")
         return None
+
+
+
+
+
+
 
 
 ####################################################################

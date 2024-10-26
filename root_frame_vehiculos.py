@@ -11,7 +11,6 @@ ctk.set_appearance_mode("dark")  # Modo oscuro por defecto
 ctk.set_default_color_theme("dark-blue")  # Colores por defecto con tonos azulados
 
 
-
 class ContenidoVehiculos():
 
     def __init__(self, contenedor):
@@ -22,19 +21,18 @@ class ContenidoVehiculos():
 
 
         # Estilo personalizado para Treeview
-        self.styletreeview = ttk.Style()
+        self.styletreeviewVeh = ttk.Style()
 
         # Cambiar el color de fondo y el color de la fuente para Treeview
-        self.styletreeview.configure("Treeview", background=grisOscuro, foreground=blancoHueso, rowheight=25, fieldbackground=grisMedio, font=texto1Minimo)
+        self.styletreeviewVeh.configure("TreeviewVehiculos", background=grisOscuro, foreground=blancoHueso, rowheight=25, fieldbackground=grisMedio, font=texto1Minimo)
 
         # Cambiar el color de selección
-        self.styletreeview.map("Treeview", background=[("selected", moradoClaro)], foreground=[("selected", moradoOscuro)])
+        self.styletreeviewVeh.map("TreeviewVehiculos", background=[("selected", moradoClaro)], foreground=[("selected", moradoOscuro)])
 
         self.canvas = ctk.CTkCanvas(self.frameTablaVehiculos, bg=grisOscuro)
         self.canvas.pack(side='left', fill='both', expand=True)
         self.frameTablaVehiculos.update_idletasks()
         self.canvas.config(width=self.frameTablaVehiculos.winfo_width(), height=self.frameTablaVehiculos.winfo_height())
-
 
 class FiltrosVehiculos():
 
@@ -108,19 +106,18 @@ class FiltrosVehiculos():
 
                 vehiculos.tablaVehiculos.insert(parent='', index='end', iid=record[0], text='', values=record)
 
-
-#Tabla para pedido
-class TablaVehiculos():
+class TablaVehiculos():     #Tabla para pedido
     def __init__(self, contenido, contenedor, laRaiz, bbdd): #Crea latabla y un diccionario con los nombres de los campos
 
         self.raiz = laRaiz
          #Crear estilo personalizado para las cabeceras
-        self.styletreeview = ttk.Style()
-        self.styletreeview.configure("Treeview.Heading", foreground=moradoMedio, font=texto1Minimo)
+        self.styletreeviewVeh = ttk.Style()
+        self.styletreeviewVeh.configure("TreeviewVehiculos.Heading", foreground=moradoMedio, font=texto1Minimo)
 
         
         #Crear Tabla
-        self.tablaVehiculos = ttk.Treeview(contenido.canvas, show="headings")
+        self.styletreeviewVeh.layout("TreeviewVehiculos", [('Treeview.treearea', {'sticky': 'nswe'})])
+        self.tablaVehiculos = ttk.Treeview(contenido.canvas, show="headings", style="TreeviewVehiculos")
         self.tablaVehiculos["columns"] = ("Chasis", "Fecha de entrega", "Marca - Modelo", "Color", "Estado", "Novedades", "Subcontratar", "Pedido", "Tiempos")
 
         # Formatear las columnas
@@ -150,10 +147,8 @@ class TablaVehiculos():
         self.botonProgramarInmediato = ctk.CTkButton(master=contenedor, text="Programar INMEDIATO", font=textoGrande, hover_color=naranjaClaro, fg_color=naranjaOscuro,
                                                      corner_radius=20, command=lambda:self.programar_inmediato("inmediato"), width=50, height=10)
         self.botonProgramarInmediato.pack()        
-   
-   
-    # Agregar datos a la tabla        
-    def llenarTabla(self, bbdd):
+     
+    def llenarTabla(self, bbdd):    # Agregar datos a la tabla    
         self.datos = eventos.leeVehiculosBBDD(bbdd)
         print(self.datos)
         for record in self.datos:
@@ -174,8 +169,9 @@ class TablaVehiculos():
             print("Asignar seleccionada")
             if fila:
                 valores = self.tablaVehiculos.item(fila, 'values')     #obtener los valores de la fila
-                print(valores)
-                asignar_vh(valores)
+                chasis = valores[0]
+                print(f"asignará el vehiculo  {valores}")
+                eventos.ventana_AsignarUnVehiculo(chasis, bbdd)
 
         #click derecho en modificar fila
         def seleccionar_modificar_fila():
@@ -209,25 +205,16 @@ class TablaVehiculos():
             print(f"Se eliminará {chasis}")
             eventos.eliminar_VH_pedido(chasis)
 
-
         def modificar_vh(valores, bbdd):
             chasis_anterior = valores[0]
             print(f"modificará el chasis {chasis_anterior}")
             eventos.modificar_vehiculo_pedido(chasis_anterior, bbdd)
 
-        def asignar_vh(valores):
-            chasis = valores[0]
-            print(f"asignará el vehiculo con chasis {chasis}")
-            eventos.ventana_AsignarUnVehiculo(chasis)
-
         def informacion_vh(valores, bbdd):
             chasis = valores[0]
             print(f"solicitó información de {chasis}")
-            #eventos.avanzar_VH_pedido(chasis)
 
-
-        # Manejar el evento del clic derecho
-        def mostrar_menu(evento):
+        def mostrar_menu(evento):        # Manejar el evento del clic derecho
             try:
                 item_id = self.tablaVehiculos.identify_row(evento.y)  # Identificar la fila en la que se hizo click
                 self.tablaVehiculos.selection_set(item_id)  # Seleccionar la fila
@@ -241,10 +228,6 @@ class TablaVehiculos():
         # Asociar el click derecho al evento
         self.tablaVehiculos.bind("<Button-3>", mostrar_menu)
 
-
-
-
-
     def actualizar_tabla(self, bbdd):
         # Elimina todos los elementos del Treeview
         for item in self.tablaVehiculos.get_children():
@@ -252,29 +235,12 @@ class TablaVehiculos():
         
         self.llenarTabla(bbdd)
 
-
-
-
     def programar_todo(self, tipoPrograma):
         eventos.recoge_estados_check()
         eventos.abrirFechayHora(tipoPrograma)
         ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel("programar_todo"))
 
-
     def programar_inmediato(self, tipoPrograma):
         eventos.abrirFechayHora(tipoPrograma)
         ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel("programar_inmediato"))
         eventos.recoge_estados_check()
-
-
-
-
-"""            # Modificar la lista con datos para que agrupe los tiempos
-            for i in range(len(self.datos)):
-                registro = self.datos[i]                                                            # Convertir los elementos en las posiciones 6 a 10 a una tupla
-                tupla_tiempos = tuple(registro[6:11])                                               # Crear una lista modificable con los elementos excepto los que van a ser reemplazados           
-                registro_modificado = list(registro[:6])+ [tupla_tiempos] + list(registro[11:])     # Convertir la tupla a una cadena separada por comas
-                registro_modificado[6] = ', '.join(map(str, tupla_tiempos))                         # Actualizar la lista original con el registro modificado
-                self.datos[i] = registro_modificado                                                 # Asignar el registro modificado al atributo datos
-                print(self.datos[i])
-"""

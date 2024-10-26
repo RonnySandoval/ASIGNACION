@@ -7,6 +7,7 @@ import ventanas_auxiliares
 import ventanas_emergentes
 import Mod_clases, Mod_objetos
 import graficaGantt
+import fechahora
 
 #####################################################################
 ################EVENTOS PARA SECCION DE MODELOS######################
@@ -128,14 +129,12 @@ def agregarVH_pedido(ventana, bbdd):
 #####################################################################
 ################### EVENTOS PARA SECCION TÉCNICOS #####################
 #####################################################################
-import re  # Importa el módulo de expresiones regulares
-
 def recoge_estados_check():
 
     checktecnicos = {}     # Crear un nuevo diccionario temporal para almacenar las claves modificadas
     print(glo.intVar_tecnicos.items())
     for clave, var in glo.intVar_tecnicos.items():
-        nueva_clave = re.sub(r'.*?-', '', clave)        # Expresión regular para eliminar desde el guión hacia atrás
+        nueva_clave = re.sub(r'.*?-', '', clave)   # Expresión regular para eliminar desde el guión hacia atrás
         checktecnicos[nueva_clave] = var.get()     # Actualizar el valor en el diccionario temporal con la nueva clave y el valor actual de IntVar
 
     print(checktecnicos)
@@ -216,14 +215,51 @@ def eliminar_VH_pedido(chasis):
     if ventanas_emergentes.msg_eliminar_vh(chasis) == "Aceptar":
         CRUD.eliminar_vehiculo(chasis)
 
-def ventana_AsignarUnVehiculo(vehiculo):
-    ventana = ventanas_auxiliares.VentanaAsignaVehiculo(vehiculo)
-    ventana.asignaFuncion(lambda:aceptar_AsignarUnVehiculo(ventana, vehiculo), lambda:cancelar(ventana))
+def ventana_AsignarUnVehiculo(chasis, bbdd):
+    ventana = ventanas_auxiliares.VentanaAsignaVehiculo(chasis, bbdd)
+    ventana.asignaFuncion(lambda:aceptar_AsignarUnVehiculo(ventana, chasis, bbdd), lambda:cancelar(ventana))
 
-def aceptar_AsignarUnVehiculo(ventana, vehiculo):
-    pass
+def aceptar_AsignarUnVehiculo(ventana, chasisVh, bbdd):
+    datos = [ventana.varTecnico.get(),
+             ventana.varProceso.get(),
+             chasisVh]
+    concatenado = ''.join([re.match(r'(.{3})', dato).group(1) for dato in datos if len(dato) >= 3])
 
+    fecha = ventana.varFecha.get()
+    hora = ventana.varHora.get()
+    observaciones = ventana.varObser.get()
 
+    id_asig = concatenado + fecha + hora
+    print(id_asig)
+    id_tec = ventana.ids_tecnicos.get(datos[0])    
+    id_proc = ventana.ids_procesos.get(datos[1])
+
+    print(id_asig, id_proc, id_tec)
+    inicio = fechahora.parseDT(fecha, hora) 
+    tiempo = BBDD.leer_tiempo_vehiculo(bbdd, chasisVh, id_proc)
+    fin    = fechahora.calcular_hora_finalDT(inicio, tiempo)
+    estado = ventana.varEstado.get()
+
+    print(id_asig, id_proc, id_tec, inicio, fin, tiempo)
+
+    BBDD.insertar_historico(bbdd,
+                            id_asig,
+                            chasisVh,
+                            id_tec,
+                            id_proc,
+                            observaciones,
+                            inicio,
+                            fin,
+                            tiempo,
+                            estado)
+
+    ventana.rootAux.destroy()
+
+#####################################################################
+################ EVENTOS PARA SECCION DE HISTÓRICOS #################
+#####################################################################
+def leeHistoricosBBDD(bbdd):
+    return BBDD.leer_historicos_completo(bbdd)
 
 #####################################################################
 #####################################################################

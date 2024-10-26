@@ -13,7 +13,7 @@ def parseDT(stringFecha, stringHora):
 def calcular_hora_final(fecha_inicio, hora_inicio, duracion):
 
     fecha_hora_inicio = f"{fecha_inicio} {hora_inicio}"                 # Concatenar fecha y hora para crear una cadena completa de fecha y hora
-    inicio = datetime.strptime(fecha_hora_inicio, "%Y-%m-%d %H:%M:%S")     # Convertir la fecha y hora de inicio a un objeto datetime
+    inicio = datetime.strptime(fecha_hora_inicio, "%Y-%m-%d %H:%M:%S")   # Convertir la fecha y hora de inicio a un objeto datetime
     tiempo_final = inicio + timedelta(minutes=duracion)                 # Sumar los minutos a la hora de inicio
     return inicio, tiempo_final                                         # Retornar ambos objetos datetime
 

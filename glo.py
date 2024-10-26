@@ -30,11 +30,16 @@ class Contenidos:
         self.contenidoDeModelos = None
         self.contenidoDeTecnicos = None
         self.contenidoProcesos = None
+
         self.contenidoDeVehiculos = None
-        self.vehiculos = None
-        self.filtro = None
+        self.tablaVehiculos = None
+        self.filtroVehiculos = None
+        
+        self.contenidoDeHistoricos = None
+        self.tablaHistoricos = None
+        self.filtroHistoricos = None
 
     def __repr__(self):
-        return [self.contenidoDeModelos, self.contenidoProcesos, self.contenidoDeTecnicos, self.contenidoDeVehiculos, self.vehiculos, self.filtro]
+        return [self.contenidoDeModelos, self.contenidoProcesos, self.contenidoDeTecnicos, self.contenidoDeVehiculos, self.tablaVehiculos, self.filtroVehiculos]
 
 stateFrame = Contenidos()

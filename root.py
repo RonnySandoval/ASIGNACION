@@ -1,10 +1,11 @@
 import customtkinter as ctk  # Usar customtkinter en lugar de tkinter
-from    estilos import *
-import  menu_principal
-import root_frame_modelos as frameVh
-import root_frame_tecnicos as frameTec
-import root_frame_vehiculos as framePed
-import root_frame_procesos as framePro
+from   estilos import *
+import menu_principal
+import root_frame_modelos    as frameVh
+import root_frame_tecnicos   as frameTec
+import root_frame_vehiculos  as framePed
+import root_frame_procesos   as framePro
+import root_frame_historicos as frameHis
 import glo
 
 # Configuración global del estilo de customtkinter
@@ -96,11 +97,21 @@ glo.stateFrame.contenidoDeProcesos  = framePro.ContenidoProcesos(root.creaframeP
 
 glo.stateFrame.contenidoDeVehiculos = framePed.ContenidoVehiculos(root.frameVehiculos)
 
-glo.stateFrame.vehiculos = framePed.TablaVehiculos(glo.stateFrame.contenidoDeVehiculos,
+glo.stateFrame.tablaVehiculos       = framePed.TablaVehiculos(glo.stateFrame.contenidoDeVehiculos,
                                                    root.frameVehiculos, root, bbdd='planta_manta.db')
 
-glo.stateFrame.filtro    = framePed.FiltrosVehiculos(glo.stateFrame.vehiculos,
+glo.stateFrame.filtroVehiculos      = framePed.FiltrosVehiculos(glo.stateFrame.tablaVehiculos,
                                                      glo.stateFrame.contenidoDeVehiculos, 
                                                      bbdd='planta_manta.db')
+
+glo.stateFrame.contenidoDeHistoricos= frameHis.ContenidoHistoricos(root.frameHistoricos)
+
+glo.stateFrame.tablaHistoricos      = frameHis.TablaHistoricos(glo.stateFrame.contenidoDeHistoricos,
+                                                   root.frameHistoricos, root, bbdd='planta_manta.db')
+
+glo.stateFrame.filtroHistoricos     = frameHis.FiltrosHistoricos(glo.stateFrame.tablaHistoricos,
+                                                     glo.stateFrame.contenidoDeHistoricos, 
+                                                     bbdd='planta_manta.db')
+
 
 root.mainloop()
