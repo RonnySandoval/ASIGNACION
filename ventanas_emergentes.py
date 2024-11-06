@@ -17,16 +17,13 @@ def desea_guardar(excel):
             initialfile=excel  # Nombre de archivo inicial sugerido
         )
 
-
         if archivo:
             df = CRUD.leer_ordenes_todas()            #leer tabla en BBDD
             df.to_excel(archivo, index=False)         # Guardar los datos en un archivo de Excel           
             print(f"Archivo se guardó en: {archivo}")   
 
-
     else:
         print("Click en Cancelar")
-
 
 def msg_eliminar_veh(chasis):
     respuesta = messagebox.askokcancel(
@@ -41,7 +38,6 @@ def msg_eliminar_veh(chasis):
     else:
         print("Click en Cancelar")
         return "Cancelar"
-
 
 def msg_eliminar_mod(modelo):
     respuesta = messagebox.askokcancel(

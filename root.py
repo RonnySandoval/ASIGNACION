@@ -50,11 +50,10 @@ class ventanaRoot(ctk.CTk):
         self.frameOrdenes   .pack(expand=True, side="left", fill="both", padx=3, pady=3)
         self.frameHistoricos.pack(expand=True, side="left", fill="both", padx=3, pady=3)
 
-# Configuramos el grid del frame padre (framePlanta) para que los frames hijos ocupen el espacio verticalmente
+        # Configuramos el grid del frame padre (framePlanta) para que los frames hijos ocupen el espacio verticalmente
         self.framePlanta.grid_rowconfigure(0, weight=1)  # La única fila debe expandirse verticalmente
         self.framePlanta.grid_columnconfigure(0, weight=1)  # Expande la columna 0
         self.framePlanta.grid_columnconfigure(1, weight=1)  # Expande la columna 1
-        self.framePlanta.grid_columnconfigure(2, weight=1)  # Expande la columna 2
 
         self.mostrar_frame(self.framePlanta)
 
@@ -66,18 +65,28 @@ class ventanaRoot(ctk.CTk):
         frame.pack(fill=ctk.BOTH, expand=True)          # Mostrar el frame seleccionado
     
     def creaframeModelos(self):
-        self.frameModelos = ctk.CTkFrame  (self.framePlanta, fg_color=grisAzuladoMedio)
-        self.frameModelos.grid(row=0, column=0, sticky="nsew")
-        return self.frameModelos
+        self.frameModelos = ctk.CTkFrame  (self.framePlanta, fg_color=grisAzuladoMedio, corner_radius=15)
+        self.frameModelos.pack(expand=True, side="left", fill="both", padx=10, pady=10)
+        self.frameTecMod = ctk.CTkFrame  (self.framePlanta, fg_color=grisAzuladoMedio,  corner_radius=15)
+        self.frameTecMod.pack(expand=True, side="left", fill="both", padx=10, pady=10)
+  
+        # Configura `frameTecMod` para que sus hijos se expandan
+        self.frameModelos.grid_rowconfigure(0, weight=1)  # Primera fila expandible (frameTecnicos)
+        self.frameTecMod.grid_rowconfigure(0, weight=1)  # Primera fila expandible (frameTecnicos)
+        self.frameTecMod.grid_rowconfigure(1, weight=1)  # Segunda fila expandible (frameProcesos)
+        self.frameTecMod.grid_columnconfigure(0, weight=1)  # Expande la columna para los frames
 
+
+        return self.frameModelos
+    
     def creaframeTecnicos(self):
-        self.frameTecnicos = ctk.CTkFrame (self.framePlanta, fg_color=grisAzuladoMedio)
-        self.frameTecnicos.grid(row=0, column=1, sticky="nsew")
+        self.frameTecnicos = ctk.CTkFrame (self.frameTecMod, fg_color=grisAzuladoMedio, corner_radius=15)
+        self.frameTecnicos.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
         return self.frameTecnicos
         
     def creaframeProcesos(self):
-        self.frameProcesos = ctk.CTkFrame (self.framePlanta, fg_color=grisAzuladoMedio)
-        self.frameProcesos.grid(row=0, column=2, sticky="nsew")
+        self.frameProcesos = ctk.CTkFrame (self.frameTecMod, fg_color=grisAzuladoMedio, corner_radius=15)
+        self.frameProcesos.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
         return self.frameProcesos
 
 

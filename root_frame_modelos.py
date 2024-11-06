@@ -15,14 +15,12 @@ ctk.set_default_color_theme("dark-blue")  # Colores por defecto con tonos azulad
 class ContenidoModelos():
 
     def __init__(self, contenedor, bbdd):
-    
-
         # Crear un Canvas en el frame de Vehículos
-        self.canvasVehiculos = ctk.CTkCanvas(contenedor, bg=grisAzuladoClaro)
-        self.canvasVehiculos.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+        self.canvasVehiculos = ctk.CTkCanvas(contenedor, bg=grisAzuladoMedio, highlightthickness=0)
+        self.canvasVehiculos.pack(side=ctk.RIGHT, fill=ctk.BOTH, expand=True)
 
         # Crear un Scrollbar y conectarlo con el Canvas
-        self.scrollbarVehiculos = ctk.CTkScrollbar(contenedor, orientation=ctk.VERTICAL, command=self.canvasVehiculos.yview)
+        self.scrollbarVehiculos = ctk.CTkScrollbar(contenedor, orientation=ctk.VERTICAL, command=self.canvasVehiculos.yview, width=20, button_color=blancoFrio)
         self.scrollbarVehiculos.pack(side=ctk.LEFT, fill=ctk.Y)
 
         self.canvasVehiculos.configure(yscrollcommand=self.scrollbarVehiculos.set)
@@ -33,10 +31,9 @@ class ContenidoModelos():
         self.canvasVehiculos.create_window((0, 0), window=self.frameVehiculosInterior, anchor="nw")
 
 
-
         ### Añadir contenido al frame interno ###
         #Titulo de marcas
-        self.labelVehiculos = ctk.CTkLabel(self.frameVehiculosInterior, text="MARCAS - Modelos", font=textoBajo, fg_color=grisAzuladoClaro, anchor="w")
+        self.labelVehiculos = ctk.CTkLabel(self.frameVehiculosInterior, text="MARCAS - Modelos", font=textoBajo, fg_color=grisOscuro, anchor="w")
         self.labelVehiculos.grid(row=0, column=1, sticky="ew")
 
         #Titulo de tiempos
@@ -44,10 +41,7 @@ class ContenidoModelos():
         self.labelTiemposVehiculos.grid(row=0, column=2, columnspan=5, sticky="ew")
         self.frameVehiculosInterior.grid_columnconfigure(1, weight=1)
 
-
         self.llenar_contenido(bbdd)
-
-
 
     def llenar_contenido(self, bbdd):
 
@@ -60,7 +54,6 @@ class ContenidoModelos():
                                                 command= lambda:eventos.crear_modelo(bbdd))
         self.button_CrearModelo.grid(row=0, column=7, padx=3)
         
-
         #####################################################
         ############ Botones de EDITAR modelo ###############
         #####################################################
@@ -71,7 +64,6 @@ class ContenidoModelos():
                                                              fg_color=grisAzuladoOscuro, width=40, corner_radius=10,
                                                             command=lambda varBoton=button_name:eventos.editar_modelo(varBoton, bbdd))
             glo.btt_editModelos[button_name].grid(row=1+filasCambiarMod, column=0, padx=3)
-
 
         #############################################################
         ################## LABEL DE MODELOS #########################
@@ -105,8 +97,8 @@ class ContenidoModelos():
             print(label_proceso_modelo)
 
             glo.lbl_modelProcesos[label_proceso_modelo] = ctk.CTkLabel(self.frameVehiculosInterior, text=proceso,
-                                                                        font=textoBajo, fg_color=grisOscuro, bg_color=blancoHueso, anchor="w")
-            glo.lbl_modelProcesos[label_proceso_modelo].grid(row=0, column=1+columnaProceso, sticky="nsew", padx=1, pady=1)
+                                                                        font=textoBajo, fg_color=grisOscuro, bg_color=blancoHueso)
+            glo.lbl_modelProcesos[label_proceso_modelo].grid(row=0, column=1+columnaProceso, sticky="nsew")
             
 
         #Crea los campos con los tiempos de proceso 
@@ -125,17 +117,17 @@ class ContenidoModelos():
                 glo.strVar_Tiempos[string_name].set(dfTiempos.loc[indice_fila[0], titulo_columna])
                 entry_name = f"ExtryTime{filastimes}_{columnastimes}"                           #Damos un nombre al entry
                 print(entry_name, glo.strVar_Tiempos[string_name])
-                glo.ent_Tiempos[entry_name] = tk.Entry(self.frameVehiculosInterior, font=numerosPequeños, width=4, bg=grisOscuro, fg=blancoCalido,
+                glo.ent_Tiempos[entry_name] = ctk.CTkEntry(self.frameVehiculosInterior, font=numerosMedianos, width=50, bg_color=grisOscuro,
                                                                     textvariable=glo.strVar_Tiempos[string_name])
-                glo.ent_Tiempos[entry_name].grid(row=1+filastimes, column=columnastimes + 1)
-
+                glo.ent_Tiempos[entry_name].grid(row=1+filastimes, column=columnastimes + 1, sticky="nsew")
+            self.frameVehiculosInterior.grid_columnconfigure(columnastimes + 1, weight=2)  # Configura la columna correspondiente al CTkEntry
 
         ############################################################
         ############ Botones de INGRESAR un vehiculo #########
         ############################################################
 
         # Configurar columnas para que se expandan
-        self.frameVehiculosInterior.grid_columnconfigure(columnastimes + 1, weight=1)  # Configura la columna correspondiente al CTkEntry
+
 
         self.button_variables_agregMod = {}
         for filasAgregarVH in range (1, BBDD.calcula_modelos(bbdd)+1):

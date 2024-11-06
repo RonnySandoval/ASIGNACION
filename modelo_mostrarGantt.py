@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random as rdm
 import matplotlib.dates as mdates
+from matplotlib.patches import FancyBboxPatch
 import fechahora
 from datetime import datetime, timedelta
 
@@ -15,6 +16,8 @@ graficos_tecnicos = {}
 
 # Función para crear el gráfico
 def crear_gantt_tecnicos(nombre_grafico, tecnicos, inicio, horizonte):
+
+    plt.style.use('dark_background')    # Activar modo oscuro en Matplotlib
     hbar = 10
     num_tecnicos = len(tecnicos)
     iniciarEje = fechahora.define_franja(str(inicio.date()))[8]
@@ -91,7 +94,8 @@ def agregar_vehiculo(nombre_grafico, t0, duracion, tecnico, nombre, color=None):
                       )
     gantt.text(x=inicio_tarea_num + duracion_num / 2,
                y=hbar * ind_tec + hbar / 2,
-               s=f'{nombre}\n({duracion})', va="center", ha="center",
+               s=f'{nombre}\n({duracion})',
+               va="center", ha="center",
                color="w", fontsize=6)
 
 # Función para mostrar un gráfico específico

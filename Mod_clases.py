@@ -29,6 +29,7 @@ for registro_tupla in CRUD.leer_tiempos():
     datos = registro_tupla[2:]
     tiempos[modelo] = []
     tiempos[modelo].extend(list(datos))
+print(tiempos)
 
 """
 #Tiempo de los 5 procesos para cada modelo
@@ -435,7 +436,7 @@ def programa_inmediato(pedido, tecnicos, horizonte, fechaStart, horaStart):
         tecnicos_disponibles.sort(key = lambda op: op.libre)                                                  #ordena técnicos por tiempo de menor a mayor
 
         
-        tiempos_disponibles = list(map(lambda operario: operario.libre, tecnicos_disponibles))   #crea una lista solo con los tiempos
+        tiempos_disponibles = list(map(lambda operario: operario.libre, tecnicos_disponibles))     #crea una lista solo con los tiempos
         tiempos_disponibles.sort()                                                                 #ordena tiempos de menor a mayor
         print(f"tecnicos disponibles: \n {tecnicos_disponibles}")
         tecnico_min_time = tecnicos_disponibles[0]                                                 #selecciona el tecnico de menor tiempo (el primer elemento de la lista)

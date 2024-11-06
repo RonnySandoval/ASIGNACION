@@ -1,6 +1,6 @@
-from Mod_clases import personal
-from Mod_objetos import pedido_quito06
-import gantt
+from modelo_clases import personal
+from modelo_instancias import pedido, horizonte_calculado
+import modelo_mostrarGantt
 import datetime
 import fechahora
 
@@ -16,7 +16,7 @@ def generar_gantt_vehiculos(pedido, fechaStart, horaStart, horizonte_calculado):
         lista_vehiculos.append(tarea.id_chasis)
 
     #generación de gráfico con etiquetas de ejes
-    gantt.crear_gantt_vehiculos("GRAFICO_DE_VEHICULOS_01",lista_vehiculos, inicio, horizonte_calculado)
+    modelo_mostrarGantt.crear_gantt_vehiculos("GRAFICO_DE_VEHICULOS_01",lista_vehiculos, inicio, horizonte_calculado)
 
     for tarea in pedido.vehiculos:
 
@@ -28,7 +28,7 @@ def generar_gantt_vehiculos(pedido, fechaStart, horaStart, horizonte_calculado):
             if duracion == 0:                           #evalua si la tarea no ocupa tiempo
                 continue
             else:    
-                gantt.agregar_proceso(
+                modelo_mostrarGantt.agregar_proceso(
                     "GRAFICO_DE_VEHICULOS_01",
                     init,
                     duracion, 
@@ -38,7 +38,7 @@ def generar_gantt_vehiculos(pedido, fechaStart, horaStart, horizonte_calculado):
                 )
                 print(f"Se agregó {nombre_proceso} en {tarea.id_chasis}")
         
-    gantt.mostrar_grafico_vehiculos("GRAFICO_DE_VEHICULOS_01")
+    modelo_mostrarGantt.mostrar_grafico_vehiculos("GRAFICO_DE_VEHICULOS_01")
 
 
 
@@ -53,7 +53,7 @@ def generar_gantt_tecnicos(personal, fechaStart, horaStart, horizonte_calculado)
         lista_personas.append(persona.id_tecnico)
 
     #generación de gráfico con etiquetas de ejes
-    gantt.crear_gantt_tecnicos("GRAFICO_DE_TECNICOS_02", lista_personas, inicio, horizonte_calculado)
+    modelo_mostrarGantt.crear_gantt_tecnicos("GRAFICO_DE_TECNICOS_02", lista_personas, inicio, horizonte_calculado)
 
     for tarea in personal:
 
@@ -66,7 +66,7 @@ def generar_gantt_tecnicos(personal, fechaStart, horaStart, horizonte_calculado)
                 continue
 
             else:    
-                gantt.agregar_vehiculo(
+                modelo_mostrarGantt.agregar_vehiculo(
                     "GRAFICO_DE_TECNICOS_02",
                     init, duracion,
                     tarea.id_tecnico,
@@ -74,9 +74,8 @@ def generar_gantt_tecnicos(personal, fechaStart, horaStart, horizonte_calculado)
                     )
                 print(f"Se agregó {id_vehiculo} en {tarea.id_tecnico} inicio: {init} y duracion {duracion}")
         
-    gantt.mostrar_grafico_tecnicos("GRAFICO_DE_TECNICOS_02")
+    modelo_mostrarGantt.mostrar_grafico_tecnicos("GRAFICO_DE_TECNICOS_02")
 
 
-
-#generar_gantt_tecnicos(personal, datetime.datetime(2024,10,8,12,57), horizonte_calculado)
-#generar_gantt_vehiculos(pedido_quito06, datetime.datetime(2024,10,8,12,57), horizonte_calculado)
+generar_gantt_tecnicos(personal,  "2024-11-05", "08:45:00", horizonte_calculado)
+generar_gantt_vehiculos(pedido,  "2024-11-05", "08:45:00", horizonte_calculado)

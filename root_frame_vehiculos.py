@@ -149,7 +149,12 @@ class TablaVehiculos():     #Tabla para pedido
         #Botones de programar pedido
         self.botonProgramarInmediato = ctk.CTkButton(master=contenedor, text="Programar INMEDIATO", font=textoGrande, hover_color=naranjaClaro, fg_color=naranjaOscuro,
                                                      corner_radius=20, command=lambda:self.programar_inmediato("inmediato"), width=50, height=10)
-        self.botonProgramarInmediato.pack()        
+        self.botonProgramarInmediato.pack()
+
+        self.botonProgramarPorProcesos= ctk.CTkButton(master=contenedor, text="Programar POR PROCESOS", font=textoGrande, hover_color=naranjaClaro, fg_color=naranjaOscuro,
+                                                     corner_radius=20, command=lambda:self.programar_por_procesos("por procesos"), width=50, height=10)
+        self.botonProgramarPorProcesos.pack()
+
      
     def llenarTabla(self, bbdd):    # Agregar datos a la tabla    
         self.datos = eventos.leeVehiculosBBDD(bbdd)
@@ -245,6 +250,11 @@ class TablaVehiculos():     #Tabla para pedido
         ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel("programar_todo"))
 
     def programar_inmediato(self, tipoPrograma):
+        eventos.abrirFechayHora(tipoPrograma)
+        ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel("programar_inmediato"))
+        eventos.recoge_estados_check()
+
+    def programar_por_procesos(self, tipoPrograma):
         eventos.abrirFechayHora(tipoPrograma)
         ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel("programar_inmediato"))
         eventos.recoge_estados_check()

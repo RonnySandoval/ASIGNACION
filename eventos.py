@@ -6,7 +6,7 @@ import glo
 import ventanas_auxiliares
 import ventanas_emergentes
 import Mod_clases, Mod_objetos
-import graficaGantt
+import modelo_llamarGantt
 import fechahora
 
 #####################################################################
@@ -160,7 +160,7 @@ def ventana_infoVehiculo(chasisVh, bbdd):
         ventana.asignafuncionBoton(lambda:cancelar(ventana))
 
 #####################################################################
-################### EVENTOS PARA SECCION TÉCNICOS #####################
+################### EVENTOS PARA SECCION TÉCNICOS ###################
 #####################################################################
 def recoge_estados_check():
 
@@ -315,8 +315,8 @@ def aceptarFechayHora(ventana, tipoPrograma):
         print(f"el horizonte es {horizonte_calculado}")
 
         #GRAFICAR PROGRAMACIÓN EN GANTT##########
-        graficaGantt.generar_gantt_tecnicos(Mod_clases.personal, fecha, hora, horizonte_calculado=horizonte_calculado)
-        graficaGantt.generar_gantt_vehiculos(Mod_objetos.pedido_quito06, fecha, hora, horizonte_calculado=horizonte_calculado)
+        modelo_llamarGantt.generar_gantt_tecnicos(Mod_clases.personal, fecha, hora, horizonte_calculado=horizonte_calculado)
+        modelo_llamarGantt.generar_gantt_vehiculos(Mod_objetos.pedido_quito06, fecha, hora, horizonte_calculado=horizonte_calculado)
     
     if tipoPrograma == "inmediato":
         Mod_clases.programa_inmediato(Mod_objetos.pedido_quito06, Mod_clases.personal, 4000, fecha, hora)
@@ -324,8 +324,19 @@ def aceptarFechayHora(ventana, tipoPrograma):
         print(f"el horizonte es {horizonte_calculado}")
 
         #GRAFICAR PROGRAMACIÓN EN GANTT##########
-        graficaGantt.generar_gantt_tecnicos(Mod_clases.personal, fecha, hora, horizonte_calculado=horizonte_calculado)
-        graficaGantt.generar_gantt_vehiculos(Mod_objetos.pedido_quito06, fecha, hora, horizonte_calculado=horizonte_calculado)
+        modelo_llamarGantt.generar_gantt_tecnicos(Mod_clases.personal, fecha, hora, horizonte_calculado=horizonte_calculado)
+        modelo_llamarGantt.generar_gantt_vehiculos(Mod_objetos.pedido_quito06, fecha, hora, horizonte_calculado=horizonte_calculado)
+
+    if tipoPrograma == "por procesos":
+        Mod_clases.programa_por_procesos(Mod_objetos.pedido_quito06, Mod_clases.personal, 4000, fecha, hora)         # ¡¡¡¡¡¡¡ OJO !!!!!! ESTE METODO AUN NO EXISTE
+        horizonte_calculado = Mod_clases.calcular_horizonte(Mod_objetos.pedido_quito06)
+        print(f"el horizonte es {horizonte_calculado}")
+
+        #GRAFICAR PROGRAMACIÓN EN GANTT##########
+        modelo_llamarGantt.generar_gantt_tecnicos(Mod_clases.personal, fecha, hora, horizonte_calculado=horizonte_calculado)
+        modelo_llamarGantt.generar_gantt_vehiculos(Mod_objetos.pedido_quito06, fecha, hora, horizonte_calculado=horizonte_calculado)
+
+    
 
 def nombraArchivoExcel(programa):
     return programa + 'Numero__' + '.xlsx'

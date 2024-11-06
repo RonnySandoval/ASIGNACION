@@ -9,7 +9,8 @@ ent_Tiempos = {}            # Diccionarios para almacenar los textos de los entr
 
 intVar_tecnicos = {}  # Diccionario que tiene los nombres de las variables objeto de los checkbutton de tecnicos
 check_tecnicos = {}  # Diccionario que tiene los nombres de los checkbuttons de tecnicos
-
+intVar_procesos = {}  # Diccionario que tiene los nombres de las variables objeto de los checkbutton de tecnicos
+check_procesos = {}  # Diccionario que tiene los nombres de los checkbuttons de tecnicos
 
 #VENTANA CREA-EDITA MODELO
 lbl_nuevosTiemposMod = {}        # Diccionario para almacenar los nombres de los label del item tiempo de crear o editar un modelo
@@ -22,7 +23,6 @@ ent_nuevosTiemposVeh = {}        # Diccionario para almacenar los nombres de los
 strVar_nuevosTiemposVeh = {}     # Diccionario para almacenar las variables asociadas a los valores de los entry del item tiempo de  crear o editar un modelo
 
 
-
 ################################################
 ###### FRAMES DE CONTENIDOS PRINCIPALES ########
 class Contenidos:
@@ -30,6 +30,7 @@ class Contenidos:
         self.contenidoDeModelos = None
         self.contenidoDeTecnicos = None
         self.contenidoProcesos = None
+        self.contenidoTecProc = None
 
         self.contenidoDeVehiculos = None
         self.tablaVehiculos = None
@@ -43,3 +44,6 @@ class Contenidos:
         return [self.contenidoDeModelos, self.contenidoProcesos, self.contenidoDeTecnicos, self.contenidoDeVehiculos, self.tablaVehiculos, self.filtroVehiculos]
 
 stateFrame = Contenidos()
+
+
+base_datos = 'planta_manta.db'
