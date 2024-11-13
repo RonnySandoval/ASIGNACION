@@ -22,6 +22,7 @@ class Tiempos():
 modelos = list(map(lambda modelo_marca: modelo_marca[2], BBDD.leer_modelos('planta_manta.db')))
 tiempos = BBDD.leer_tiempos_modelos_procesos(glo.base_datos)
 tiemposVH = BBDD.leer_tiempos_vehiculos_procesos(glo.base_datos)
+print(tiempos)
 
 def buscar_tiempo(modelo, proceso):
     #Devuelve el tiempo de un solo proceso para un modelo dado.
@@ -39,11 +40,15 @@ def buscar_tiempo(modelo, proceso):
         print(f"El proceso {proceso} no existe en el DataFrame.")
         return None
 
-def buscar_tiempos(modelo):               #Devuelve una lista con los tiempos de todos los procesos para un modelo dado.
+def buscar_tiempos(modelo):                             #Devuelve una lista con los tiempos de todos los procesos para un modelo dado.
     try:
-        # Filtra el DataFrame para el modelo dado y selecciona todas las columnas de procesos
-        tiempos_modelo = tiempos.loc[tiempos['MODELO'] == modelo, id_procesos].values[0]
-        return tiempos_modelo.tolist()
+        id_procesos_filtrados = [col for col in id_procesos if col in tiempos.columns]                  # Filtrar id_procesos para incluir solo los que existen en las columnas del DataFrame
+
+        if id_procesos_filtrados:                                                                       # Verificar que haya al menos una columna válida en id_procesos_filtrado
+            tiempos_modelo = tiempos.loc[tiempos['MODELO'] == modelo, id_procesos_filtrados].values[0]  # Si hay columnas válidas, se selecciona
+            print("Valores seleccionados:", tiempos_modelo)
+        else:
+            print("Error: Ninguna de las columnas en id_procesos está en el DataFrame.")                # Si no hay columnas válidas, se imprime un mensaje
     
     except IndexError:
         print(f"El modelo {modelo} no existe.")

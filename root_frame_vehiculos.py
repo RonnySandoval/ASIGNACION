@@ -4,6 +4,8 @@ import customtkinter as ctk
 import  eventos as eventos
 from    estilos import *
 import  ventanas_emergentes
+import glo
+import BBDD
 
 
 # Configuración global del estilo de customtkinter
@@ -128,10 +130,7 @@ class TablaVehiculos():     #Tabla para pedido
             self.tablaVehiculos.column(col, anchor=tk.CENTER, width=80)
             self.tablaVehiculos.heading(col, text=col, anchor=tk.CENTER)
 
-
-
-
-# Crear un Scrollbar y conectarlo con el Canvas
+        # Crear un Scrollbar y conectarlo con el Canvas
 
         #Crear una barra de desplazamiento para la tabla y configurarla
         self.scrollbarTablaVehiculos = ttk.Scrollbar(contenido.frameTablaVehiculos, orient=tk.VERTICAL, command=self.tablaVehiculos.yview)
@@ -141,21 +140,43 @@ class TablaVehiculos():     #Tabla para pedido
 
         self.llenarTabla(bbdd)
 
-        #Botones de programar pedido
-        self.botonProgramarTodo = ctk.CTkButton(master=contenedor ,text="Programar TODO", font=textoGrande, hover_color=naranjaClaro, fg_color=naranjaOscuro,
-                                                corner_radius=20, command=lambda:self.programar_todo("completo"), width=50, height=10)
-        self.botonProgramarTodo.pack()
+        self.frameBotonesVehiculos = ctk.CTkFrame(contenedor, bg_color=moradoMedio)
+        self.frameBotonesVehiculos.pack(fill="both", side="bottom")
 
         #Botones de programar pedido
-        self.botonProgramarInmediato = ctk.CTkButton(master=contenedor, text="Programar INMEDIATO", font=textoGrande, hover_color=naranjaClaro, fg_color=naranjaOscuro,
-                                                     corner_radius=20, command=lambda:self.programar_inmediato("inmediato"), width=50, height=10)
-        self.botonProgramarInmediato.pack()
+        self.botonProgramarTodo = ctk.CTkButton(master=self.frameBotonesVehiculos ,text="Programar TODO",
+                                                font=textoGrande, hover_color=amarilloOscuro, fg_color=naranjaOscuro, border_color = blancoFrio,
+                                                corner_radius=20, command=lambda:self.programar_todo("completo"), width=60)
+        self.botonProgramarTodo.pack(fill=tk.X, side="left", padx=15, pady=5)
 
-        self.botonProgramarPorProcesos= ctk.CTkButton(master=contenedor, text="Programar POR PROCESOS", font=textoGrande, hover_color=naranjaClaro, fg_color=naranjaOscuro,
-                                                     corner_radius=20, command=lambda:self.programar_por_procesos("por procesos"), width=50, height=10)
-        self.botonProgramarPorProcesos.pack()
+        self.botonProgramarInmediato = ctk.CTkButton(master=self.frameBotonesVehiculos, text="Programar INMEDIATO",
+                                                     font=textoGrande, hover_color=amarilloOscuro, fg_color=naranjaOscuro, border_color = blancoFrio,
+                                                     corner_radius=20, command=lambda:self.programar_inmediato("inmediato"), width=60)
+        self.botonProgramarInmediato.pack(fill=tk.X, side="left", padx=15, pady=5)
 
-     
+        self.botonProgramarPorProcesos= ctk.CTkButton(master=self.frameBotonesVehiculos, text="Programar POR PROCESO",
+                                                      font=textoGrande, hover_color=amarilloOscuro, fg_color=naranjaOscuro, border_color = blancoFrio,
+                                                     corner_radius=20, command=lambda:self.programar_por_procesos("por procesos"), width=60)
+        self.botonProgramarPorProcesos.pack(fill=tk.X, side="left", padx=15, pady=5)
+
+        self.frameCheckProcesos = ctk.CTkFrame(contenedor, bg_color=moradoMedio)
+        self.frameCheckProcesos.pack(fill="both", side="bottom")
+
+        #CHECKBUTTON CON PROCESOS
+        self.infoProcesos = BBDD.leer_procesos_completo(bbdd)
+        for id in [proceso[0] for proceso in self.infoProcesos]:
+
+            int_name = f"checkIntvar-{id}"                                        # generar el nombre de la IntVar del checkbutton
+            self.check_name_proceso = f"checkButton-{id}"                         # nombre del checkbutton
+            print(self.check_name_proceso)
+            print(glo.intVar_procesos[int_name])
+            glo.check_procesos[self.check_name_proceso] = ctk.CTkCheckBox(
+                                                                        self.frameCheckProcesos, text=id, 
+                                                                        bg_color=grisOscuro, font=texto1Medio, fg_color=grisOscuro,
+                                                                        variable=glo.intVar_procesos[int_name])
+            glo.check_procesos[self.check_name_proceso].pack(fill=tk.X, side="left", padx=15, pady=5)
+
+
     def llenarTabla(self, bbdd):    # Agregar datos a la tabla    
         self.datos = eventos.leeVehiculosBBDD(bbdd)
         print(self.datos)
@@ -179,6 +200,7 @@ class TablaVehiculos():     #Tabla para pedido
                 valores = self.tablaVehiculos.item(fila, 'values')     #obtener los valores de la fila
                 chasis = valores[0]
                 print(f"asignará el vehiculo  {valores}")
+                print(chasis, bbdd)
                 eventos.ventana_AsignarUnVehiculo(chasis, bbdd)
 
         #click derecho en modificar fila

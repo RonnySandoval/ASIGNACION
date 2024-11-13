@@ -19,7 +19,7 @@ class ventanaRoot(ctk.CTk):
         self.title("Programación de Planta")
         self.geometry("800x700")
         self.state('zoomed')
-        self.iconbitmap("logo8.ico")
+        self.iconbitmap("logo2.ico")
 
         # Crear la barra de navegación
         self.nav_frame = ctk.CTkFrame(self)
@@ -36,25 +36,37 @@ class ventanaRoot(ctk.CTk):
         ctk.CTkLabel(self.nav_frame, text=bbdd, font=textoBajo, width=100).pack(side=ctk.RIGHT, padx=5, pady=5)
         
         
-        # Creación de los frames principales usando customtkinter CTkFrame
-        self.framePlanta = ctk.CTkFrame   (self, fg_color=moradoMedio)
-        self.frameVehiculos = ctk.CTkFrame (self, fg_color=grisAzuladoMedio)
-        self.framePedidos = ctk.CTkFrame   (self, fg_color=azulOscuro)
-        self.frameOrdenes = ctk.CTkFrame   (self, fg_color=grisVerdeOscuro)
+        # Crea frames pero no los muestra todavía
+        self.framePlanta = ctk.CTkFrame(self, fg_color=moradoMedio)
+        self.frameVehiculos = ctk.CTkFrame(self, fg_color=grisAzuladoMedio)
+        self.framePedidos = ctk.CTkFrame(self, fg_color=azulOscuro)
+        self.frameOrdenes = ctk.CTkFrame(self, fg_color=grisVerdeOscuro)
         self.frameHistoricos = ctk.CTkFrame(self, fg_color=rojoOscuro)
+        
+        # Indicar "Cargando..." mientras los widgets se configuran
+        loading_label = ctk.CTkLabel(self, text="Cargando...", font=texto1Medio)
+        loading_label.pack(expand=True)
 
-        # Posicionar los frames 
-        self.framePlanta    .pack(expand=True, side="left", fill="both", padx=3, pady=3)
-        self.frameVehiculos .pack(expand=True, side="left", fill="both", padx=3, pady=3)
-        self.framePedidos   .pack(expand=True, side="left", fill="both", padx=3, pady=3)
-        self.frameOrdenes   .pack(expand=True, side="left", fill="both", padx=3, pady=3)
+        # Retraso para cargar y mostrar los frames después de que sus widgets estén listos
+        self.after(200, lambda: self.cargar_frames(loading_label))
+
+    def cargar_frames(self, loading_label):
+        # Ocultar el mensaje de carga
+        loading_label.pack_forget()
+
+        # Posicionar los frames ya cargados
+        self.framePlanta.pack(expand=True, side="left", fill="both", padx=3, pady=3)
+        self.frameVehiculos.pack(expand=True, side="left", fill="both", padx=3, pady=3)
+        self.framePedidos.pack(expand=True, side="left", fill="both", padx=3, pady=3)
+        self.frameOrdenes.pack(expand=True, side="left", fill="both", padx=3, pady=3)
         self.frameHistoricos.pack(expand=True, side="left", fill="both", padx=3, pady=3)
 
-        # Configuramos el grid del frame padre (framePlanta) para que los frames hijos ocupen el espacio verticalmente
-        self.framePlanta.grid_rowconfigure(0, weight=1)  # La única fila debe expandirse verticalmente
-        self.framePlanta.grid_columnconfigure(0, weight=1)  # Expande la columna 0
-        self.framePlanta.grid_columnconfigure(1, weight=1)  # Expande la columna 1
+        # Configuración de expansión en framePlanta
+        self.framePlanta.grid_rowconfigure(0, weight=1)
+        self.framePlanta.grid_columnconfigure(0, weight=1)
+        self.framePlanta.grid_columnconfigure(1, weight=1)
 
+        # Mostrar el primer frame
         self.mostrar_frame(self.framePlanta)
 
     def mostrar_frame(self, frame):
@@ -62,8 +74,15 @@ class ventanaRoot(ctk.CTk):
         for f in (self.frameVehiculos, self.framePlanta, self.framePedidos, self.frameOrdenes, self.frameHistoricos):
             f.pack_forget()                             # Ocultar todos los frames
 
-        frame.pack(fill=ctk.BOTH, expand=True)          # Mostrar el frame seleccionado
-    
+        loading_label = ctk.CTkLabel(self, text="Cargando...", font=textoBajo)
+        loading_label.pack(side="top", padx=3, pady=3)
+        self.after(50, lambda: loading_label.pack_forget())
+
+        # Asegurar la carga completa antes de mostrar
+        frame.update_idletasks()  
+        frame.pack(fill=ctk.BOTH, expand=True)
+
+        
     def creaframeModelos(self):
         self.frameModelos = ctk.CTkFrame  (self.framePlanta, fg_color=grisAzuladoMedio, corner_radius=15)
         self.frameModelos.pack(expand=True, side="left", fill="both", padx=10, pady=10)
@@ -89,9 +108,10 @@ class ventanaRoot(ctk.CTk):
         self.frameProcesos.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
         return self.frameProcesos
 
-
+#CREAR VENTANA PRINCIPAL CON SU MENÚ
 root = ventanaRoot(bbdd='planta_manta.db')
 menu_principal.crearMenuPrincipal(root)
+
 
 
 # Añadir contenidos a los frames
@@ -107,19 +127,19 @@ glo.stateFrame.contenidoDeProcesos  = framePro.ContenidoProcesos(root.creaframeP
 glo.stateFrame.contenidoDeVehiculos = framePed.ContenidoVehiculos(root.frameVehiculos)
 
 glo.stateFrame.tablaVehiculos       = framePed.TablaVehiculos(glo.stateFrame.contenidoDeVehiculos,
-                                                   root.frameVehiculos, root, bbdd='planta_manta.db')
+                                                              root.frameVehiculos, root, bbdd='planta_manta.db')
 
 glo.stateFrame.filtroVehiculos      = framePed.FiltrosVehiculos(glo.stateFrame.tablaVehiculos,
-                                                     glo.stateFrame.contenidoDeVehiculos, 
-                                                     bbdd='planta_manta.db')
+                                                                glo.stateFrame.contenidoDeVehiculos, 
+                                                                bbdd='planta_manta.db')
 
 glo.stateFrame.contenidoDeHistoricos= frameHis.ContenidoHistoricos(root.frameHistoricos)
 
-glo.stateFrame.tablaHistoricos      = frameHis.TablaHistoricos(glo.stateFrame.contenidoDeHistoricos,
-                                                   root.frameHistoricos, root, bbdd='planta_manta.db')
+glo.stateFrame.tablaHistoricos      = frameHis.TablaHistoricos( glo.stateFrame.contenidoDeHistoricos,
+                                                                root.frameHistoricos, root, bbdd='planta_manta.db')
 
 glo.stateFrame.filtroHistoricos     = frameHis.FiltrosHistoricos(glo.stateFrame.tablaHistoricos,
-                                                     glo.stateFrame.contenidoDeHistoricos, 
-                                                     bbdd='planta_manta.db')
+                                                                 glo.stateFrame.contenidoDeHistoricos, 
+                                                                 bbdd='planta_manta.db')
 
 root.mainloop()

@@ -6,6 +6,7 @@ import glo
 import ventanas_auxiliares
 import ventanas_emergentes
 import Mod_clases, Mod_objetos
+import modelo_clases, modelo_instancias
 import modelo_llamarGantt
 import fechahora
 
@@ -14,8 +15,9 @@ import fechahora
 #####################################################################
 def crear_modelo(bbdd):
     print("pusó el botón crear modelo")
-    ventana = ventanas_auxiliares.VentanaCreaEdita("CREAR", bbdd)              #Llamar al constructor del objeto ventana
-    ventana.asignafuncionBoton(lambda:guardar_modelo_nuevo(ventana, bbdd), lambda:cancelar(ventana))    #asignar los botones de guardar y cancelar en la ventana
+    ventana = ventanas_auxiliares.VentanaCreaEditaModelo("CREAR", bbdd)              #Llamar al constructor del objeto ventana
+    ventana.asignafuncion(funcionGuardar  = lambda:guardar_modelo_nuevo(ventana, bbdd),
+                               funcionCancelar = lambda:cancelar(ventana))    #asignar los botones de guardar y cancelar en la ventana
 
 def recoger_datos_modelo(filaBoton, bbdd):
     print(filaBoton)
@@ -24,18 +26,30 @@ def recoger_datos_modelo(filaBoton, bbdd):
     marca = re.search(r'^(.*?)\s*-\s*(.*?)$', marca_modelo).group(1).strip()    #expresion regular para truncar solo la marca
     modelo = re.search(r'^(.*?)\s*-\s*(.*?)$', marca_modelo).group(2).strip()   #expresion regular para truncar solo el modelo
     print(f"marca={marca} modelo={modelo}")         
-    tiempos=[]
-    for columna in range(1, BBDD.calcula_procesos(bbdd)+1):
-        tiempos.append(glo.ent_Tiempos[f"ExtryTime{fila}_{columna}"].get())    #obtiene el tiempo de proceso y lo agrega a la lista
+    
+    
+    tiempos={}
+    procesos = BBDD.leer_procesos(bbdd)
+    columna = 1
+    for proceso in procesos:
+        try:
+            tiempos[proceso] = glo.ent_Tiempos[f"ExtryTime{fila}_{columna}_{proceso}"].get() #obtiene el tiempo de proceso y lo agrega al diccionario
+            columna += 1
+        except Exception as e:
+            print(f"La clave ExtryTime{fila}_{columna}_{proceso} no está en el diccionario de tiempos")
+            print(e)
+
     print(tiempos)
-    return [marca, modelo] + tiempos
+    diccDatos = {"marca": marca, "modelo": modelo}
+    diccDatos.update(tiempos)
+    return diccDatos
 
 def editar_modelo(botonPulsado, bbdd):
     print(recoger_datos_modelo(botonPulsado, bbdd))
-    datos = recoger_datos_modelo(botonPulsado, bbdd)                   # llamar a la función que recoge los datos de los entry en el panel de modelos
-    ventana = ventanas_auxiliares.VentanaCreaEdita("EDITAR", bbdd)     # Llamar al constructor del objeto ventana para editar el modelo
-    ventana.set_values(datos)                                          # llamar al metodo del objeto ventana creada, que llena los campos de modelo y tiempos
-    ventana.asignafuncionBoton(lambda:guardar_modelo_actualizado(ventana, bbdd), lambda:cancelar(ventana))    #asignar los botones de guardar y cancelar en la ventana
+    datos = recoger_datos_modelo(botonPulsado, bbdd)                         # llamar a la función que recoge los datos de los entry en el panel de modelos
+    ventana = ventanas_auxiliares.VentanaCreaEditaModelo("EDITAR", bbdd)     # Llamar al constructor del objeto ventana para editar el modelo
+    ventana.set_values(datos)                                                # llamar al metodo del objeto ventana creada, que llena los campos de modelo y tiempos
+    ventana.asignafuncion(lambda:guardar_modelo_actualizado(ventana, bbdd), lambda:cancelar(ventana))    #asignar los botones de guardar y cancelar en la ventana
 
 def guardar_modelo_nuevo(ventana, bbdd):
     print(ventana)
@@ -77,15 +91,14 @@ def guardar_modelo_actualizado(ventana, bbdd):
     CRUD.insertar_modelo(*datos)
     ventana.rootAux.destroy()
 
-def agregar_a_pedido(botonPulsado, bbdd):
+def agregar_vehiculo(botonPulsado, bbdd):
     datos = recoger_datos_modelo(botonPulsado, bbdd)
     print(datos)
     ventana = ventanas_auxiliares.VentanaGestionaVehiculos("AGREGAR", bbdd)
     ventana.set_values(datos, None, "AGREGAR")
-    ventana.asignafuncionBoton(lambda:agregarVH_pedido(ventana, bbdd), lambda:cancelar(ventana))
-    ventana.rootAux.destroy()
+    ventana.asignafuncion(lambda:aceptar_agregar_vehiculo(ventana, bbdd), lambda:cancelar(ventana))
 
-def agregarVH_pedido(ventana, bbdd):
+def aceptar_agregar_vehiculo(ventana, bbdd):
     #Se recogen los datos de la fila
     datos = [ventana.varChasis.get(),
             ventana.varFecha.get()]
@@ -173,8 +186,42 @@ def recoge_estados_check():
     print(checktecnicos)
     return checktecnicos
 
+def guardar_tecnico_nuevo(ventana, bbdd):
+    #Recoger los datos agregados del nuevo tecnico
+    datos = (ventana.varNombre.get(),
+             ventana.varApellido.get(),
+             ventana.varDocumento.get(),
+             ventana.varEspecialidad.get())
+    
+    ParteEsp = datos[3][:3].lower() if len(datos[2]) >= 3 else datos[2].lower()     # Extraer primeras 3 letras dela especialidad
+    ParteDoc = datos[2][-4:] if len(datos[3]) >= 4 else datos[3]                    # extraer las ultimos 4 numeros del documento
 
+    idTecnico = ParteEsp + ParteDoc + datos[0]                                      # construir un id con la especialidad, documento y nombre
 
+    print(datos)
+    BBDD.insertar_tecnico(bbdd, idTecnico, *datos)                                  # insertar el registro del técnico en BD
+
+    ventana.rootAux.destroy()
+
+def eliminar_tecnico_BD(ventana, bbdd):
+    nombreTecnico = ventana.varTecnico.get()        # obtener el técnico seleccionado
+    idTecnico = ventana.ids_tecnicos.get(nombreTecnico) # obtiene la clave con el id de acuerdo al valor con nombre completo de técnico
+    if ventanas_emergentes.ms_eliminar_tec(id_tecnico = idTecnico, nombre = nombreTecnico) == "Aceptar":
+        BBDD.eliminar_tecnico(bbdd, idTecnico)          # usar el método de la BD para eliminar
+        ventana.rootAux.destroy()                       # cerrar la ventana toplevel
+
+#####################################################################
+################### EVENTOS PARA SECCION PROCESOS ###################
+#####################################################################
+def guardar_proceso_nuevo(ventana, bbdd):
+    datos = (ventana.varIdProceso.get(),
+             ventana.varNombre.get(),
+             ventana.varDescripcion.get(),
+             ventana.varSecuencia.get())
+    print(datos)
+    BBDD.insertar_proceso(bbdd, *datos)
+
+    ventana.rootAux.destroy()
 
 #####################################################################
 ################EVENTOS PARA SECCION DE VEHICULOS####################
@@ -198,7 +245,7 @@ def modificar_vehiculo_pedido(chasis_anterior, bbdd):
     print("Los tiempos en el modulo eventos son: ", tiempos)
     ventana = ventanas_auxiliares.VentanaGestionaVehiculos("MODIFICAR", bbdd)       #CREAR LA VENTANA EMERGENTE PARA EDITAR EL VEHICULO
     ventana.set_values(datos, tiempos, "MODIFICAR")                                        #AGREGAR LOS DATOS DE LA BBDD A LA VENTANA
-    ventana.asignafuncionBoton(lambda:modificarVH_en_BBDD(ventana, chasis_anterior, bbdd), lambda:cancelar(ventana))  #ASIGNAR BOTONES
+    ventana.asignafuncion(lambda:modificarVH_en_BBDD(ventana, chasis_anterior, bbdd), lambda:cancelar(ventana))  #ASIGNAR BOTONES
     ventana.rootAux.destroy()
 
 def modificarVH_en_BBDD(ventana, chasis_anterior, bbdd):
@@ -250,7 +297,8 @@ def eliminar_VH_pedido(chasis):
 
 def ventana_AsignarUnVehiculo(chasis, bbdd):
     ventana = ventanas_auxiliares.VentanaAsignaVehiculo(chasis, bbdd)
-    ventana.asignaFuncion(lambda:aceptar_AsignarUnVehiculo(ventana, chasis, bbdd), lambda:cancelar(ventana))
+    ventana.asignaFuncion(funcionAceptar = lambda:aceptar_AsignarUnVehiculo(ventana, chasis, bbdd),
+                          funcionCancelar = lambda:cancelar(ventana))
 
 def aceptar_AsignarUnVehiculo(ventana, chasisVh, bbdd):
     datos = [ventana.varTecnico.get(),
@@ -291,9 +339,28 @@ def aceptar_AsignarUnVehiculo(ventana, chasisVh, bbdd):
 #####################################################################
 ################ EVENTOS PARA SECCION DE HISTÓRICOS #################
 #####################################################################
-def leeHistoricosBBDD(bbdd):
-    return BBDD.leer_historicos_completo(bbdd)
 
+def ventanaResumenHistorico(id, bbdd):
+    ventana = ventanas_auxiliares.VentanaMuestraInfoHis(id, bbdd)
+    ventana.asignafuncionBoton(funcionCerrar = ventana.rootAux.destroy)
+
+def ventanaCambiarEstado(id, bbdd):
+    ventana = ventanas_auxiliares.VentanaCambiarEstadoHist(id, bbdd)
+    ventana.asignafuncion(funcionAgregar  = lambda: aceptarCambiarEstado(),
+                          funcionCancelar = ventana.rootAux.destroy)
+
+
+def aceptarCambiarEstado():
+    pass
+
+def ventana_modificarHistorico(id_anterior, bbdd):
+    pass
+
+def ventana_ObserNoved(valores):
+    pass
+            
+def ventana_eliminarHistorico(id_historico):
+    pass
 #####################################################################
 #####################################################################
 #####################################################################
@@ -310,31 +377,62 @@ def aceptarFechayHora(ventana, tipoPrograma):
     ventana.rootAux.destroy()
     
     if tipoPrograma == "completo":
-        Mod_clases.programa_completo(Mod_objetos.pedido_quito06, Mod_clases.personal, 4000, fecha, hora)
+        Mod_clases.programa_completo(Mod_objetos.pedido_quito06,
+                                     Mod_clases.personal,
+                                     4000,
+                                     fecha,
+                                     hora)
         horizonte_calculado = Mod_clases.calcular_horizonte(Mod_objetos.pedido_quito06)
         print(f"el horizonte es {horizonte_calculado}")
 
         #GRAFICAR PROGRAMACIÓN EN GANTT##########
-        modelo_llamarGantt.generar_gantt_tecnicos(Mod_clases.personal, fecha, hora, horizonte_calculado=horizonte_calculado)
-        modelo_llamarGantt.generar_gantt_vehiculos(Mod_objetos.pedido_quito06, fecha, hora, horizonte_calculado=horizonte_calculado)
+        modelo_llamarGantt.generar_gantt_tecnicos(Mod_clases.personal,
+                                                  fecha,
+                                                  hora,
+                                                  horizonte_calculado=horizonte_calculado)
+        modelo_llamarGantt.generar_gantt_vehiculos(Mod_objetos.pedido_quito06,
+                                                   fecha,
+                                                   hora,
+                                                   horizonte_calculado=horizonte_calculado)
     
     if tipoPrograma == "inmediato":
-        Mod_clases.programa_inmediato(Mod_objetos.pedido_quito06, Mod_clases.personal, 4000, fecha, hora)
+        Mod_clases.programa_inmediato(Mod_objetos.pedido_quito06,
+                                      Mod_clases.personal,
+                                      4000,
+                                      fecha,
+                                      hora)
         horizonte_calculado = Mod_clases.calcular_horizonte(Mod_objetos.pedido_quito06)
         print(f"el horizonte es {horizonte_calculado}")
 
         #GRAFICAR PROGRAMACIÓN EN GANTT##########
-        modelo_llamarGantt.generar_gantt_tecnicos(Mod_clases.personal, fecha, hora, horizonte_calculado=horizonte_calculado)
-        modelo_llamarGantt.generar_gantt_vehiculos(Mod_objetos.pedido_quito06, fecha, hora, horizonte_calculado=horizonte_calculado)
+        modelo_llamarGantt.generar_gantt_tecnicos(Mod_clases.personal,
+                                                  fecha,
+                                                  hora,
+                                                  horizonte_calculado=horizonte_calculado)
+        modelo_llamarGantt.generar_gantt_vehiculos(Mod_objetos.pedido_quito06,
+                                                   fecha, hora,
+                                                   horizonte_calculado=horizonte_calculado)
 
     if tipoPrograma == "por procesos":
-        Mod_clases.programa_por_procesos(Mod_objetos.pedido_quito06, Mod_clases.personal, 4000, fecha, hora)         # ¡¡¡¡¡¡¡ OJO !!!!!! ESTE METODO AUN NO EXISTE
-        horizonte_calculado = Mod_clases.calcular_horizonte(Mod_objetos.pedido_quito06)
+        modelo_clases.programa_por_proceso(pedido     = modelo_instancias.pedido,
+                                           tecnicos   = modelo_clases.personal,
+                                           procesos   = "",
+                                           horizonte  = 4000,
+                                           fechaStart = fecha,
+                                           horaStart  = hora,
+                                           bbdd       = glo.base_datos)
+        horizonte_calculado = modelo_clases.calcular_horizonte(modelo_instancias.pedido)
         print(f"el horizonte es {horizonte_calculado}")
 
         #GRAFICAR PROGRAMACIÓN EN GANTT##########
-        modelo_llamarGantt.generar_gantt_tecnicos(Mod_clases.personal, fecha, hora, horizonte_calculado=horizonte_calculado)
-        modelo_llamarGantt.generar_gantt_vehiculos(Mod_objetos.pedido_quito06, fecha, hora, horizonte_calculado=horizonte_calculado)
+        modelo_llamarGantt.generar_gantt_tecnicos(personal   = modelo_clases.personal,
+                                                  fechaStart = fecha,
+                                                  horaStart  = hora,
+                                                  horizonte_calculado=horizonte_calculado)
+        modelo_llamarGantt.generar_gantt_vehiculos(pedido     =modelo_instancias.pedido,
+                                                   fechaStart =fecha,
+                                                   horaStart  =hora,
+                                                   horizonte_calculado=horizonte_calculado)
 
     
 

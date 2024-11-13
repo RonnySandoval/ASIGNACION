@@ -77,5 +77,5 @@ def generar_gantt_tecnicos(personal, fechaStart, horaStart, horizonte_calculado)
     modelo_mostrarGantt.mostrar_grafico_tecnicos("GRAFICO_DE_TECNICOS_02")
 
 
-generar_gantt_tecnicos(personal,  "2024-11-05", "08:45:00", horizonte_calculado)
-generar_gantt_vehiculos(pedido,  "2024-11-05", "08:45:00", horizonte_calculado)
+#generar_gantt_tecnicos(personal,  "2024-11-05", "08:45:00", horizonte_calculado)
+#generar_gantt_vehiculos(pedido,  "2024-11-05", "08:45:00", horizonte_calculado)

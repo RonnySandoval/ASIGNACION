@@ -37,15 +37,15 @@ def eliminar_tabla(bbdd, nombre_tabla):
 ############################# PARA PARA INSERTAR ###########################
 ###########################################################################
 
-def insertar_proceso(bbdd, id, proceso, descripcion):
+def insertar_proceso(bbdd, id, proceso, descripcion, secuencia):
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()          
         insert_data_script = """INSERT INTO PROCESOS 
-                                    (ID_PROCESO, NOMBRE, DESCRIPCION)
-                                    VALUES (?, ?, ?)
+                                    (ID_PROCESO, NOMBRE, DESCRIPCION, SECUENCIA)
+                                    VALUES (?, ?, ?, ?)
                                 """
-        cursor.execute(insert_data_script, (id, proceso, descripcion))
+        cursor.execute(insert_data_script, (id, proceso, descripcion, secuencia))
         conn.commit()
         print("Registro añadido")
         
@@ -100,15 +100,15 @@ def insertar_tiempo_modelo(bbdd, procmodel, id_proceso, id_modelo, tiempo):
     finally:
         conn.close()
 
-def insertar_tecnico(bbdd, id, nombre, apellido, especialidad):
+def insertar_tecnico(bbdd, id, nombre, apellido, documento, especialidad):
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()          
         insert_data_script = """INSERT INTO TECNICOS 
-                                    (ID_TECNICO, NOMBRE, APELLIDO, ESPECIALIDAD)
-                                    VALUES (?, ?, ?, ?)
+                                    (ID_TECNICO, NOMBRE, APELLIDO, DOCUMENTO, ESPECIALIDAD)
+                                    VALUES (?, ?, ?, ?, ?)
                                 """
-        cursor.execute(insert_data_script, (id, nombre, apellido, especialidad))
+        cursor.execute(insert_data_script, (id, nombre, apellido, documento, especialidad))
         conn.commit()
         print("Registro añadido")
         
@@ -780,6 +780,44 @@ def leer_historico_completo(bbdd, chasis):
     
     return registros
 
+def leer_historico_completo_porId(bbdd, id):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+        codigo = id
+        cursor.execute('''SELECT 
+                            h.CODIGO_ASIGNACION,
+                            h.CHASIS,
+                            t.NOMBRE || ' ' || t.APELLIDO AS NOMBRE_COMPLETO,
+                            h.ID_PROCESO,
+                            v.ID_MODELO,
+                            v.COLOR,
+                            h.INICIO,
+                            h.FIN,
+                            h.DURACION,
+                            h.ESTADO,
+                            v.NOVEDADES,
+                            h.OBSERVACIONES,
+                            v.SUBCONTRATAR,
+                            v.ID_PEDIDO
+                        FROM 
+                            HISTORICOS AS h
+                        JOIN 
+                            TECNICOS AS t ON h.ID_TECNICO = t.ID_TECNICO
+                        JOIN 
+                            VEHICULOS AS v ON h.CHASIS = v.CHASIS
+                        WHERE h.CODIGO_ASIGNACION = ?''', (codigo,))
+        registro = cursor.fetchone()
+        print(registro)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la Tabla de Tiempos_Vehiculos y de Vehiculos: {e}")
+        registro = None
+
+    finally:
+        conn.close()    # Cierra la conexión
+    
+    return registro
 
 def obtener_id_modelo(bbdd, modelo):
     try:
@@ -956,87 +994,6 @@ def leer_pedidos(bbdd):
 
 
 
-
-####################################################################
-########################## ELIMINAR REGISTROS ######################
-
-def eliminar_modelo(bbdd, modelo):
-    try:
-        conn = sqlite3.connect(bbdd)
-        cursor = conn.cursor()
-        
-        cursor.execute("DELETE FROM MODELOS WHERE MODELO=?", (modelo,))
-        conn.commit()
-        print(f"El modelo {modelo} se eliminó correctamente de la tabla MODELOS")
-
-    except sqlite3.Error as e:
-        print(f"Error al eliminar el modelo {modelo}: {e}")
-
-    finally:
-        conn.close()  # Cerrar la conexión después de usarla
-
-def eliminar_tiempo_modelo(bbdd, modelo):
-    id_modelo = obtener_id_modelo(bbdd, modelo)
-
-    try:
-        conn = sqlite3.connect(bbdd)
-        cursor = conn.cursor()
-        
-        cursor.execute("DELETE FROM TIEMPOS_MODELOS WHERE ID_MODELO=?", (id_modelo,))
-        conn.commit()
-        print(f"Los registro del modelo {modelo} se eliminaron correctamente de la tabla TIEMPOS_MODELOS")
-
-    except sqlite3.Error as e:
-        print(f"Error al eliminar el modelo {modelo}: {e}")
-
-    finally:
-        conn.close()  # Cerrar la conexión después de usarla
-
-def eliminar_modelo_completo(bbdd, modelo):
-    if ventEmerg.msg_eliminar_mod(modelo):
-        eliminar_tiempo_modelo(bbdd, modelo)   #eliminar primero el registro con clave foranea
-        eliminar_modelo(bbdd, modelo)          #eliminar después el registro con clave primaria
-
-
-
-def eliminar_vehiculo(bbdd, chasis):
-    try:
-        conn = sqlite3.connect(bbdd)
-        cursor = conn.cursor()
-        
-        cursor.execute("DELETE FROM VEHICULOS WHERE CHASIS=?", (chasis,))
-        conn.commit()
-        print(f"El modelo {chasis} se eliminó correctamente de la tabla VEHICULOS")
-
-    except sqlite3.Error as e:
-        print(f"Error al eliminar el Vehiculo con chasis {chasis}: {e}")
-
-    finally:
-        conn.close()  # Cerrar la conexión después de usarla
-
-def eliminar_tiempo_vehiculo(bbdd, chasis):
-
-    try:
-        conn = sqlite3.connect(bbdd)
-        cursor = conn.cursor()
-        
-        cursor.execute("DELETE FROM TIEMPOS_VEHICULOS WHERE CHASIS=?", (chasis,))
-        conn.commit()
-        print(f"Los registro del vehiculo {chasis} se eliminó correctamente de la tabla TIEMPOS_VEHICULOS")
-
-    except sqlite3.Error as e:
-        print(f"Error al eliminar el vehiculo con chasis {chasis}: {e}")
-
-    finally:
-        conn.close()  # Cerrar la conexión después de usarla
-
-def eliminar_vehiculo_completo(bbdd, chasis):
-    if ventEmerg.msg_eliminar_veh(chasis):
-        eliminar_tiempo_vehiculo(bbdd, chasis)   #eliminar primero el registro con clave foranea
-        eliminar_vehiculo(bbdd, chasis)          #eliminar después el registro con clave primaria
-
-
-
 #####################################################################
 ########################## MODIFICAR REGISTROS ######################
 def actualizar_vehiculo(bbdd, chasis, fecha_ingreso, id_modelo, color, estado, novedades, subcontratar, id_pedido, chasis_anterior):
@@ -1099,11 +1056,112 @@ def actualizar_tiempo_vehiculo(bbdd, procvehi, id_proceso, chasis, tiempo, procv
 
 
 
+####################################################################
+########################## ELIMINAR REGISTROS ######################
+
+def eliminar_modelo(bbdd, modelo):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM MODELOS WHERE MODELO=?", (modelo,))
+        conn.commit()
+        print(f"El modelo {modelo} se eliminó correctamente de la tabla MODELOS")
+
+    except sqlite3.Error as e:
+        print(f"Error al eliminar el modelo {modelo}: {e}")
+
+    finally:
+        conn.close()
+
+def eliminar_tiempo_modelo(bbdd, modelo):
+    id_modelo = obtener_id_modelo(bbdd, modelo)
+
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM TIEMPOS_MODELOS WHERE ID_MODELO=?", (id_modelo,))
+        conn.commit()
+        print(f"Los registro del modelo {modelo} se eliminaron correctamente de la tabla TIEMPOS_MODELOS")
+
+    except sqlite3.Error as e:
+        print(f"Error al eliminar el modelo {modelo}: {e}")
+
+    finally:
+        conn.close()  # Cerrar la conexión después de usarla
+
+def eliminar_modelo_completo(bbdd, modelo):
+    if ventEmerg.msg_eliminar_mod(modelo):
+        eliminar_tiempo_modelo(bbdd, modelo)   #eliminar primero el registro con clave foranea
+        eliminar_modelo(bbdd, modelo)          #eliminar después el registro con clave primaria
 
 
+def eliminar_vehiculo(bbdd, chasis):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM VEHICULOS WHERE CHASIS=?", (chasis,))
+        conn.commit()
+        print(f"El modelo {chasis} se eliminó correctamente de la tabla VEHICULOS")
 
+    except sqlite3.Error as e:
+        print(f"Error al eliminar el Vehiculo con chasis {chasis}: {e}")
 
+    finally:
+        conn.close()  # Cerrar la conexión después de usarla
 
+def eliminar_tiempo_vehiculo(bbdd, chasis):
+
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM TIEMPOS_VEHICULOS WHERE CHASIS=?", (chasis,))
+        conn.commit()
+        print(f"Los registro del vehiculo {chasis} se eliminó correctamente de la tabla TIEMPOS_VEHICULOS")
+
+    except sqlite3.Error as e:
+        print(f"Error al eliminar el vehiculo con chasis {chasis}: {e}")
+
+    finally:
+        conn.close()  # Cerrar la conexión después de usarla
+
+def eliminar_vehiculo_completo(bbdd, chasis):
+    if ventEmerg.msg_eliminar_veh(chasis):
+        eliminar_tiempo_vehiculo(bbdd, chasis)   #eliminar primero el registro con clave foranea
+        eliminar_vehiculo(bbdd, chasis)          #eliminar después el registro con clave primaria
+
+def eliminar_proceso(bbdd, id):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM PROCESOS WHERE ID_PROCESO=?", (id,))
+        conn.commit()
+        print(f"El proceso {id} se eliminó correctamente de la tabla PROCESOS")
+
+    except sqlite3.Error as e:
+        print(f"Error al eliminar el proceso {id}: {e}")
+
+    finally:
+        conn.close()
+
+def eliminar_tecnico(bbdd, id):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM TECNICOS WHERE ID_TECNICO=?", (id,))
+        conn.commit()
+        print(f"El tecnico {id} se eliminó correctamente de la tabla TECNICOS")
+
+    except sqlite3.Error as e:
+        print(f"Error al eliminar el tecnico {id}: {e}")
+
+    finally:
+        conn.close()
 
 
 

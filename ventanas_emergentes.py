@@ -25,6 +25,23 @@ def desea_guardar(excel):
     else:
         print("Click en Cancelar")
 
+
+
+
+def ms_eliminar_tec(id_tecnico, nombre):
+    respuesta = messagebox.askokcancel(
+        title="Eliminar Eliminar",
+        message=f"¡Está a punto de eliminar el técnico {nombre} con id: {id_tecnico}!\n"
+        "Este cambio afectará las tablas TECNICOS y TECNICOS_ESPECIALIDAD, y es irreversible.\n"
+        "¿Seguro desea eliminarlo?"
+    )
+    if respuesta:
+        print("Click en Aceptar")
+        return "Aceptar"
+    else:
+        print("Click en Cancelar")
+        return "Cancelar"
+
 def msg_eliminar_veh(chasis):
     respuesta = messagebox.askokcancel(
         title="Eliminar Vehículo",

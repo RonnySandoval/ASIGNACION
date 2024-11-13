@@ -1,7 +1,6 @@
 import tkinter as tk
 import customtkinter as ctk
 import BBDD
-import eventos
 import glo
 from estilos import *
 

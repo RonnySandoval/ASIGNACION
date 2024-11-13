@@ -37,14 +37,14 @@ for pedido in BBDD.leer_pedidos(glo.base_datos):
 modelo_clases.programa_por_proceso(objePedidos[0], modelo_clases.personal, ["PDI", "LAV"], 10000, "2024-11-05", "08:45:00", 'planta_manta.db')
 pedido = objePedidos[0]
 horizonte_calculado = modelo_clases.calcular_horizonte(objePedidos[0])
+
+"""
 print(f"el horizonte es {horizonte_calculado}")
 for vehiculo in objePedidos[0].vehiculos:
     print(vehiculo.id_chasis)
     for estado in vehiculo.historico_estados:
         print(estado)
-
-
-
+"""
 
 
 

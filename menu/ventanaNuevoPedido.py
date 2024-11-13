@@ -1,20 +1,21 @@
 import tkinter as tk
+import customtkinter as ctk
 import estilos
 
 
 class VentanaNuevoPedido():       #Ventana para crear o editar modelos
     def __init__(self):
 
-        self.rootAux = tk.Toplevel()
+        self.rootAux = ctk.CTkToplevel()
         self.rootAux.title("Crear Nueva Pedido")
-        self.rootAux.config(bg = estilos.azulClaro)
+        self.rootAux.config(background = estilos.azulClaro)
         self.rootAux.iconbitmap("logo5.ico")
         self.rootAux.geometry("450x400")
         self.rootAux.resizable(False, False)
 
-        self.frameTitulo = tk.Frame(self.rootAux, bg=estilos.azulClaro)
+        self.frameTitulo = ctk.CTkFrame(self.rootAux, fg_color=estilos.azulClaro)
         self.frameTitulo.pack(expand=True, side="top", fill="both")
-        self.frameEntradas = tk.Frame(self.rootAux, bg=estilos.azulClaro)
+        self.frameEntradas = ctk.CTkFrame(self.rootAux, fg_color=estilos.azulClaro)
         self.frameEntradas.pack(expand=True, side="bottom", fill="both", pady=10)
 
         # variables objeto para los entry. Deben ser parte del constructor, para poder usarlas en sus métodos
@@ -25,11 +26,11 @@ class VentanaNuevoPedido():       #Ventana para crear o editar modelos
 
 
         #LABEL PARA TITULO Y CAMPOS
-        self.labelTitulo          = tk.Label(self.frameTitulo,   text = "CREAR NUEVO PEDIDO", font = estilos.textoGrande, fg = estilos.grisAzuladoOscuro, bg=estilos.azulClaro)
-        self.labelDependCliente   = tk.Label(self.frameEntradas, text = "Cliente/Depedencia", font = estilos.texto1Bajo, fg = estilos.grisAzuladoOscuro, bg=estilos.azulClaro)
-        self.labelFechaRecepcion  = tk.Label(self.frameEntradas, text = "Fecha de Recepción", font = estilos.texto1Bajo, fg = estilos.grisAzuladoOscuro, bg=estilos.azulClaro)
-        self.labelFechaEntrega    = tk.Label(self.frameEntradas, text = "Fecha de entrega"  , font = estilos.texto1Bajo, fg = estilos.grisAzuladoOscuro, bg=estilos.azulClaro)
-        self.labelCantVehiculos   = tk.Label(self.frameEntradas, text = "Cantidad de Vehículos", font = estilos.texto1Bajo, fg = estilos.grisAzuladoOscuro, bg=estilos.azulClaro)
+        self.labelTitulo          = ctk.CTkLabel(self.frameTitulo,   text = "CREAR NUEVO PEDIDO", font = estilos.textoGrande, text_color = estilos.grisAzuladoOscuro, fg_color=estilos.azulClaro)
+        self.labelDependCliente   = ctk.CTkLabel(self.frameEntradas, text = "Cliente/Depedencia", font = estilos.texto1Bajo, text_color = estilos.grisAzuladoOscuro, fg_color=estilos.azulClaro)
+        self.labelFechaRecepcion  = ctk.CTkLabel(self.frameEntradas, text = "Fecha de Recepción", font = estilos.texto1Bajo, text_color = estilos.grisAzuladoOscuro, fg_color=estilos.azulClaro)
+        self.labelFechaEntrega    = ctk.CTkLabel(self.frameEntradas, text = "Fecha de entrega"  , font = estilos.texto1Bajo, text_color = estilos.grisAzuladoOscuro, fg_color=estilos.azulClaro)
+        self.labelCantVehiculos   = ctk.CTkLabel(self.frameEntradas, text = "Cantidad de Vehículos", font = estilos.texto1Bajo, text_color = estilos.grisAzuladoOscuro, fg_color=estilos.azulClaro)
 
 
 
@@ -41,10 +42,10 @@ class VentanaNuevoPedido():       #Ventana para crear o editar modelos
 
 
         #ENTRY PARA CAMPOS
-        self.entryDependCliente = tk.Entry     (self.frameEntradas, font = estilos.numerosMedianos, fg = estilos.blancoHueso, bg=estilos.moradoOscuro, width=30, textvariable=self.varDependCliente)
-        self.entryFechaRecepcion = tk.Entry   (self.frameEntradas, font = estilos.numerosMedianos, fg = estilos.blancoHueso, bg=estilos.moradoOscuro, width=30, textvariable=self.varFechaRecepcion)
-        self.entryFechaEntrega = tk.Entry(self.frameEntradas, font = estilos.numerosMedianos, fg = estilos.blancoHueso, bg=estilos.moradoOscuro,  width=30, textvariable=self.varFechaEntrega)
-        self.entryCantVehiculos = tk.Entry(self.frameEntradas, font = estilos.numerosMedianos, fg = estilos.blancoHueso, bg=estilos.moradoOscuro,  width=30, textvariable=self.varCantVehiculos)
+        self.entryDependCliente = ctk.CTkEntry     (self.frameEntradas, font = estilos.numerosMedianos, text_color = estilos.blancoHueso, fg_color=estilos.moradoOscuro, width=30, textvariable=self.varDependCliente)
+        self.entryFechaRecepcion = ctk.CTkEntry   (self.frameEntradas, font = estilos.numerosMedianos, text_color = estilos.blancoHueso, fg_color=estilos.moradoOscuro, width=30, textvariable=self.varFechaRecepcion)
+        self.entryFechaEntrega = ctk.CTkEntry(self.frameEntradas, font = estilos.numerosMedianos, text_color = estilos.blancoHueso, fg_color=estilos.moradoOscuro,  width=30, textvariable=self.varFechaEntrega)
+        self.entryCantVehiculos = ctk.CTkEntry(self.frameEntradas, font = estilos.numerosMedianos, text_color = estilos.blancoHueso, fg_color=estilos.moradoOscuro,  width=30, textvariable=self.varCantVehiculos)
 
 
         self.entryDependCliente .grid     (row=0,column=1, sticky="ew", pady=5)
@@ -53,9 +54,9 @@ class VentanaNuevoPedido():       #Ventana para crear o editar modelos
         self.entryCantVehiculos.grid(row=3,column=1, sticky="ew", pady=5)
 
 
-        self.buttonCancelar = tk.Button(self.frameEntradas, text="Cancelar", font = estilos.texto1Bajo,  bg = estilos.grisAzuladoMedio, fg = estilos.blancoHueso,
+        self.buttonCancelar = ctk.CTkButton(self.frameEntradas, text="Cancelar", font = estilos.texto1Bajo,  fg_color = estilos.azulClaro, text_color = estilos.blancoHueso, hover_color = estilos.azulMedio,
                                         command="")   
-        self.buttonGuardar  = tk.Button(self.frameEntradas, text="Guardar",  font = estilos.textoGrande, bg = estilos.azulMedio, fg = estilos.blancoFrio,
+        self.buttonGuardar  = ctk.CTkButton(self.frameEntradas, text="Guardar",  font = estilos.textoGrande, fg_color = estilos.naranjaClaro, text_color = estilos.blancoFrio, hover_color = estilos.naranjaMedio,
                                         command="")    
 
         self.buttonCancelar.grid(row=7, column=0, padx=22, pady=10)

@@ -2,9 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random as rdm
 import matplotlib.dates as mdates
-from matplotlib.patches import FancyBboxPatch
 import fechahora
-from datetime import datetime, timedelta
+
 
 
 ##################################################################################################################

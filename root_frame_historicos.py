@@ -171,7 +171,7 @@ class TablaHistoricos():        #Tabla para historicos
         self.llenarTabla(bbdd)
 
     def llenarTabla(self, bbdd):    # Agregar datos a la tabla 
-        self.datos = eventos.leeHistoricosBBDD(bbdd)
+        self.datos = BBDD.leer_historicos_completo(bbdd)
         print(self.datos)
         for record in self.datos:
             self.tablaHistoricos.insert(parent='', index='end', iid=record[0], text='', values=record)
@@ -183,7 +183,7 @@ class TablaHistoricos():        #Tabla para historicos
             if fila:
                 valores = self.tablaHistoricos.item(fila, 'values')     #obtener los valores de la fila
                 print(valores)
-                resumen_vh(valores, bbdd)
+                resumen_hist(valores, bbdd)
 
         #click derecho en asignar vehiculo
         def seleccionar_cambiar_fila():
@@ -192,7 +192,7 @@ class TablaHistoricos():        #Tabla para historicos
             if fila:
                 valores = self.tablaHistoricos.item(fila, 'values')     #obtener los valores de la fila
                 print(valores)
-                cambiar_vh(valores)
+                cambiar_hist(valores, bbdd)
 
         #click derecho en modificar fila
         def seleccionar_modificar_fila():
@@ -201,7 +201,15 @@ class TablaHistoricos():        #Tabla para historicos
             if fila:
                 valores = self.tablaHistoricos.item(fila, 'values')     #obtener los valores de la fila
                 print(valores)
-                modificar_vh(valores, bbdd)
+                modificar_hist(valores, bbdd)
+
+        def seleccionar_anadir_fila():
+            fila = self.tablaHistoricos.selection()     #obtener el item seleccionado
+            print("Añadir novedad/observación seleccionada")
+            if fila:
+                valores = self.tablaHistoricos.item(fila, 'values')     #obtener los valores de la fila
+                print(valores)
+                anadirNovObs_hist(valores)
 
         #click derecho en eliminar fila
         def seleccionar_eliminar_fila():
@@ -210,38 +218,42 @@ class TablaHistoricos():        #Tabla para historicos
             if fila:
                 valores = self.tablaHistoricos.item(fila, 'values')     #obtener los valores de la fila
                 print(valores)
-                eliminar_vh(valores, bbdd)       
+                eliminar_hist(valores, bbdd)       
         
         #CREAR MENU CONTEXTUAL
         self.menu = tk.Menu(self.raiz, tearoff=0)
         self.menu.add_command(label="Resumen", command = seleccionar_resumen_fila)
         self.menu.add_command(label="Cambiar Estado", command = seleccionar_cambiar_fila)
         self.menu.add_command(label="Modificar", command = seleccionar_modificar_fila)
-        self.menu.add_command(label="Añadir Observación/Novedad", command = seleccionar_modificar_fila)
+        self.menu.add_command(label="Añadir Observación/Novedad", command = seleccionar_anadir_fila)
         self.menu.add_command(label="Eliminar", command = seleccionar_eliminar_fila)
         
-        
         #Opciones del menú del click derecho
-        def eliminar_vh(valores, bbdd):
-            id = valores[0]
-            print(f"Se eliminará {id}")
-            eventos.eliminar_VH_pedido(id)
 
+        def resumen_hist(valores, bbdd):
+            id_historico = valores[0]
+            print(f"solicitó información de {valores}")
+            eventos.ventanaResumenHistorico(id_historico, bbdd)
 
-        def modificar_vh(valores, bbdd):
+        def cambiar_hist(valores, bbdd):
+            id_historico = valores[0]
+            print(f"cambiará el estado del histórico {valores}")
+            eventos.ventanaCambiarEstado(id_historico, bbdd)
+
+        def modificar_hist(valores, bbdd):
             id_anterior = valores[0]
-            print(f"modificará el chasis {id_anterior}")
-            eventos.modificar_vehiculo_pedido(id_anterior, bbdd)
+            print(f"modificará el histórico {valores}")
+            eventos.ventana_modificarHistorico(id_anterior, bbdd)
 
-        def cambiar_vh(valores):
-            chasis = valores[0]
-            print(f"asignará el vehiculo con chasis {chasis}")
-            eventos.ventana_AsignarUnVehiculo(chasis)
-
-        def resumen_vh(valores, bbdd):
-            chasis = valores[0]
-            print(f"solicitó información de {chasis}")
-            #eventos.avanzar_VH_pedido(chasis)
+        def anadirNovObs_hist(valores):
+            id_historico = valores[0]
+            print(f"asignará el vehiculo con chasis {valores}")
+            eventos.ventana_ObserNoved(valores)
+            
+        def eliminar_hist(valores, bbdd):
+            id_historico = valores[0]
+            print(f"Se eliminará el histórico {valores}")
+            eventos.ventana_eliminarHistorico(id_historico)
 
 
         # Manejar el evento del clic derecho
