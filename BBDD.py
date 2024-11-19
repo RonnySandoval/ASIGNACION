@@ -222,6 +222,24 @@ def insertar_historico(bbdd, codigo, chasis, tec, proc, observ, start, end, delt
 ###########################################################################
 ############################ PARA PARA LEER ###############################
 ###########################################################################
+def leer_ids_proceso_modelo(bbdd, proc_modelo):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()          
+        cursor.execute("""
+                        SELECT *
+                            FROM TIEMPOS_MODELOS
+                            WHERE ID_MODELO=?""",
+                            (proc_modelo,))
+        datos = cursor.fetchall()
+        
+    except sqlite3.Error as e:
+        print(f"Error al leer el registro: {e}")
+        datos = None
+
+    finally:
+        conn.close()
+        return datos
 
 def leer_procesos(bbdd):
     try:
@@ -634,6 +652,32 @@ def leer_vehiculos_completos_marcamodelo(bbdd):
     
     return registros
 
+def buscar_vehiculo_por_modelo(bbdd, id_modelo):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+
+        id = id_modelo
+        cursor.execute('''
+                       SELECT *
+                            FROM VEHICULOS
+                            INNER JOIN MODELOS
+                            ON MODELOS.ID_MODELO = VEHICULOS.ID_MODELO
+                            WHERE MODELOS.ID_MODELO = ?
+                       ''',(id,)
+                        )
+        registros = cursor.fetchall()
+        print(registros)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer el vehiculo: {e}")
+
+    finally:
+        conn.close()
+
+    return registros
+
+
 def calcula_tecnicos(bbdd):
 
     conn = sqlite3.connect(bbdd)
@@ -996,6 +1040,50 @@ def leer_pedidos(bbdd):
 
 #####################################################################
 ########################## MODIFICAR REGISTROS ######################
+def actualizar_modelo(bbdd, id_anterior, marca, modelo, id_nuevo):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()          
+        insert_data_script = """
+                                UPDATE MODELOS 
+                                    SET ID_MODELO=?, MARCA=?, MODELO=?
+                                    WHERE ID_MODELO=?
+                            """
+        cursor.execute(insert_data_script, (id_nuevo, marca, modelo, id_anterior))
+        conn.commit()
+        print(f"Registro {id_anterior} actualizado por {id_nuevo}")
+        
+    except sqlite3.Error as e:
+        print(f"Error al insertar el modelo: {e}")
+
+    except UnboundLocalError as e:
+        print(f"No se llenaron todos los campos: {e}") 
+
+    finally:
+        conn.close()
+
+def actualizar_tiempo_modelo(bbdd, procmodel, id_proceso, id_modelo, tiempo, procmodelo_anterior):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()          
+        insert_data_script = """
+                                UPDATE TIEMPOS_MODELOS
+                                    SET  PROCESO_MODELO=?, ID_PROCESO=?, ID_MODELO=?, TIEMPO=?
+                                    WHERE PROCESO_MODELO=?
+                            """
+        cursor.execute(insert_data_script, (procmodel, id_proceso, id_modelo, tiempo, procmodelo_anterior))
+        conn.commit()
+        print(f"Registro {procmodelo_anterior} actualizado por {procmodel}")
+        
+    except sqlite3.Error as e:
+        print(f"Error al actualizar el tiempo {procmodelo_anterior}:{e}")
+
+    except UnboundLocalError as e:
+        print(f"No se llenaron todos los campos: {e}") 
+
+    finally:
+        conn.close()
+
 def actualizar_vehiculo(bbdd, chasis, fecha_ingreso, id_modelo, color, estado, novedades, subcontratar, id_pedido, chasis_anterior):
     try:
         conn = sqlite3.connect(bbdd)
@@ -1051,7 +1139,9 @@ def actualizar_tiempo_vehiculo(bbdd, procvehi, id_proceso, chasis, tiempo, procv
 
     except sqlite3.Error as e:
         print(f"Error al actualizar el tiempo: {e}")
-
+    
+    finally:
+        conn.close()
 
 
 
@@ -1081,7 +1171,7 @@ def eliminar_tiempo_modelo(bbdd, modelo):
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()
         
-        cursor.execute("DELETE FROM TIEMPOS_MODELOS WHERE ID_MODELO=?", (id_modelo,))
+        cursor.execute("DELETE FROM TIEMPOS_MODELOS WHERE PROCESO_MODELO=?", (modelo,))
         conn.commit()
         print(f"Los registro del modelo {modelo} se eliminaron correctamente de la tabla TIEMPOS_MODELOS")
 
@@ -1091,11 +1181,10 @@ def eliminar_tiempo_modelo(bbdd, modelo):
     finally:
         conn.close()  # Cerrar la conexión después de usarla
 
-def eliminar_modelo_completo(bbdd, modelo):
-    if ventEmerg.msg_eliminar_mod(modelo):
-        eliminar_tiempo_modelo(bbdd, modelo)   #eliminar primero el registro con clave foranea
-        eliminar_modelo(bbdd, modelo)          #eliminar después el registro con clave primaria
 
+def eliminar_modelo_completo(bbdd, modelo):
+    eliminar_tiempo_modelo(bbdd, modelo)   #eliminar primero el registro con clave foranea
+    eliminar_modelo(bbdd, modelo)          #eliminar después el registro con clave primaria
 
 def eliminar_vehiculo(bbdd, chasis):
     try:
@@ -1129,9 +1218,8 @@ def eliminar_tiempo_vehiculo(bbdd, chasis):
         conn.close()  # Cerrar la conexión después de usarla
 
 def eliminar_vehiculo_completo(bbdd, chasis):
-    if ventEmerg.msg_eliminar_veh(chasis):
-        eliminar_tiempo_vehiculo(bbdd, chasis)   #eliminar primero el registro con clave foranea
-        eliminar_vehiculo(bbdd, chasis)          #eliminar después el registro con clave primaria
+    eliminar_tiempo_vehiculo(bbdd, chasis)   #eliminar primero el registro con clave foranea
+    eliminar_vehiculo(bbdd, chasis)          #eliminar después el registro con clave primaria
 
 def eliminar_proceso(bbdd, id):
     try:
@@ -1162,12 +1250,6 @@ def eliminar_tecnico(bbdd, id):
 
     finally:
         conn.close()
-
-
-
-
-
-
 
 
 """

@@ -2,6 +2,7 @@ import tkinter as tk
 from estilos import grisOscuro, blancoCalido
 import menu.submenu_nuevo  as subNuevo
 import menu.submenu_editar as subEditar
+import menu.subImportar as subImportar
 
 
 def crearMenuPrincipal(raiz):
@@ -38,14 +39,8 @@ def crearMenuPrincipal(raiz):
     ########################### submenu de Importar ###########################
     menuImportar=tk.Menu(barraMenu, tearoff=0)
     barraMenu.add_cascade(label="Importar", menu=menuImportar)
-    menuImportar.add_command(label="Importar Modelos", command="")
-    menuImportar.add_command(label="Importar Tecnicos", command="")
-    menuImportar.add_command(label="Importar Vehiculos", command="")
-    menuImportar.add_command(label="Importar Procesos", command="")
-    menuImportar.add_separator()
-    menuImportar.add_command(label="Importar Pedido", command="")
-    menuImportar.add_command(label="Importar Programa", command="")
-    menuImportar.add_command(label="Importar Historicos", command="")
+    subImportar.desplegar_importar(subMenu = menuImportar, root=raiz)
+
     ##########################################################################
 
 

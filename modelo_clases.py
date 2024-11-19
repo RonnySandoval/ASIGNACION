@@ -809,7 +809,6 @@ def programa_por_proceso(pedido, tecnicos, procesos, horizonte, fechaStart, hora
 
     return pedido.vehiculos
 
-
 def calcular_horizonte(pedido):
     vehiculos_programados = []                       # Lista para almacenar vehículos válidos
     

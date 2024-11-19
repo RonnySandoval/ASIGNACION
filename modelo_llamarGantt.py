@@ -1,7 +1,7 @@
-from modelo_clases import personal
-from modelo_instancias import pedido, horizonte_calculado
+#from modelo_clases import personal
+#from modelo_instancias import pedido, horizonte_calculado
 import modelo_mostrarGantt
-import datetime
+#import datetime
 import fechahora
 
 
@@ -20,12 +20,12 @@ def generar_gantt_vehiculos(pedido, fechaStart, horaStart, horizonte_calculado):
 
     for tarea in pedido.vehiculos:
 
-        for proceso in tarea.historico_estados:         #busca los parámetros de entrada para cada tarea del grafico
-            nombre_proceso = proceso[0]                 #extrae el nombre del proceso del 1er elemento del atributo historico estados (proceso)
-            init = proceso[1]                         #extrae el nombre del proceso del 2do elemento del atributo historico estados (inicio de proceso)
-            duracion = proceso[2]- proceso[1]           #extrae el nombre del proceso del 2do y 3er elemento del atributo historico estados (inicio y fin de proceso)
-            encargado = proceso[3]                      #extrae el nombre del proceso del 4to elemento del atributo historico estados (tecnico)
-            if duracion == 0:                           #evalua si la tarea no ocupa tiempo
+        for proceso in tarea.historico_estados:         # busca los parámetros de entrada para cada tarea del grafico
+            nombre_proceso = proceso[0]                 # extrae el nombre del proceso del 1er elemento del atributo historico estados (proceso)
+            init = proceso[1]                           # extrae el nombre del proceso del 2do elemento del atributo historico estados (inicio de proceso)
+            duracion = proceso[2]- proceso[1]           # extrae el nombre del proceso del 2do y 3er elemento del atributo historico estados (inicio y fin de proceso)
+            encargado = proceso[3]                      # extrae el nombre del proceso del 4to elemento del atributo historico estados (tecnico)
+            if duracion == 0:                           # evalua si la tarea no ocupa tiempo
                 continue
             else:    
                 modelo_mostrarGantt.agregar_proceso(
@@ -57,11 +57,11 @@ def generar_gantt_tecnicos(personal, fechaStart, horaStart, horizonte_calculado)
 
     for tarea in personal:
 
-        for vehiculo in tarea.historico_asignacion:         #busca los parámetros de entrada para cada tarea del grafico
-            id_vehiculo = vehiculo[0]                       #extrae el nombre del proceso del 1er elemento del atributo asignacion estados (vehiculo)
-            init = vehiculo[1]                            #extrae el nombre del proceso del 2do elemento del atributo asignacion estados (inicio de vehiculo)
-            duracion = vehiculo[2]- vehiculo[1]             #extrae el nombre del proceso del 2do y 3er elemento del atributo asignacion estados (inicio y fin de vehiculo)
-            if duracion == 0:                               #evalua si la tarea no ocupa tiempo
+        for vehiculo in tarea.historico_asignacion:         # busca los parámetros de entrada para cada tarea del grafico
+            id_vehiculo = vehiculo[0]                       # extrae el nombre del proceso del 1er elemento del atributo asignacion estados (vehiculo)
+            init = vehiculo[1]                              # extrae el nombre del proceso del 2do elemento del atributo asignacion estados (inicio de vehiculo)
+            duracion = vehiculo[2]- vehiculo[1]             # extrae el nombre del proceso del 2do y 3er elemento del atributo asignacion estados (inicio y fin de vehiculo)
+            if duracion == 0:                               # evalua si la tarea no ocupa tiempo
                 print(f"No se agregó {vehiculo} ")
                 continue
 

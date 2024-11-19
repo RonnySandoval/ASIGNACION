@@ -267,16 +267,16 @@ class TablaVehiculos():     #Tabla para pedido
         self.llenarTabla(bbdd)
 
     def programar_todo(self, tipoPrograma):
-        eventos.recoge_estados_check()
-        eventos.abrirFechayHora(tipoPrograma)
+        eventos.recoge_check_tecnicos()
+        eventos.abrirFechayHoraProg(tipoPrograma)
         ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel("programar_todo"))
 
     def programar_inmediato(self, tipoPrograma):
-        eventos.abrirFechayHora(tipoPrograma)
+        eventos.recoge_check_tecnicos() 
+        eventos.abrirFechayHoraProg(tipoPrograma)
         ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel("programar_inmediato"))
-        eventos.recoge_estados_check()
 
     def programar_por_procesos(self, tipoPrograma):
-        eventos.abrirFechayHora(tipoPrograma)
+        eventos.recoge_check_tecnicos()
+        eventos.abrirFechayHoraProg(tipoPrograma)
         ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel("programar_inmediato"))
-        eventos.recoge_estados_check()

@@ -29,7 +29,7 @@ class ventanaRoot(ctk.CTk):
         ctk.CTkButton(self.nav_frame, text="Vehículos",  command=lambda: self.mostrar_frame(self.frameVehiculos), fg_color=moradoMedio, hover_color=moradoClaro).pack(side=ctk.LEFT, padx=5, pady=5)
         ctk.CTkButton(self.nav_frame, text="Planta",     command=lambda: self.mostrar_frame(self.framePlanta), fg_color=grisAzuladoOscuro, hover_color=azulClaro).pack(side=ctk.LEFT, padx=5, pady=5)
         ctk.CTkButton(self.nav_frame, text="Pedidos",    command=lambda: self.mostrar_frame(self.framePedidos), fg_color=azulOscuro, hover_color=azulClaro).pack(side=ctk.LEFT, padx=5, pady=5)
-        ctk.CTkButton(self.nav_frame, text="Órdenes",    command=lambda: self.mostrar_frame(self.frameOrdenes), fg_color=grisVerdeOscuro, hover_color=grisVerdeClaro).pack(side=ctk.LEFT, padx=5, pady=5)
+        ctk.CTkButton(self.nav_frame, text="Programas",  command=lambda: self.mostrar_frame(self.frameProgramas), fg_color=grisVerdeOscuro, hover_color=grisVerdeClaro).pack(side=ctk.LEFT, padx=5, pady=5)
         ctk.CTkButton(self.nav_frame, text="Históricos", command=lambda: self.mostrar_frame(self.frameHistoricos), fg_color=rojoOscuro, hover_color=rojoClaro).pack(side=ctk.LEFT, padx=5, pady=5)
         
         #Label con el nombre de la planta 
@@ -40,7 +40,7 @@ class ventanaRoot(ctk.CTk):
         self.framePlanta = ctk.CTkFrame(self, fg_color=moradoMedio)
         self.frameVehiculos = ctk.CTkFrame(self, fg_color=grisAzuladoMedio)
         self.framePedidos = ctk.CTkFrame(self, fg_color=azulOscuro)
-        self.frameOrdenes = ctk.CTkFrame(self, fg_color=grisVerdeOscuro)
+        self.frameProgramas = ctk.CTkFrame(self, fg_color=grisVerdeOscuro)
         self.frameHistoricos = ctk.CTkFrame(self, fg_color=rojoOscuro)
         
         # Indicar "Cargando..." mientras los widgets se configuran
@@ -58,7 +58,7 @@ class ventanaRoot(ctk.CTk):
         self.framePlanta.pack(expand=True, side="left", fill="both", padx=3, pady=3)
         self.frameVehiculos.pack(expand=True, side="left", fill="both", padx=3, pady=3)
         self.framePedidos.pack(expand=True, side="left", fill="both", padx=3, pady=3)
-        self.frameOrdenes.pack(expand=True, side="left", fill="both", padx=3, pady=3)
+        self.frameProgramas.pack(expand=True, side="left", fill="both", padx=3, pady=3)
         self.frameHistoricos.pack(expand=True, side="left", fill="both", padx=3, pady=3)
 
         # Configuración de expansión en framePlanta
@@ -71,7 +71,7 @@ class ventanaRoot(ctk.CTk):
 
     def mostrar_frame(self, frame):
 
-        for f in (self.frameVehiculos, self.framePlanta, self.framePedidos, self.frameOrdenes, self.frameHistoricos):
+        for f in (self.frameVehiculos, self.framePlanta, self.framePedidos, self.frameProgramas, self.frameHistoricos):
             f.pack_forget()                             # Ocultar todos los frames
 
         loading_label = ctk.CTkLabel(self, text="Cargando...", font=textoBajo)

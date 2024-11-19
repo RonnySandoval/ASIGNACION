@@ -34,9 +34,9 @@ for pedido in BBDD.leer_pedidos(glo.base_datos):
                         vehiculos = [vehiculo for vehiculo in objeVehiculos if vehiculo.pedido == pedido[0]]))
 
 
-modelo_clases.programa_por_proceso(objePedidos[0], modelo_clases.personal, ["PDI", "LAV"], 10000, "2024-11-05", "08:45:00", 'planta_manta.db')
+#modelo_clases.programa_por_proceso(objePedidos[0], modelo_clases.personal, ["PDI", "LAV"], 10000, "2024-11-05", "08:45:00", 'planta_manta.db')
 pedido = objePedidos[0]
-horizonte_calculado = modelo_clases.calcular_horizonte(objePedidos[0])
+#horizonte_calculado = modelo_clases.calcular_horizonte(objePedidos[0])
 
 """
 print(f"el horizonte es {horizonte_calculado}")

@@ -18,7 +18,7 @@ class VentanaCreaEditaModelo():
         self.rootAux = ctk.CTkToplevel()                #crea ventana auxiliar
         self.rootAux.attributes('-topmost', True)       #posiciona al frente de la pantalla
         self.rootAux.title("Programación de Planta")    #coloca titulo de ventana
-        self.rootAux.geometry("385x420")                #dimensiones
+        self.rootAux.geometry("385x480")                #dimensiones
         self.rootAux.resizable(False, False)            #deshabilita la redimension
 
         self.frameTitulo = ctk.CTkFrame(self.rootAux)
@@ -590,7 +590,6 @@ class VentanaMuestraInfoHis():
                                                     padx=2, pady=2, sticky = "ew")
             fila+=1
 
-
         self.buttonCerrar = ctk.CTkButton(self.rootAux, text="Cerrar", font=textoMedio, fg_color=rojoClaro, text_color=grisOscuro, hover_color = rojoMedio)
         self.buttonCerrar.pack(pady=10)
 
@@ -655,7 +654,171 @@ class VentanaCambiarEstadoHist():
 
         self.entryEstado.configure(values=["PENDIENTE", "EN EJECUCIÓN", "TERMINADO"])
 
-
     def asignafuncion(self, funcionAgregar, funcionCancelar):            #Método para asignar la función al command button de guardar y cancelar desde otro módulo.
         self.buttonAgregar.configure(command = funcionAgregar)
+        self.buttonCancelar.configure(command = funcionCancelar)
+
+class VentanaVistaPreviaPedido():
+        
+    def __init__(self, df, bbdd):
+
+        # Configuración de la ventana auxiliar
+        self.rootAux = ctk.CTkToplevel()                # Crea ventana auxiliar
+        self.rootAux.attributes('-topmost', True)       # Posiciona al frente de la pantalla
+        self.rootAux.title("Programación de Planta")    # Coloca título de ventana
+        self.rootAux.geometry("400x600")                # Dimensiones
+
+        # Configura el tema oscuro
+        self.rootAux.configure(bg=grisAzuladoOscuro)    # Fondo oscuro
+        ctk.set_appearance_mode("dark")                 # Establece el modo oscuro global
+
+        self.labeltitulo = ctk.CTkLabel(self.rootAux, text=f"VEHICULOS DE PEDIDO\nvista previa", font =textoMedio)
+        self.labeltitulo.pack(expand=True, side="top", fill="both")
+
+
+        # Frame para los datos generales
+        self.frameOption = ctk.CTkFrame(self.rootAux, fg_color=grisAzuladoOscuro)
+        self.frameOption.pack(side="top", fill="both")
+
+        # Configurar peso de las columnas del frame para que se expandan equitativamente
+        self.frameOption.grid_columnconfigure(0, weight=1)
+        self.frameOption.grid_columnconfigure(1, weight=1)
+        self.frameOption.grid_columnconfigure(2, weight=1)
+
+        # Frame para los datos generales
+        self.frameTreeview = ctk.CTkFrame(self.rootAux, fg_color=grisAzuladoOscuro)
+        self.frameTreeview.pack(expand=True, side="top", fill="both")
+
+        self.varColumna1 = tk.StringVar()
+        self.optionNombreColumna=ctk.CTkOptionMenu(self.frameOption, font = numerosMedianos, fg_color= grisAzuladoClaro, width=20, variable=self.varColumna1)
+        self.optionNombreColumna.grid(row=0 ,column=0, sticky="ew", pady=5)
+        self.fila = ["CHASIS","MODELO","COLOR"]
+        self.optionNombreColumna.configure(values=self.fila)      # Configurar el OptionMenu con los valores del diccionario
+        self.optionNombreColumna.set("CHASIS")
+
+        self.varColumna2 = tk.StringVar()
+        self.optionNombreColumna=ctk.CTkOptionMenu(self.frameOption, font = numerosMedianos, fg_color= grisAzuladoClaro, width=20, variable=self.varColumna2)
+        self.optionNombreColumna.grid(row=0 ,column=1, sticky="ew", pady=5)
+        self.fila = ["CHASIS","MODELO","COLOR"]
+        self.optionNombreColumna.configure(values=self.fila)      # Configurar el OptionMenu con los valores del diccionario
+        self.optionNombreColumna.set("MODELO")
+
+        self.varColumna3 = tk.StringVar()
+        self.optionNombreColumna=ctk.CTkOptionMenu(self.frameOption, font = numerosMedianos, fg_color= grisAzuladoClaro, width=20, variable=self.varColumna3)
+        self.optionNombreColumna.grid(row=0 ,column=2, sticky="ew", pady=5)
+        self.fila = ["CHASIS","MODELO","COLOR"]
+        self.optionNombreColumna.configure(values=self.fila)      # Configurar el OptionMenu con los valores del diccionario
+        self.optionNombreColumna.set("COLOR")
+
+
+        self.encabezados = list(df.columns)
+
+         #Crear estilo personalizado para las cabeceras y el cuerpo
+        self.styletreeviewInfo = ttk.Style()
+        self.styletreeviewInfo.configure("TreeviewPreviaPedido.Heading", foreground=moradoMedio, font=texto1Bajo, background=grisAzuladoOscuro)
+        self.styletreeviewInfo.configure("TreeviewPreviaPedido", background=grisAzuladoOscuro, foreground=blancoFrio, fieldbackground=grisAzuladoOscuro)
+        self.styletreeviewInfo.layout("TreeviewPreviaPedido", [('Treeview.treearea', {'sticky': 'nswe'})])
+
+        self.tree = ttk.Treeview(self.frameTreeview, columns=tuple(self.encabezados), show='headings',  style="TreeviewPreviaPedido")
+
+        # Definir encabezados en un bucle
+        self.encabezados = [(header, header) for header in self.encabezados]
+      
+        for col, texto in self.encabezados:
+            self.tree.heading(col, text=texto)
+            self.tree.column(col, anchor="w", width=100)
+
+        for _, registro in df.iterrows():              # Insertar los registros en el Treeview
+            self.tree.insert("", "end", values=list(registro))
+
+        self.tree.pack(expand=True, side = "top", fill="both")            # Agregar el Treeview a la ventana
+
+        self.frameBotones = ctk.CTkFrame(self.rootAux, fg_color=grisAzuladoOscuro)
+        self.frameBotones.pack(expand=True, side="bottom", fill="both")
+
+        self.buttonAceptar = ctk.CTkButton(self.frameBotones, text="Aceptar", font=textoMedio, fg_color=rojoClaro, text_color=moradoOscuro, hover_color=(moradoMedio, blancoFrio))
+        self.buttonAceptar.grid(row=0 ,column=0, sticky="ew", pady=5)
+        self.buttonCancelar = ctk.CTkButton(self.frameBotones, text="Cancelar", font=textoMedio, fg_color=rojoClaro, text_color=moradoOscuro, hover_color=(moradoMedio, blancoFrio))
+        self.buttonCancelar.grid(row=0 ,column=1, sticky="ew", pady=5)
+
+    def asignafuncion(self, funcionAceptar, funcionCancelar):               #Método para asignar la función al command button de aceptar y cancelar desde otro módulo.
+        self.buttonAceptar.configure(command = funcionAceptar)
+        self.buttonCancelar.configure(command = funcionCancelar)
+
+class VentanaVistaPreviaReferencias():
+    
+    def __init__(self, df, bbdd):
+
+        # Configuración de la ventana auxiliar
+        self.rootAux = ctk.CTkToplevel()                # Crea ventana auxiliar
+        self.rootAux.attributes('-topmost', True)       # Posiciona al frente de la pantalla
+        self.rootAux.title("Programación de Planta")    # Coloca título de ventana
+        self.rootAux.geometry("400x600")                # Dimensiones
+
+        # Configura el tema oscuro
+        self.rootAux.configure(bg=grisAzuladoOscuro)    # Fondo oscuro
+        ctk.set_appearance_mode("dark")                 # Establece el modo oscuro global
+
+        self.labeltitulo = ctk.CTkLabel(self.rootAux, text=f"REFERENCIAS DE VEHICULOS\nvista previa", font =textoMedio)
+        self.labeltitulo.pack(expand=True, side="top", fill="both")
+
+
+        # Frame para los datos generales
+        self.frameOption = ctk.CTkFrame(self.rootAux, fg_color=grisAzuladoOscuro)
+        self.frameOption.pack(side="top", fill="both")
+
+        # Configurar peso de las columnas del frame para que se expandan equitativamente
+        self.frameOption.grid_columnconfigure(0, weight=1)
+        self.frameOption.grid_columnconfigure(1, weight=1)
+
+        # Frame para los datos generales
+        self.frameTreeview = ctk.CTkFrame(self.rootAux, fg_color=grisAzuladoOscuro)
+        self.frameTreeview.pack(expand=True, side="top", fill="both")
+
+        self.varColumna1 = tk.StringVar()
+        self.optionNombreColumna=ctk.CTkOptionMenu(self.frameOption, font = numerosMedianos, fg_color= grisAzuladoClaro, width=20, variable=self.varColumna1)
+        self.optionNombreColumna.grid(row=0 ,column=0, sticky="ew", pady=5)
+        self.fila = ["REFERENCIA", "MODELO"]
+        self.optionNombreColumna.configure(values=self.fila)      # Configurar el OptionMenu con los valores del diccionario
+        self.optionNombreColumna.set("REFERENCIA")
+
+        self.varColumna2 = tk.StringVar()
+        self.optionNombreColumna=ctk.CTkOptionMenu(self.frameOption, font = numerosMedianos, fg_color= grisAzuladoClaro, width=20, variable=self.varColumna2)
+        self.optionNombreColumna.grid(row=0 ,column=1, sticky="ew", pady=5)
+        self.fila = ["REFERENCIA", "MODELO"]
+        self.optionNombreColumna.configure(values=self.fila)      # Configurar el OptionMenu con los valores del diccionario
+        self.optionNombreColumna.set("MODELO")
+
+        self.encabezados = list(df.columns)
+
+         #Crear estilo personalizado para las cabeceras y el cuerpo
+        self.styletreeviewInfo = ttk.Style()
+        self.styletreeviewInfo.configure("TreeviewPreviaPedido.Heading", foreground=moradoMedio, font=texto1Bajo, background=grisAzuladoOscuro)
+        self.styletreeviewInfo.configure("TreeviewPreviaPedido", background=grisAzuladoOscuro, foreground=blancoFrio, fieldbackground=grisAzuladoOscuro)
+        self.styletreeviewInfo.layout("TreeviewPreviaPedido", [('Treeview.treearea', {'sticky': 'nswe'})])
+
+        self.tree = ttk.Treeview(self.frameTreeview, columns=tuple(self.encabezados), show='headings',  style="TreeviewPreviaPedido")
+
+        # Definir encabezados en un bucle
+        self.encabezados = [(header, header) for header in self.encabezados]
+      
+        for col, texto in self.encabezados:
+            self.tree.heading(col, text=texto)
+            self.tree.column(col, anchor="w", width=100)
+
+        for _, registro in df.iterrows():              # Insertar los registros en el Treeview
+            self.tree.insert("", "end", values=list(registro))
+
+        self.tree.pack(expand=True, side = "top", fill="both")            # Agregar el Treeview a la ventana
+
+        self.frameBotones = ctk.CTkFrame(self.rootAux, fg_color=grisAzuladoOscuro)
+        self.frameBotones.pack(expand=True, side="bottom", fill="both")
+
+        self.buttonAceptar = ctk.CTkButton(self.frameBotones, text="Aceptar", font=textoMedio, fg_color=rojoClaro, text_color=moradoOscuro, hover_color=(moradoMedio, blancoFrio))
+        self.buttonAceptar.grid(row=0 ,column=0, sticky="ew", pady=5)
+        self.buttonCancelar = ctk.CTkButton(self.frameBotones, text="Cancelar", font=textoMedio, fg_color=rojoClaro, text_color=moradoOscuro, hover_color=(moradoMedio, blancoFrio))
+        self.buttonCancelar.grid(row=0 ,column=1, sticky="ew", pady=5, padx = 20)
+
+    def asignafuncion(self, funcionAceptar, funcionCancelar):               #Método para asignar la función al command button de aceptar y cancelar desde otro módulo.
+        self.buttonAceptar.configure(command = funcionAceptar)
         self.buttonCancelar.configure(command = funcionCancelar)
