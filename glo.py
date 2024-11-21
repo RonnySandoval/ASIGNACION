@@ -22,6 +22,10 @@ lbl_nuevosTiemposVeh = {}        # Diccionario para almacenar los nombres de los
 ent_nuevosTiemposVeh = {}        # Diccionario para almacenar los nombres de los entry del item tiempo de  crear o editar un modelo
 strVar_nuevosTiemposVeh = {}     # Diccionario para almacenar las variables asociadas a los valores de los entry del item tiempo de  crear o editar un modelo
 
+#VENTANA PEDIDOS
+strVar_newPedido = {}
+
+cons_newPedido = {}
 
 ################################################
 ###### FRAMES DE CONTENIDOS PRINCIPALES ########

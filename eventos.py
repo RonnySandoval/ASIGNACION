@@ -50,7 +50,6 @@ def guardar_modelo_nuevo(ventana, bbdd):
     #actualizamos el frame de modelos en la ventana
     glo.stateFrame.contenidoDeModelos.actualizar_contenido(bbdd)
 
-
 def recoger_datos_modelo(filaBoton, bbdd):
     print(filaBoton)
     fila = re.search(r'(\d+)$', filaBoton).group(1)                             #extraer el numero de la fila
@@ -269,6 +268,7 @@ def recoger_datos_vehiculo(chasis, bbdd):
 def modificar_vehiculo_pedido(chasis_anterior, bbdd):
 
     datos = list(recoger_datos_vehiculo(chasis_anterior, bbdd))                     #LEER DE LA BASE DATOS EL VEHICULO
+    print(datos)
     marcamodelo = list(BBDD.leer_modelo(bbdd, datos[2]))
     datos.pop(2)
     datos.insert(2, marcamodelo[1])
@@ -280,7 +280,7 @@ def modificar_vehiculo_pedido(chasis_anterior, bbdd):
     ventana = ventanas_auxiliares.VentanaGestionaVehiculos("MODIFICAR", bbdd)       #CREAR LA VENTANA EMERGENTE PARA EDITAR EL VEHICULO
     ventana.set_values(datos, tiempos, "MODIFICAR")                                        #AGREGAR LOS DATOS DE LA BBDD A LA VENTANA
     ventana.asignafuncion(lambda:modificarVH_en_BBDD(ventana, chasis_anterior, bbdd), lambda:cancelar(ventana))  #ASIGNAR BOTONES
-    ventana.rootAux.destroy()
+
 
 def modificarVH_en_BBDD(ventana, chasis_anterior, bbdd):
     #Se recogen los datos de la fila
@@ -326,7 +326,7 @@ def modificarVH_en_BBDD(ventana, chasis_anterior, bbdd):
     #ventana.rootAux.destroy()
 
 def eliminar_VH_pedido(chasis):
-    if ventanas_emergentes.msg_eliminar_vh(chasis) == "Aceptar":
+    if ventanas_emergentes.msg_eliminar_veh(chasis) == "Aceptar":
         CRUD.eliminar_vehiculo(chasis)
 
 def ventana_infoVehiculo(chasisVh, bbdd):
@@ -513,19 +513,20 @@ def aceptar_cargar_referencias_excel(ventana, bbdd):
     
     ventana.rootAux.destroy()
     ventVistaPrevia = ventanas_auxiliares.VentanaVistaPreviaReferencias(dataframe, bbdd)
-    ventVistaPrevia.asignafuncion(funcionAceptar  = lambda: guardarReferenciasBBDD(bbdd), 
+    ventVistaPrevia.asignafuncion(funcionAceptar  = lambda: guardarReferenciasBBDD(ventVistaPrevia, dataframe, bbdd), 
                                   funcionCancelar = ventVistaPrevia.rootAux.destroy)
     return dataframe
 
-def guardarReferenciasBBDD(bbdd):
-    pass
-
-def nombraArchivoExcel(programa):
-    return programa + 'Numero__' + '.xlsx'
-
-def cancelar(ventana):
+def guardarReferenciasBBDD(ventana, df, bbdd):
+    df_tabla_modelos = BBDD.leer_modelos_id_modelos(bbdd)
+    print(df_tabla_modelos)
+    df_final = pd.merge(df, df_tabla_modelos, on="MODELO", how="left")   # Hacer un merge entre el DataFrame original y la tabla obtenida de la base de datos
+    print(df_final)
+    df_final = df_final[["REFERENCIA", "ID_MODELO"]]                     # Seleccionar solo las columnas requeridas
+    print(df_final)
     ventana.rootAux.destroy()
-
+    BBDD.insertar_referencias_df(bbdd, df_final)
+    
 def aceptar_cargar_pedido_excel(ventana, bbdd):
     ruta = ventana.ruta
     columns = ventana.varColumnas.get()
@@ -534,13 +535,83 @@ def aceptar_cargar_pedido_excel(ventana, bbdd):
                             usecols=columns,
                             header=None,
                             skiprows=int(rowSkips)-1).dropna(how="all")
+    dataframe.columns = ['CHASIS', 'REFERENCIA', 'COLOR']
+    dataframe = dataframe.applymap(lambda x: x.strip() if isinstance(x, str) else x)
     print("XLSX-->datosExcel: \n", dataframe)
     
     ventana.rootAux.destroy()
     ventVistaPrevia = ventanas_auxiliares.VentanaVistaPreviaPedido(dataframe, bbdd)
-    ventVistaPrevia.asignafuncion(funcionAceptar  = "", 
+    ventVistaPrevia.asignafuncion(funcionAceptar  = lambda : guardar_PedidoExcel_BBDD(ventVistaPrevia, dataframe, bbdd), 
                                   funcionCancelar = ventVistaPrevia.rootAux.destroy)
-    return dataframe
+
+def guardar_PedidoExcel_BBDD(ventana, df, bbdd):
+    fecha_recepcion = glo.strVar_newPedido['fecha_recepcion'].get()
+    fecha_estimada = glo.strVar_newPedido['fecha_entrega'].get()
+    consecutivo = BBDD.next_consecutivoPedido(bbdd)
+    ventana.rootAux.destroy()
+    id_pedido = glo.strVar_newPedido['nombre'].get() + "_" + str(consecutivo)
+    print(fecha_recepcion, fecha_estimada, id_pedido, consecutivo)
 
 
-############################################EVENTOS CON ANTIGUA BASE DE DATOS####################################
+
+    df_ref_idModelos = BBDD.leer_referencias_modelos(bbdd)
+    df_combinado1 = pd.merge(df, df_ref_idModelos, on="REFERENCIA", how="left")
+
+    df_mod_idModelos = BBDD.leer_modelos_id_modelos(bbdd)
+    df_combinado2 = pd.merge(df_combinado1, df_mod_idModelos, on="ID_MODELO", how="left")
+
+    tiempos_modelos = BBDD.leer_tiempos_modelos_procesos(bbdd)
+    df_combinado3 = pd.merge(df_combinado2, tiempos_modelos, on="MODELO", how="left")
+    print(df_combinado3)
+
+    df_para_BBDDVehiculos = df_combinado2[["CHASIS", "ID_MODELO", "COLOR", "REFERENCIA"]]                     # Seleccionar solo las columnas requeridas
+    df_para_BBDDVehiculos['FECHA_INGRESO'] = fecha_recepcion
+    df_para_BBDDVehiculos = df_para_BBDDVehiculos.assign(FECHA_INGRESO  =  fecha_recepcion,
+                                                         ESTADO         =  'SIN_PROCESAR',
+                                                         NOVEDADES      =  'NO', 
+                                                         SUBCONTRATAR   =  'NO', 
+                                                         ID_PEDIDO      =  id_pedido)
+    print(df_para_BBDDVehiculos)
+
+    df_para_BBDDtiemposVehiculos = pd.DataFrame(columns=['PROCESO_CHASIS',
+                                                         'ID_PROCESO',
+                                                         'CHASIS',
+                                                         'TIEMPO'])
+
+
+    lista_para_dataFrame = []
+    columnas_deseadas = list(df_combinado3.columns[5:])          # Seleccionar las columnas deseadas: la primera y desde la sexta en adelante
+    #print(df_combinado3[df_combinado3.columns[0]])
+    #print(columnas_deseadas)
+
+    for col in columnas_deseadas:
+        for row_value in df_combinado3[df_combinado3.columns[0]]:
+            proceso_chasis = f"{col}-{row_value}"  # Concatenar encabezados de fila y columna
+            fila = {
+                'PROCESO_CHASIS': proceso_chasis,  # Columna 1: PROCESO_CHASIS
+                'ID_PROCESO': col,                # Columna 2: ID_PROCESO
+                'CHASIS': row_value,               # Columna 3: CHASIS
+                'TIEMPO': df_combinado3.loc[df_combinado3[df_combinado3.columns[0]] == row_value, col].values[0]  # Columna 4: TIEMPO
+            }
+            lista_para_dataFrame.append(fila)
+
+    df_para_BBDDtiemposVehiculos = pd.DataFrame(lista_para_dataFrame)    # Crear el nuevo DataFrame con los nombres personalizados de las columnas
+    print(df_para_BBDDtiemposVehiculos)                                  # Mostrar el nuevo DataFrame
+
+
+    BBDD.insertar_pedido(bbdd,
+                         id_pedido,
+                         None,
+                         fecha_recepcion,
+                         fecha_estimada,
+                         None,
+                         consecutivo)
+    BBDD.insertar_vehiculos_df(bbdd, df_para_BBDDVehiculos)
+    BBDD.insertar_tiempos_vehiculos_df(bbdd, df_para_BBDDtiemposVehiculos)
+
+    
+def nombraArchivoExcel(programa):
+    return programa + 'Numero__' + '.xlsx'
+
+def cancelar(ventana):
+    ventana.rootAux.destroy()

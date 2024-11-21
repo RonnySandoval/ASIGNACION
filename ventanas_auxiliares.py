@@ -301,6 +301,7 @@ class EstableceFechaHora():
         top = ctk.CTkToplevel(self.rootAux)
         top.title("Seleccionar Fecha")
         top.grab_set()
+
         cal = Calendar(top, selectmode='day', date_pattern="yyyy-mm-dd")
         cal.pack(pady=20)
 
@@ -675,6 +676,32 @@ class VentanaVistaPreviaPedido():
         self.labeltitulo = ctk.CTkLabel(self.rootAux, text=f"VEHICULOS DE PEDIDO\nvista previa", font =textoMedio)
         self.labeltitulo.pack(expand=True, side="top", fill="both")
 
+        # Frame para los datos generales
+        self.frameEntradas = ctk.CTkFrame(self.rootAux, fg_color=grisAzuladoOscuro)
+        self.frameEntradas.pack(expand=True, side="top", fill="both")
+
+        self.frameEntradas.grid_columnconfigure(0, weight=1)
+        self.frameEntradas.grid_columnconfigure(1, weight=1)
+
+        self.varFecha_recepcion = tk.StringVar() 
+        self.labelFecha_recepcion    = ctk.CTkLabel(self.frameEntradas, text = "FECHA RECEPCION", font = texto1Bajo, anchor="w")
+        self.labelFecha_recepcion.grid(row=1,column=0, sticky="ew", padx=20, pady=5)
+        self.entryFecha_recepcion = ctk.CTkEntry   (self.frameEntradas, font = numerosMedianos, width=12, textvariable=self.varFecha_recepcion)
+        self.entryFecha_recepcion.grid (row=1 ,column=1, sticky="ew", padx=20 , pady=5)
+        self.entryFecha_recepcion.bind("<Button-1>", self.mostrar_calendario_recepcion)
+
+        self.varFecha_entrega = tk.StringVar() 
+        self.labelFecha_entrega    = ctk.CTkLabel(self.frameEntradas, text = "FECHA ENTREGA", font = texto1Bajo, anchor="w")
+        self.labelFecha_entrega.grid(row=2,column=0, sticky="ew", padx=20, pady=5)
+        self.entryFecha_entrega = ctk.CTkEntry   (self.frameEntradas, font = numerosMedianos, width=12, textvariable=self.varFecha_entrega)
+        self.entryFecha_entrega.grid (row=2 ,column=1, sticky="ew", padx=20 , pady=5)
+        self.entryFecha_entrega.bind("<Button-1>", self.mostrar_calendario_entrega)
+
+        self.varNombre = tk.StringVar()
+        self.labelNombre    = ctk.CTkLabel(self.frameEntradas, text = "NOMBRE", font = texto1Bajo, anchor="w")
+        self.labelNombre.grid(row=3,column=0, sticky="ew", padx=20, pady=5)
+        self.entryNombre = ctk.CTkEntry   (self.frameEntradas, font = numerosMedianos, width=12, textvariable=self.varNombre)
+        self.entryNombre.grid (row=3 ,column=1, sticky="ew", padx=20 , pady=5)
 
         # Frame para los datos generales
         self.frameOption = ctk.CTkFrame(self.rootAux, fg_color=grisAzuladoOscuro)
@@ -710,7 +737,6 @@ class VentanaVistaPreviaPedido():
         self.optionNombreColumna.configure(values=self.fila)      # Configurar el OptionMenu con los valores del diccionario
         self.optionNombreColumna.set("COLOR")
 
-
         self.encabezados = list(df.columns)
 
          #Crear estilo personalizado para las cabeceras y el cuerpo
@@ -740,6 +766,46 @@ class VentanaVistaPreviaPedido():
         self.buttonAceptar.grid(row=0 ,column=0, sticky="ew", pady=5)
         self.buttonCancelar = ctk.CTkButton(self.frameBotones, text="Cancelar", font=textoMedio, fg_color=rojoClaro, text_color=moradoOscuro, hover_color=(moradoMedio, blancoFrio))
         self.buttonCancelar.grid(row=0 ,column=1, sticky="ew", pady=5)
+
+        glo.strVar_newPedido['fecha_entrega'] = self.varFecha_entrega
+        glo.strVar_newPedido['fecha_recepcion'] = self.varFecha_recepcion
+        glo.strVar_newPedido['nombre'] = self.varNombre
+
+    def mostrar_calendario_recepcion(self, event):
+        #Muestra un calendario para seleccionar la fecha
+        top = ctk.CTkToplevel(self.rootAux)
+        top.title("Seleccionar Fecha")
+        top.grab_set()
+        top.lift()  # Eleva la ventana Toplevel para que esté al frente
+        top.attributes('-topmost', 1)  # También puede asegurar que quede al frente
+
+        cal = Calendar(top, selectmode='day', date_pattern="yyyy-mm-dd")
+        cal.pack(pady=20)
+
+        def seleccion_fecha():
+            self.varFecha_recepcion.set(cal.get_date())
+            top.destroy()
+
+        btnSeleccionar = tk.Button(top, text="Seleccionar", command=seleccion_fecha)
+        btnSeleccionar.pack()
+
+    def mostrar_calendario_entrega(self, event):
+        #Muestra un calendario para seleccionar la fecha
+        top = ctk.CTkToplevel(self.rootAux)
+        top.title("Seleccionar Fecha")
+        top.grab_set()
+        top.lift()  # Eleva la ventana Toplevel para que esté al frente
+        top.attributes('-topmost', 1)  # También puede asegurar que quede al frente
+
+        cal = Calendar(top, selectmode='day', date_pattern="yyyy-mm-dd")
+        cal.pack(pady=20)
+
+        def seleccion_fecha():
+            self.varFecha_entrega.set(cal.get_date())
+            top.destroy()
+
+        btnSeleccionar = tk.Button(top, text="Seleccionar", command=seleccion_fecha)
+        btnSeleccionar.pack()
 
     def asignafuncion(self, funcionAceptar, funcionCancelar):               #Método para asignar la función al command button de aceptar y cancelar desde otro módulo.
         self.buttonAceptar.configure(command = funcionAceptar)

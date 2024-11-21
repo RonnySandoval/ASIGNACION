@@ -176,7 +176,6 @@ class TablaVehiculos():     #Tabla para pedido
                                                                         variable=glo.intVar_procesos[int_name])
             glo.check_procesos[self.check_name_proceso].pack(fill=tk.X, side="left", padx=15, pady=5)
 
-
     def llenarTabla(self, bbdd):    # Agregar datos a la tabla    
         self.datos = eventos.leeVehiculosBBDD(bbdd)
         print(self.datos)

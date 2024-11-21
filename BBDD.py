@@ -167,15 +167,15 @@ def insertar_tiempo_vehiculo(bbdd, procvehi, id_proceso, chasis, tiempo):
     finally:
         conn.close()
 
-def insertar_pedido(bbdd, id_pedido, cliente, fecha_recepcion, entrega_estimada, fecha_entrega):
+def insertar_pedido(bbdd, id_pedido, cliente, fecha_recepcion, entrega_estimada, fecha_entrega, consecutivo):
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()          
         insert_data_script = """INSERT INTO PEDIDOS
-                                    (ID_PEDIDO, CLIENTE, FECHA_RECEPCION, ENTREGA_ESTIMADA, FECHA_ENTREGA)
-                                    VALUES (?, ?, ?, ?)
+                                    (ID_PEDIDO, CLIENTE, FECHA_RECEPCION, ENTREGA_ESTIMADA, FECHA_ENTREGA, CONSECUTIVO)
+                                    VALUES (?, ?, ?, ?, ?, ?)
                                 """
-        cursor.execute(insert_data_script, (id_pedido, cliente, fecha_recepcion, entrega_estimada, fecha_entrega))
+        cursor.execute(insert_data_script, (id_pedido, cliente, fecha_recepcion, entrega_estimada, fecha_entrega, consecutivo))
         conn.commit()
         print("Registro añadido")
         
@@ -213,11 +213,59 @@ def insertar_historico(bbdd, codigo, chasis, tec, proc, observ, start, end, delt
     finally:
         conn.close()
 
+def insertar_referencias_df(bbdd, df_registros):
+    try:
+        conn = sqlite3.connect(bbdd)
 
+        df_registros.to_sql("MODELOS_REFERENCIAS", conn, if_exists="replace", index=False)     # Guardar en SQLite usando to_sql
+        resultado = pd.read_sql("SELECT * FROM MODELOS_REFERENCIAS", conn)                     # Leer los datos para verificar
+        print("dataframe añadidos a la BBDD")
+        print(resultado)
 
+    except sqlite3.Error as e:
+        print(f"Error al insertar el dataframe con las referencias de modelos: {e}")
 
+    except UnboundLocalError as e:
+        print(f"No se llenaron los campos obligatorios: {e}") 
 
+    finally:
+        conn.close()
 
+def insertar_vehiculos_df(bbdd, df):
+    try:
+        conn = sqlite3.connect(bbdd)
+
+        df.to_sql("VEHICULOS", conn, if_exists="append", index=False)               # Guardar en SQLite usando to_sql
+        resultado = pd.read_sql("SELECT * FROM VEHICULOS", conn)                     # Leer los datos para verificar
+        print("dataframe de vehiculos añadido a la BBDD")
+        print(resultado)
+
+    except sqlite3.Error as e:
+        print(f"Error al insertar el dataframe con los vehiculos: {e}")
+
+    except UnboundLocalError as e:
+        print(f"No se llenaron los campos obligatorios: {e}") 
+
+    finally:
+        conn.close()
+
+def insertar_tiempos_vehiculos_df(bbdd, df):
+    try:
+        conn = sqlite3.connect(bbdd)
+
+        df.to_sql("TIEMPOS_VEHICULOS", conn, if_exists="append", index=False)               # Guardar en SQLite usando to_sql
+        resultado = pd.read_sql("SELECT * FROM TIEMPOS_VEHICULOS", conn)                     # Leer los datos para verificar
+        print("dataframe de tiempos de vehiculos añadido a la BBDD")
+        print(resultado)
+
+    except sqlite3.Error as e:
+        print(f"Error al insertar el dataframe con los tiempos de vehiculos: {e}")
+
+    except UnboundLocalError as e:
+        print(f"No se llenaron los campos obligatorios: {e}") 
+
+    finally:
+        conn.close()
 
 ###########################################################################
 ############################ PARA PARA LEER ###############################
@@ -339,6 +387,19 @@ def leer_modelos_marcas(bbdd):
         conn.close()
         return datos
 
+def leer_modelos_id_modelos(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        df_datos = pd.read_sql_query("SELECT MODELO, ID_MODELO FROM MODELOS", conn)
+        print(df_datos)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer el registro: {e}")
+
+    finally:
+        conn.close()
+    return df_datos
+
 def leer_tecnicos(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
@@ -381,7 +442,18 @@ def leer_vehiculo(bbdd, chasis):
         cursor = conn.cursor()
 
         vehiculo = chasis
-        cursor.execute('SELECT * FROM vehiculos WHERE CHASIS=?', (vehiculo,))
+        cursor.execute('''SELECT 
+                            CHASIS,
+                            FECHA_INGRESO,
+                            ID_MODELO,
+                            COLOR, 
+                            ESTADO,
+                            NOVEDADES,
+                            SUBCONTRATAR,
+                            ID_PEDIDO
+                        FROM vehiculos
+                        WHERE CHASIS=?''', 
+                        (vehiculo,))
         registro = cursor.fetchone()
         print(registro)
 
@@ -464,7 +536,16 @@ def leer_vehiculos(bbdd):
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()
 
-        cursor.execute('SELECT * FROM VEHICULOS')
+        cursor.execute('''SELECT
+                            CHASIS,
+                            FECHA_INGRESO,
+                            ID_MODELO,
+                            COLOR, 
+                            ESTADO,
+                            NOVEDADES,
+                            SUBCONTRATAR,
+                            ID_PEDIDO
+                       FROM VEHICULOS''')
         registros = cursor.fetchall()
         print(registros)
 
@@ -676,7 +757,6 @@ def buscar_vehiculo_por_modelo(bbdd, id_modelo):
         conn.close()
 
     return registros
-
 
 def calcula_tecnicos(bbdd):
 
@@ -1035,7 +1115,18 @@ def leer_pedidos(bbdd):
         print(datos)
         return datos
 
+def leer_referencias_modelos(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        df_datos = pd.read_sql_query("SELECT * FROM MODELOS_REFERENCIAS", conn)
+        print(df_datos)
 
+    except sqlite3.Error as e:
+        print(f"Error al leer el registro: {e}")
+
+    finally:
+        conn.close()
+    return df_datos
 
 
 #####################################################################
@@ -1250,6 +1341,46 @@ def eliminar_tecnico(bbdd, id):
 
     finally:
         conn.close()
+
+def eliminar_pedido(bbdd, id):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM PEDIDOS WHERE ID_PEDIDO=?", (id,))
+        conn.commit()
+        print(f"El pedido {id} se eliminó correctamente de la tabla TECNICOS")
+
+    except sqlite3.Error as e:
+        print(f"Error al eliminar el pedido {id}: {e}")
+
+    finally:
+        conn.close()
+
+
+###### FUNCIONES DE APOYO PARA LAS BBDD ######
+def next_consecutivoPedido(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+
+        # Obtener el valor máximo del contador numérico
+        cursor.execute("SELECT MAX(CONSECUTIVO) FROM PEDIDOS")
+        max_consec = cursor.fetchone()[0]
+        if max_consec is None:
+            max_consec = 0
+        nuevo_consec = max_consec + 1          # Generar la nueva clave primaria personalizada
+
+
+    except sqlite3.Error as e:
+        print(f"No se pudo leer el maximo consecutivo de la tabla de pedidos: {e}")
+
+    finally:
+        conn.close()
+        return nuevo_consec
+
+
+
 
 
 """
