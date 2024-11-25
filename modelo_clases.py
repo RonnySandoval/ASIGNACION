@@ -19,7 +19,7 @@ class Tiempos():
 
 # Modelos de vehículos agrupados por marcas
 
-modelos = list(map(lambda modelo_marca: modelo_marca[2], BBDD.leer_modelos('planta_manta.db')))
+modelos = list(map(lambda modelo_marca: modelo_marca[2], BBDD.leer_modelos(glo.base_datos)))
 tiempos = BBDD.leer_tiempos_modelos_procesos(glo.base_datos)
 tiemposVH = BBDD.leer_tiempos_vehiculos_procesos(glo.base_datos)
 print(tiempos)

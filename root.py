@@ -1,15 +1,14 @@
 import customtkinter as ctk  # Usar customtkinter en lugar de tkinter
 from   estilos import *
 import menu_principal
-import root_frame_modelos    as frameMode
-import root_frame_tecnicos   as frameTecn
-import root_frame_vehiculos  as frameVehi
-import root_frame_procesos   as frameProc
-import root_frame_pedidos    as framePedi
-import root_frame_historicos as frameHist
-
-
-
+import root_frame_modelos       as frameMode
+import root_frame_tecnicos      as frameTecn
+import root_frame_vehiculos     as frameVehi
+import root_frame_procesos      as frameProc
+import root_frame_pedidos       as framePedi
+import root_frame_detallePedido as frameDeta
+import root_frame_historicos    as frameHist
+import root_frame_referencias   as frameRefe
 import glo
 
 # Configuración global del estilo de customtkinter
@@ -35,18 +34,20 @@ class ventanaRoot(ctk.CTk):
         ctk.CTkButton(self.nav_frame, text="Pedidos",    command=lambda: self.mostrar_frame(self.framePedidos), fg_color=azulOscuro, hover_color=azulClaro).pack(side=ctk.LEFT, padx=5, pady=5)
         ctk.CTkButton(self.nav_frame, text="Programas",  command=lambda: self.mostrar_frame(self.frameProgramas), fg_color=grisVerdeOscuro, hover_color=grisVerdeClaro).pack(side=ctk.LEFT, padx=5, pady=5)
         ctk.CTkButton(self.nav_frame, text="Históricos", command=lambda: self.mostrar_frame(self.frameHistoricos), fg_color=rojoOscuro, hover_color=rojoClaro).pack(side=ctk.LEFT, padx=5, pady=5)
-        
+        ctk.CTkButton(self.nav_frame, text="Referencias/Modelos", command=lambda: self.mostrar_frame(self.frameReferencias), fg_color=rojoMuyOscuro, hover_color=naranjaOscuro).pack(side=ctk.LEFT, padx=5, pady=5)
+
         #Label con el nombre de la planta 
         ctk.CTkLabel(self.nav_frame, text=bbdd, font=textoBajo, width=100).pack(side=ctk.RIGHT, padx=5, pady=5)
         
         
-        # Crea frames pero no los muestra todavía
-        self.framePlanta = ctk.CTkFrame(self, fg_color=moradoMedio)
-        self.frameVehiculos = ctk.CTkFrame(self, fg_color=grisAzuladoMedio)
-        self.framePedidos = ctk.CTkFrame(self, fg_color=azulOscuro)
-        self.frameProgramas = ctk.CTkFrame(self, fg_color=grisVerdeOscuro)
-        self.frameHistoricos = ctk.CTkFrame(self, fg_color=rojoOscuro)
-        
+        # Crear frames sin empaquetarlos
+        self.framePlanta      = ctk.CTkFrame(self, fg_color=moradoMedio)
+        self.frameVehiculos   = ctk.CTkFrame(self, fg_color=grisAzuladoMedio)
+        self.framePedidos     = ctk.CTkFrame(self, fg_color=azulOscuro)
+        self.frameProgramas   = ctk.CTkFrame(self, fg_color=grisVerdeOscuro)
+        self.frameHistoricos  = ctk.CTkFrame(self, fg_color=rojoOscuro)
+        self.frameReferencias = ctk.CTkFrame(self, fg_color=rojoMuyOscuro)
+
         # Indicar "Cargando..." mientras los widgets se configuran
         loading_label = ctk.CTkLabel(self, text="Cargando...", font=texto1Medio)
         loading_label.pack(expand=True)
@@ -64,6 +65,7 @@ class ventanaRoot(ctk.CTk):
         self.framePedidos.pack(expand=True, side="left", fill="both", padx=3, pady=3)
         self.frameProgramas.pack(expand=True, side="left", fill="both", padx=3, pady=3)
         self.frameHistoricos.pack(expand=True, side="left", fill="both", padx=3, pady=3)
+        self.frameReferencias.pack(expand=True, side="left", fill="both", padx=3, pady=3)
 
         # Configuración de expansión en framePlanta
         self.framePlanta.grid_rowconfigure(0, weight=1)
@@ -71,12 +73,17 @@ class ventanaRoot(ctk.CTk):
         self.framePlanta.grid_columnconfigure(1, weight=1)
 
         # Mostrar el primer frame
-        self.mostrar_frame(self.framePlanta)
+        self.mostrar_frame(self.framePedidos)
 
     def mostrar_frame(self, frame):
 
-        for f in (self.frameVehiculos, self.framePlanta, self.framePedidos, self.frameProgramas, self.frameHistoricos):
-            f.pack_forget()                             # Ocultar todos los frames
+        for fr in (self.frameVehiculos,
+                  self.framePlanta,
+                  self.framePedidos,
+                  self.frameProgramas,
+                  self.frameHistoricos,
+                  self.frameReferencias):
+            fr.pack_forget()               # Ocultar todos los frames
 
         loading_label = ctk.CTkLabel(self, text="Cargando...", font=textoBajo)
         loading_label.pack(side="top", padx=3, pady=3)
@@ -112,48 +119,54 @@ class ventanaRoot(ctk.CTk):
         self.frameProcesos.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
         return self.frameProcesos
 
+def construye_root(root):
+    ################################################################################################################################################
+    ################################################### Añadir contenidos al frame de PLANTA #######################################################
+    ################################################################################################################################################
+    glo.stateFrame.contenidoDeModelos   = frameMode.ContenidoModelos(root.creaframeModelos(),   bbdd=glo.base_datos)
+    glo.stateFrame.contenidoDeTecnicos  = frameTecn.ContenidoTecnicos(root.creaframeTecnicos(), bbdd=glo.base_datos)
+    glo.stateFrame.contenidoDeProcesos  = frameProc.ContenidoProcesos(root.creaframeProcesos(), bbdd=glo.base_datos)   
+
+
+    ################################################################################################################################################
+    ################################################### Añadir contenidos al frame de VEHÍCULOS ####################################################
+    ################################################################################################################################################
+    glo.stateFrame.contenidoDeVehiculos = frameVehi.ContenidoVehiculos(root.frameVehiculos)
+    glo.stateFrame.tablaVehiculos       = frameVehi.TablaVehiculos(glo.stateFrame.contenidoDeVehiculos,  root.frameVehiculos, root, bbdd=glo.base_datos)
+    glo.stateFrame.filtroVehiculos      = frameVehi.FiltrosVehiculos(glo.stateFrame.tablaVehiculos, glo.stateFrame.contenidoDeVehiculos,  bbdd=glo.base_datos)
+
+
+    ################################################################################################################################################
+    ################################################### Añadir contenidos al frame de PEDIDOS ######################################################
+    ################################################################################################################################################
+    glo.stateFrame.contenidoDePedidos = framePedi.ContenidoPedidos(root.framePedidos)
+    glo.stateFrame.tablaPedidos       = framePedi.TablaPedidos(glo.stateFrame.contenidoDePedidos, root.framePedidos, root, bbdd=glo.base_datos)
+    glo.stateFrame.filtroPedidos      = framePedi.FiltrosPedidos(glo.stateFrame.tablaPedidos, glo.stateFrame.contenidoDePedidos, bbdd=glo.base_datos)
+
+    glo.stateFrame.contenidoDeDetalles = frameDeta.ContenidoDetallePedido(root.framePedidos)
+    glo.stateFrame.tablaDetalles       = frameDeta.TablaDetallePedido(glo.stateFrame.contenidoDeDetalles, root.framePedidos, root, bbdd=glo.base_datos)
+    glo.stateFrame.filtroDetalles     = frameDeta.FiltrosDetallePedido(glo.stateFrame.tablaDetalles, glo.stateFrame.contenidoDeDetalles, bbdd=glo.base_datos)
+
+
+    ################################################################################################################################################
+    ################################################### Añadir contenidos al frame de HISTÓRICOS ###################################################
+    ################################################################################################################################################
+    glo.stateFrame.contenidoDeHistoricos= frameHist.ContenidoHistoricos(root.frameHistoricos)
+    glo.stateFrame.tablaHistoricos      = frameHist.TablaHistoricos( glo.stateFrame.contenidoDeHistoricos, root.frameHistoricos, root, bbdd=glo.base_datos)
+    glo.stateFrame.filtroHistoricos     = frameHist.FiltrosHistoricos(glo.stateFrame.tablaHistoricos, glo.stateFrame.contenidoDeHistoricos, bbdd=glo.base_datos)
+
+
+    ################################################################################################################################################
+    ################################################### Añadir contenidos al frame de REFERENCIAS ##################################################
+    ################################################################################################################################################
+    glo.stateFrame.contenidoDeReferencias   = frameRefe.ContenidoReferencias(root.frameReferencias, bbdd='planta_manta.db')
+
+
+    root.mainloop()
+
+
 #CREAR VENTANA PRINCIPAL CON SU MENÚ
-root = ventanaRoot(bbdd='planta_manta.db')
+root = ventanaRoot(bbdd=glo.base_datos)
 menu_principal.crearMenuPrincipal(root)
+construye_root(root)
 
-
-
-# Añadir contenidos a los frames
-glo.stateFrame.contenidoDeModelos   = frameMode.ContenidoModelos(root.creaframeModelos(),
-                                                               bbdd='planta_manta.db')
-
-glo.stateFrame.contenidoDeTecnicos  = frameTecn.ContenidoTecnicos(root.creaframeTecnicos(),
-                                                                 bbdd='planta_manta.db')
-
-glo.stateFrame.contenidoDeProcesos  = frameProc.ContenidoProcesos(root.creaframeProcesos(),
-                                                                 bbdd='planta_manta.db')
-
-glo.stateFrame.contenidoDeVehiculos = frameVehi.ContenidoVehiculos(root.frameVehiculos)
-
-glo.stateFrame.tablaVehiculos       = frameVehi.TablaVehiculos(glo.stateFrame.contenidoDeVehiculos,
-                                                              root.frameVehiculos, root, bbdd='planta_manta.db')
-
-glo.stateFrame.filtroVehiculos      = frameVehi.FiltrosVehiculos(glo.stateFrame.tablaVehiculos,
-                                                                glo.stateFrame.contenidoDeVehiculos, 
-                                                                bbdd='planta_manta.db')
-
-glo.stateFrame.contenidoDePedidos = framePedi.ContenidoPedidos(root.framePedidos)
-
-glo.stateFrame.tablaPedidos       = framePedi.TablaPedidos(glo.stateFrame.contenidoDePedidos,
-                                                              root.framePedidos, root, bbdd='planta_manta.db')
-
-glo.stateFrame.filtroPedidos      = framePedi.FiltrosPedidos(glo.stateFrame.tablaPedidos,
-                                                                glo.stateFrame.contenidoDePedidos, 
-                                                                bbdd='planta_manta.db')
-
-
-glo.stateFrame.contenidoDeHistoricos= frameHist.ContenidoHistoricos(root.frameHistoricos)
-
-glo.stateFrame.tablaHistoricos      = frameHist.TablaHistoricos( glo.stateFrame.contenidoDeHistoricos,
-                                                                root.frameHistoricos, root, bbdd='planta_manta.db')
-
-glo.stateFrame.filtroHistoricos     = frameHist.FiltrosHistoricos(glo.stateFrame.tablaHistoricos,
-                                                                 glo.stateFrame.contenidoDeHistoricos, 
-                                                                 bbdd='planta_manta.db')
-
-root.mainloop()

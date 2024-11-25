@@ -58,6 +58,8 @@ naranjaOscuro = "#C53600"
 rojoClaro ="#ff8a8a"
 rojoMedio ="#ff0000"
 rojoOscuro ="#9c0000"
+rojoMuyOscuro = "#5a3922"
+
 
 azul = {
     "titulo":blancoCalido,

@@ -2,7 +2,7 @@ import pandas as pd
 import tkinter as tk
 from tkinter import messagebox, filedialog
 import CRUD
-
+import numpy as np
 
 def desea_guardar(excel):
     respuesta = messagebox.askokcancel("Exportar Programación", "¿Deseas exportar un archivo .xlsx?")
@@ -71,3 +71,31 @@ def msg_eliminar_mod(modelo, vehiculos):
     else:
         print("Click en Cancelar")
         return "Cancelar"
+    
+def msg_registro_nulo(dataframe):
+
+    registros = dataframe.to_dict(orient='records')    # Convertir el DataFrame a una lista de diccionarios
+    formateado = "\n\n".join([str(registro) for registro in registros])    # Crear el mensaje formateado
+
+    mensaje = f"""
+    No se encontró referencia para los siguientes vehículos:
+
+    {formateado}
+
+    Por favor, verifique el archivo fuente y las referencias de modelos en la base de Datos. Luego intente cargarlos de nuevo.
+    """
+    messagebox.showinfo("Modelo no encontrado", mensaje)
+
+def msg_registro_duplicado(dataframe):
+
+    registros = dataframe.to_dict(orient='records')    # Convertir el DataFrame a una lista de diccionarios
+    formateado = "\n\n".join([str(registro) for registro in registros])    # Crear el mensaje formateado
+
+    mensaje = f"""
+    No se encontró referencia para los siguientes vehículos:
+
+    {formateado}
+
+    Por favor, verifique el archivo fuente y las referencias de modelos en la base de Datos. Luego intente cargarlos de nuevo.
+    """
+    messagebox.showinfo("Modelo no encontrado", mensaje)

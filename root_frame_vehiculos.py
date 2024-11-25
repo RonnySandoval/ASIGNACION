@@ -38,7 +38,7 @@ class ContenidoVehiculos():
 
 class FiltrosVehiculos():
 
-    def __init__(self, vehiculos, contenido, bbdd):
+    def __init__(self, treeVehiculos, contenido, bbdd):
     # Crear un frame para los filtros
         self.frame_filtros = tk.Frame(contenido.canvas, bg=grisOscuro)
         self.frame_filtros.pack(fill=tk.X, padx=2, pady=2, side="top")
@@ -71,17 +71,17 @@ class FiltrosVehiculos():
 
 
         # Crear un botón para aplicar los filtros
-        self.boton_filtrar = ctk.CTkButton(master=self.frame_filtros, text="Filtro", command=lambda:self.filtrar_datos(vehiculos), width=20,
+        self.boton_filtrar = ctk.CTkButton(master=self.frame_filtros, text="Filtro", command=lambda:self.filtrar_datos(treeVehiculos), width=20,
                                            font=numerosPequeños, hover_color=grisVerdeClaro, fg_color=grisVerdeMedio, corner_radius=15)
         self.boton_filtrar.grid(row=0, column=0, pady=5)
     
-        self.boton_actualizar = ctk.CTkButton(master=self.frame_filtros, text="Actualizar", command=lambda:vehiculos.actualizar_tabla(bbdd), width=20,
+        self.boton_actualizar = ctk.CTkButton(master=self.frame_filtros, text="Actualizar", command=lambda:treeVehiculos.actualizar_tabla(bbdd), width=20,
                                               font=numerosPequeños, hover_color=amarilloMedio, fg_color=amarilloOscuro, corner_radius=15)
         self.boton_actualizar.grid(row=0, column=1, pady=5)
 
-    def filtrar_datos(self, vehiculos):
+    def filtrar_datos(self, treeVehiculos):
         # Obtener los criterios de filtro de las entradas
-        self.datos          = vehiculos.datos
+        self.datos          = treeVehiculos.datos
         filtro_chasis       = self.entry_chasis.get()
         filtro_fecha        = self.entry_fecha.get()
         filtro_marcamodelo  = self.entry_marcamodelo.get()
@@ -94,23 +94,23 @@ class FiltrosVehiculos():
         filtro_tiempos      = self.entry_tiempos.get()
 
         # Limpiar la tabla
-        for row in vehiculos.tablaVehiculos.get_children():
-            vehiculos.tablaVehiculos.delete(row)
+        for row in treeVehiculos.tablaVehiculos.get_children():
+            treeVehiculos.tablaVehiculos.delete(row)
         
         # Agregar datos filtrados a la tabla
         for record in self.datos:
             if (filtro_chasis.lower() in str(record[0]).lower() and
-                filtro_fecha.lower() in record[1].lower() and
-                filtro_marcamodelo.lower() in record[2].lower() and
-                filtro_color.lower() in record[3].lower() and
-                filtro_proceso.lower() in record[4].lower() and
-                filtro_estado.lower() in record[5].lower() and
-                filtro_novedades.lower() in record[6].lower() and
-                filtro_subcontratar.lower() in record[7].lower() and
-                filtro_pedido.lower() in record[8].lower() and
-                filtro_tiempos.lower() in record[9].lower()):
+                filtro_fecha.lower() in str(record[1]).lower() and
+                filtro_marcamodelo.lower() in str(record[2]).lower() and
+                filtro_color.lower() in str(record[3]).lower() and
+                filtro_proceso.lower() in str(record[4]).lower() and
+                filtro_estado.lower() in str(record[5]).lower() and
+                filtro_novedades.lower() in str(record[6]).lower() and
+                filtro_subcontratar.lower() in str(record[7]).lower() and
+                filtro_pedido.lower() in str(record[8]).lower() and
+                filtro_tiempos.lower() in str(record[9]).lower()):
 
-                vehiculos.tablaVehiculos.insert(parent='', index='end', iid=record[0], text='', values=record)
+                treeVehiculos.tablaVehiculos.insert(parent='', index='end', iid=record[0], text='', values=record)
 
 class TablaVehiculos():     #Tabla para pedido
     def __init__(self, contenido, contenedor, laRaiz, bbdd): #Crea latabla y un diccionario con los nombres de los campos
@@ -134,10 +134,9 @@ class TablaVehiculos():     #Tabla para pedido
 
         #Crear una barra de desplazamiento para la tabla y configurarla
         self.scrollbarTablaVehiculos = ttk.Scrollbar(contenido.frameTablaVehiculos, orient=tk.VERTICAL, command=self.tablaVehiculos.yview)
-        self.scrollbarTablaVehiculos.pack(side='right', fill='y')
         self.tablaVehiculos.configure(yscrollcommand=self.scrollbarTablaVehiculos.set)
         self.tablaVehiculos.pack(expand=True, fill="both", side="bottom")
-
+        self.scrollbarTablaVehiculos.pack(side='right', fill='y')
         self.llenarTabla(bbdd)
 
         self.frameBotonesVehiculos = ctk.CTkFrame(contenedor, bg_color=moradoMedio)

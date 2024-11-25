@@ -655,6 +655,12 @@ class VentanaCambiarEstadoHist():
 
         self.entryEstado.configure(values=["PENDIENTE", "EN EJECUCIÓN", "TERMINADO"])
 
+        self.buttonCancelar = ctk.CTkButton(self.frameEntradas,text="Cancelar", font=texto1Bajo, bg_color=rojoOscuro, command="")   
+        self.buttonCancelar.grid(row=6, column=0, padx=22, pady=10)
+
+        self.buttonAgregar = ctk.CTkButton(self.frameEntradas,text="Guardar", font=textoGrande, bg_color=naranjaMedio, command="")    
+        self.buttonAgregar.grid(row=6, column=1, padx=22, pady=10)
+
     def asignafuncion(self, funcionAgregar, funcionCancelar):            #Método para asignar la función al command button de guardar y cancelar desde otro módulo.
         self.buttonAgregar.configure(command = funcionAgregar)
         self.buttonCancelar.configure(command = funcionCancelar)

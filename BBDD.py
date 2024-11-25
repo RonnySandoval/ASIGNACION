@@ -121,19 +121,19 @@ def insertar_tecnico(bbdd, id, nombre, apellido, documento, especialidad):
     finally:
         conn.close()
 
-def insertar_vehiculo(bbdd, chasis, fecha_ingreso, id_modelo, color, estado, novedades, subcontratar, id_pedido):
+def insertar_vehiculo(bbdd, chasis, fecha_ingreso, id_modelo, color, novedades, subcontratar, id_pedido):
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()
 
-        if all(item is not None for item in (chasis, id_modelo, color, estado, id_pedido,)):
+        if all(item is not None for item in (chasis, id_modelo, color, id_pedido,)):
             
             insert_data_script = """INSERT INTO vehiculos 
-                                    (CHASIS, FECHA_INGRESO, ID_MODELO, COLOR, ESTADO, NOVEDADES, SUBCONTRATAR, ID_PEDIDO)
-                                    VALUES  (?, ?, ?, ?, ?, ?, ?, ?)
+                                    (CHASIS, FECHA_INGRESO, ID_MODELO, COLOR, NOVEDADES, SUBCONTRATAR, ID_PEDIDO)
+                                    VALUES  (?, ?, ?, ?, ?, ?, ?)
                                 """
             
-        cursor.execute(insert_data_script, (chasis, fecha_ingreso, id_modelo, color, estado, novedades, subcontratar, id_pedido))
+        cursor.execute(insert_data_script, (chasis, fecha_ingreso, id_modelo, color, novedades, subcontratar, id_pedido))
         conn.commit()
         print("Registro añadido")
         
@@ -322,6 +322,7 @@ def leer_procesos_secuencia(bbdd):
         
     except sqlite3.Error as e:
         print(f"Error al leer el registro: {e}")
+        registros =[]
 
     finally:
         conn.close()
@@ -652,6 +653,79 @@ def leer_vehiculos_completos(bbdd):
     
     return registros
 
+def leer_vehiculos_por_pedido(bbdd, pedido):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+
+        cursor.execute('''
+                        SELECT 
+                            VEHICULOS.CHASIS,
+                            VEHICULOS.ID_MODELO,
+                            VEHICULOS.COLOR,
+                            
+                            -- Subconsulta para obtener el nombre del proceso o 'ninguno' si es NULL
+                            COALESCE(
+                                (SELECT PROCESOS.NOMBRE
+                                FROM HISTORICOS
+                                JOIN PROCESOS ON HISTORICOS.ID_PROCESO = PROCESOS.ID_PROCESO
+                                WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
+                                AND HISTORICOS.ESTADO = 'EN EJECUCION'
+                                LIMIT 1),
+                                (SELECT PROCESOS.NOMBRE
+                                FROM HISTORICOS
+                                JOIN PROCESOS ON HISTORICOS.ID_PROCESO = PROCESOS.ID_PROCESO
+                                WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
+                                AND HISTORICOS.ESTADO = 'TERMINADO'
+                                AND HISTORICOS.FIN = (
+                                    SELECT MAX(FIN)
+                                    FROM HISTORICOS AS HIST2
+                                    WHERE HIST2.CHASIS = VEHICULOS.CHASIS AND HIST2.ESTADO = 'TERMINADO'
+                                )
+                                LIMIT 1),
+                                'ninguno'
+                            ) AS NOMBRE_PROCESO,
+                            
+                            -- Subconsulta para obtener el estado o 'ninguno' si es NULL
+                            COALESCE(
+                                (SELECT HISTORICOS.ESTADO
+                                FROM HISTORICOS
+                                WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
+                                AND HISTORICOS.ESTADO = 'EN EJECUCION'
+                                LIMIT 1),
+                                (SELECT HISTORICOS.ESTADO
+                                FROM HISTORICOS
+                                WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
+                                AND HISTORICOS.ESTADO = 'TERMINADO'
+                                AND HISTORICOS.FIN = (
+                                    SELECT MAX(FIN)
+                                    FROM HISTORICOS AS HIST2
+                                    WHERE HIST2.CHASIS = VEHICULOS.CHASIS AND HIST2.ESTADO = 'TERMINADO'
+                                )
+                                LIMIT 1),
+                                'ninguno'
+                            ) AS ESTADO
+                        FROM
+                            VEHICULOS
+                        LEFT JOIN 
+                            PEDIDOS ON VEHICULOS.ID_PEDIDO = PEDIDOS.ID_PEDIDO
+                        WHERE
+                            PEDIDOS.ID_PEDIDO = ?
+                        GROUP BY
+                            VEHICULOS.CHASIS;
+                        ''', (pedido,))
+        registros = cursor.fetchall()
+        print(registros)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la Tabla de Tiempos_Vehiculos y de Vehiculos: {e}")
+        registros = None
+
+    finally:
+        conn.close()    # Cierra la conexión
+    
+    return registros
+
 def leer_vehiculos_completos_marcamodelo(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
@@ -813,7 +887,7 @@ def leer_historicos_completo(bbdd):
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()
 
-        cursor.execute('''SELECT 
+        cursor.execute('''SELECT DISTINCT
                             h.CODIGO_ASIGNACION,
                             h.CHASIS,
                             t.NOMBRE AS NOMBRE_TECNICO,
@@ -1128,7 +1202,6 @@ def leer_referencias_modelos(bbdd):
         conn.close()
     return df_datos
 
-
 #####################################################################
 ########################## MODIFICAR REGISTROS ######################
 def actualizar_modelo(bbdd, id_anterior, marca, modelo, id_nuevo):
@@ -1378,6 +1451,12 @@ def next_consecutivoPedido(bbdd):
     finally:
         conn.close()
         return nuevo_consec
+
+
+
+
+
+
 
 
 

@@ -5,7 +5,7 @@ import eventos
 import glo
 
 def desplegar_nuevo(subMenu, root):
-    nuevaPlanta    = subMenu.add_command   (label = "Nueva Planta (no funciona)"   , command = vent_nueva_planta)
+    nuevaPlanta    = subMenu.add_command   (label = "Nueva Planta"   , command = vent_nueva_planta)
     subMenu.add_separator()
     nuevoPedido    = subMenu.add_command   (label = "Nuevo Pedido (no funciona)"   , command = vent_nuevo_pedido)
     nuevoModelo    = subMenu.add_command   (label = "Nuevo Modelo"   , command = vent_nuevo_modelo)
@@ -18,7 +18,7 @@ def desplegar_nuevo(subMenu, root):
     return
 
 def vent_nueva_planta():
-    ventanaNuevaPlanta.VentanaNuevaPlanta()
+    eventos.step0_crearNuevaPlanta()
   
 def vent_nuevo_pedido():
     ventanaNuevoPedido.VentanaNuevoPedido()

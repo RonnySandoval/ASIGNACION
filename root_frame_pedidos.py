@@ -17,10 +17,8 @@ class ContenidoPedidos():
 
     def __init__(self, contenedor):
 
-
         self.frameTablaPedidos = ctk.CTkFrame(contenedor, bg_color=moradoMedio)
-        self.frameTablaPedidos.pack(fill="both", expand=True, padx=5,)
-
+        self.frameTablaPedidos.pack(fill="both", expand=True, side="left", padx=5,)
 
         # Estilo personalizado para Treeview
         self.styletreeviewPedi = ttk.Style()
@@ -38,7 +36,7 @@ class ContenidoPedidos():
 
 class FiltrosPedidos():
 
-    def __init__(self, vehiculos, contenido, bbdd):
+    def __init__(self, treePedidos, contenido, bbdd):
     # Crear un frame para los filtros
         self.frame_filtros = tk.Frame(contenido.canvas, bg=grisOscuro)
         self.frame_filtros.pack(fill=tk.X, padx=2, pady=2, side="top")
@@ -57,40 +55,43 @@ class FiltrosPedidos():
         for i in range(4): 
             self.frame_filtros.grid_columnconfigure(i, weight=1)
 
-
         # Crear un botón para aplicar los filtros
-        self.boton_filtrar = ctk.CTkButton(master=self.frame_filtros, text="Filtro", command=lambda:self.filtrar_datos(vehiculos), width=20,
+        self.boton_filtrar = ctk.CTkButton(master=self.frame_filtros, text="Filtro", command=lambda:self.filtrar_datos(treePedidos), width=20,
                                            font=numerosPequeños, hover_color=grisVerdeClaro, fg_color=grisVerdeMedio, corner_radius=15)
         self.boton_filtrar.grid(row=0, column=0, pady=5)
     
-        self.boton_actualizar = ctk.CTkButton(master=self.frame_filtros, text="Actualizar", command=lambda:vehiculos.actualizar_tabla(bbdd), width=20,
+        self.boton_actualizar = ctk.CTkButton(master=self.frame_filtros, text="Actualizar", command=lambda:treePedidos.actualizar_tabla(bbdd), width=20,
                                               font=numerosPequeños, hover_color=amarilloMedio, fg_color=amarilloOscuro, corner_radius=15)
         self.boton_actualizar.grid(row=0, column=1, pady=5)
 
-    def filtrar_datos(self, pedidos):
+    def filtrar_datos(self, treePedidos):
+        treePedidos.tablaPedidos.unbind("<<TreeviewSelect>>")
         # Obtener los criterios de filtro de las entradas
-        self.datos             = pedidos.datos
+        self.datos             = treePedidos.datos
         filtro_id_pedido       = self.entry_id_pedido.get()
         filtro_fecha_ingreso   = self.entry_fecha_ingreso.get()
         filtro_fecha_estimada  = self.entry_fecha_estimada.get()
         filtro_fecha_entrega   = self.entry_fecha_entrega.get()
-
-
+        print("datos del contenido de Pedidos: ", self.datos)
+        print("Datos de los entry en filtrar_datos:", filtro_id_pedido, filtro_fecha_ingreso, filtro_fecha_estimada, filtro_fecha_entrega)
         # Limpiar la tabla
-        for row in pedidos.tablaPedidos.get_children():
-            pedidos.tablaPedidos.delete(row)
+        for row in treePedidos.tablaPedidos.get_children():
+            treePedidos.tablaPedidos.delete(row)
         
         # Agregar datos filtrados a la tabla
         for record in self.datos:
-            if (filtro_id_pedido.lower() in str(record[0]).lower() and
-                filtro_fecha_ingreso.lower() in record[1].lower() and
-                filtro_fecha_estimada.lower() in record[2].lower() and
-                filtro_fecha_entrega.lower() in record[3].lower()):
+            if (filtro_id_pedido.lower()      in str(record[0]).lower() and
+                filtro_fecha_ingreso.lower()  in str(record[1]).lower() and
+                filtro_fecha_estimada.lower() in str(record[2]).lower() and
+                filtro_fecha_entrega.lower()  in str(record[3]).lower()):
 
-                pedidos.tablaPedidos.insert(parent='', index='end', iid=record[0], text='', values=record)
+                treePedidos.tablaPedidos.insert(parent='', index='end', iid=record[0], text='', values=record)
+
+            treePedidos.tablaPedidos.bind("<<TreeviewSelect>>")
+
 
 class TablaPedidos():     #Tabla para pedido
-    def __init__(self, contenido, contenedor, laRaiz, bbdd): #Crea latabla y un diccionario con los nombres de los campos
+    def __init__(self, contenido, contenedor, laRaiz,bbdd): #Crea latabla y un diccionario con los nombres de los campos
 
         self.raiz = laRaiz
          #Crear estilo personalizado para las cabeceras
@@ -111,10 +112,10 @@ class TablaPedidos():     #Tabla para pedido
 
         #Crear una barra de desplazamiento para la tabla y configurarla
         self.scrollbarTablaPedidos = ttk.Scrollbar(contenido.frameTablaPedidos, orient=tk.VERTICAL, command=self.tablaPedidos.yview)
-        self.scrollbarTablaPedidos.pack(side='right', fill='y')
         self.tablaPedidos.configure(yscrollcommand=self.scrollbarTablaPedidos.set)
         self.tablaPedidos.pack(expand=True, fill="both", side="bottom")
-
+        self.scrollbarTablaPedidos.pack(side='right', fill='y')
+        
         self.llenarTabla(bbdd)
 
         self.frameBotonesPedidos = ctk.CTkFrame(contenedor, bg_color=moradoMedio)
@@ -159,6 +160,16 @@ class TablaPedidos():     #Tabla para pedido
         print(self.datos)
         for record in self.datos:
             self.tablaPedidos.insert(parent='', index='end', iid=record[0], text='', values=record)
+
+        def click_fila(event):
+            tabla = event.widget
+            filas_seleccionadas = tabla.selection()
+            print("filas seleccionadas en click_fila:", filas_seleccionadas)
+            datos = tabla.item(filas_seleccionadas[0], "values")
+            print(datos)
+            pedido = datos[0]
+            print(pedido)
+            glo.stateFrame.tablaDetalles.llenarTabla(bbdd, pedido = pedido)
 
         #click derecho en información de vehículo       
         def seleccionar_informacion_fila():
@@ -235,6 +246,7 @@ class TablaPedidos():     #Tabla para pedido
         
         # Asociar el click derecho al evento
         self.tablaPedidos.bind("<Button-3>", mostrar_menu)
+        self.tablaPedidos.bind("<<TreeviewSelect>>", click_fila)
 
     def actualizar_tabla(self, bbdd):
         # Elimina todos los elementos del Treeview
@@ -242,7 +254,6 @@ class TablaPedidos():     #Tabla para pedido
             self.tablaPedidos.delete(item)
         
         self.llenarTabla(bbdd)
-
 
     def programar_todo(self, tipoPrograma):
         eventos.recoge_check_tecnicos()
@@ -257,4 +268,4 @@ class TablaPedidos():     #Tabla para pedido
     def programar_por_procesos(self, tipoPrograma):
         eventos.recoge_check_tecnicos()
         eventos.abrirFechayHoraProg(tipoPrograma)
-        ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel("programar_inmediato"))
+        ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel("programar_por_procesos"))

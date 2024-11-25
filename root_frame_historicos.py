@@ -87,7 +87,7 @@ class FiltrosHistoricos():
     def filtrar_datos(self, historicos):
         # Obtener los criterios de filtro de las entradas
         self.datos          = historicos.datos
-        filtro_id     = self.entry_id.get()
+        filtro_id           = self.entry_id.get()
         filtro_chasis       = self.entry_chasis.get()
         filtro_tecnico      = self.entry_tecnico.get()
         filtro_proceso      = self.entry_proceso.get()
@@ -110,18 +110,18 @@ class FiltrosHistoricos():
         for record in self.datos:
             if (filtro_id.lower()           in str(record[0]).lower() and
                 filtro_chasis.lower()       in str(record[1]).lower() and
-                filtro_tecnico.lower()      in record[2].lower() and
-                filtro_proceso.lower()      in record[3].lower() and
-                filtro_marcamodelo.lower()  in record[4].lower() and
-                filtro_color.lower()        in record[5].lower() and
-                filtro_inicio.lower()       in record[6].lower() and
-                filtro_fin.lower()          in record[7].lower() and
+                filtro_tecnico.lower()      in str(record[2]).lower() and
+                filtro_proceso.lower()      in str(record[3]).lower() and
+                filtro_marcamodelo.lower()  in str(record[4]).lower() and
+                filtro_color.lower()        in str(record[5]).lower() and
+                filtro_inicio.lower()       in str(record[6]).lower() and
+                filtro_fin.lower()          in str(record[7]).lower() and
                 filtro_duracion.lower()     in str(record[8]).lower() and
-                filtro_estado.lower()       in record[9].lower() and
-                filtro_novedades.lower()    in record[10].lower() and
-                filtro_observaciones.lower()in record[11].lower() and
-                filtro_subcontratar.lower() in record[12].lower() and
-                filtro_pedido.lower()       in record[13].lower()):
+                filtro_estado.lower()       in str(record[9]).lower() and
+                filtro_novedades.lower()    in str(record[10]).lower() and
+                filtro_observaciones.lower()in str(record[11]).lower() and
+                filtro_subcontratar.lower() in str(record[12]).lower() and
+                filtro_pedido.lower()       in str(record[13]).lower()):
 
                 historicos.tablaHistoricos.insert(parent='', index='end', iid=record[0], text='', values=record)
 
@@ -164,16 +164,17 @@ class TablaHistoricos():        #Tabla para historicos
 
         #Crear una barra de desplazamiento para la tabla y configurarla
         self.scrollbarTablaHistoricos = ttk.Scrollbar(contenido.frameTablaHistoricos, orient=tk.VERTICAL, command=self.tablaHistoricos.yview)
-        self.scrollbarTablaHistoricos.pack(side='right', fill='y')
         self.tablaHistoricos.configure(yscrollcommand=self.scrollbarTablaHistoricos.set)
         self.tablaHistoricos.pack(expand=True, fill="both", side="bottom")
-
+        self.scrollbarTablaHistoricos.pack(side='right', fill='y')
+        
         self.llenarTabla(bbdd)
 
     def llenarTabla(self, bbdd):    # Agregar datos a la tabla 
         self.datos = BBDD.leer_historicos_completo(bbdd)
         print(self.datos)
         for record in self.datos:
+            print(record)
             self.tablaHistoricos.insert(parent='', index='end', iid=record[0], text='', values=record)
 
         #click derecho en información de vehículo       

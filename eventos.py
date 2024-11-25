@@ -4,12 +4,46 @@ from tkinter.filedialog import askopenfilename
 import CRUD
 import BBDD
 import glo
+import menu.stepsNuevaPlanta as steps_nueva_planta
+import menu.ventanaNuevaPlanta as ventanaNuevaPlanta
 import ventanas_auxiliares
 import ventanas_emergentes
 import Mod_clases, Mod_objetos
 import modelo_clases, modelo_instancias
 import modelo_llamarGantt
 import fechahora
+
+#####################################################################
+################### EVENTOS PARA CREAR PLANTA #######################
+#####################################################################
+def step0_crearNuevaPlanta():
+    ventana = ventanaNuevaPlanta.VentanaNuevaPlanta()
+    ventana.asignafuncion(funcionSiguiente = lambda : step1_crearNuevaPlanta(ventana),
+                          funcionCancelar  = ventana.rootAux.destroy)
+
+def step1_crearNuevaPlanta(ventana):
+    datos = {
+        "nombre": ventana.varNombre.get(),
+        "cantidadProcesos": ventana.varProcesos.get(),
+        "cantidadTecnicos": ventana.varTecnicos.get(),
+        "cantidadMarcas": ventana.varMarcas.get(),
+        "Descripcion": ventana.varDescripcion.get()
+    }
+    print(datos)
+    ventana.rootAux.destroy()
+    ventProcesos = steps_nueva_planta.VentanaDefinirProcesos(datosStep1 = datos)
+    ventProcesos.asignafuncion(funcionAtras     ="",
+                               funcionCancelar  =ventProcesos.rootAux.destroy,
+                               funcionCargar    ="",
+                               funcionSiguiente =lambda : step2_crearNuevaPlanta(ventProcesos,
+                                                                                 datosStep1=datos))
+
+def step2_crearNuevaPlanta(ventana, datosStep1):
+    datos = ventana.genera_df_datos()
+    print(datos)
+    print(datosStep1)
+
+
 
 #####################################################################
 ################EVENTOS PARA SECCION DE MODELOS######################
@@ -165,7 +199,6 @@ def aceptar_agregar_vehiculo(ventana, bbdd):
 
     datos.extend([id_modelo,
                 ventana.varColor.get(),
-                ventana.varEstado.get(),
                 ventana.varNoved.get(),
                 ventana.varSubcon.get(),
                 ventana.varPedido.get()]
@@ -554,17 +587,39 @@ def guardar_PedidoExcel_BBDD(ventana, df, bbdd):
 
 
 
-    df_ref_idModelos = BBDD.leer_referencias_modelos(bbdd)
-    df_combinado1 = pd.merge(df, df_ref_idModelos, on="REFERENCIA", how="left")
+    df_ref_idModelos = BBDD.leer_referencias_modelos(bbdd)                                      # lee las referencias en la BBDD
+    df_combinado1 = pd.merge(df, df_ref_idModelos, on="REFERENCIA", how="left")                 # Incluye la columna referencias con sus valores en el DF
+    print(df_combinado1)
 
-    df_mod_idModelos = BBDD.leer_modelos_id_modelos(bbdd)
+    registros_nulos = df_combinado1[df_combinado1['ID_MODELO'].isna()]                            # Filtrar registros donde 'ID_MODELO' sea None o NaN
+    for index, row in registros_nulos.iterrows():                                                 # Obtener los valores de las columnas 'CHASIS', 'REFERENCIA' y 'COLOR' de todos los registros
+        chasis = row['CHASIS']
+        referencia = row['REFERENCIA']
+        color = row['COLOR']
+        print(f"Chasis: {chasis}, Referencia NO encontrada: {referencia}, Color: {color}")
+    df_combinado1  = df_combinado1.drop(registros_nulos.index)                                   # Eliminar los registros del DataFrame 
+    registros_nulos.drop('ID_MODELO', axis=1, inplace=True)
+
+    #EVALUAMOS SI HAY REGISTROS SIN REFERENCIA
+    if registros_nulos.empty == False:
+        ventanas_emergentes.msg_registro_nulo(registros_nulos)
+        return
+
+    #EVALUAMOS SI HAY DUPLICADOS DE CHASIS
+    registros_duplicados = df_combinado1[df_combinado1['CHASIS'].duplicated(keep=False)]          # keep=False incluye todos los registros duplicados
+    if registros_duplicados.empty == False:
+        ventanas_emergentes.msg_registro_nulo(registros_nulos)
+        return
+
+    df_mod_idModelos = BBDD.leer_modelos_id_modelos(bbdd)                                       # Incluimos los id_modelos    
     df_combinado2 = pd.merge(df_combinado1, df_mod_idModelos, on="ID_MODELO", how="left")
+    print(df_combinado2)
 
-    tiempos_modelos = BBDD.leer_tiempos_modelos_procesos(bbdd)
+    tiempos_modelos = BBDD.leer_tiempos_modelos_procesos(bbdd)                                  # INcluimos los tiempos
     df_combinado3 = pd.merge(df_combinado2, tiempos_modelos, on="MODELO", how="left")
     print(df_combinado3)
 
-    df_para_BBDDVehiculos = df_combinado2[["CHASIS", "ID_MODELO", "COLOR", "REFERENCIA"]]                     # Seleccionar solo las columnas requeridas
+    df_para_BBDDVehiculos = df_combinado2[["CHASIS", "ID_MODELO", "COLOR", "REFERENCIA"]]       # Seleccionar solo las columnas requeridas
     df_para_BBDDVehiculos['FECHA_INGRESO'] = fecha_recepcion
     df_para_BBDDVehiculos = df_para_BBDDVehiculos.assign(FECHA_INGRESO  =  fecha_recepcion,
                                                          ESTADO         =  'SIN_PROCESAR',
@@ -581,8 +636,8 @@ def guardar_PedidoExcel_BBDD(ventana, df, bbdd):
 
     lista_para_dataFrame = []
     columnas_deseadas = list(df_combinado3.columns[5:])          # Seleccionar las columnas deseadas: la primera y desde la sexta en adelante
-    #print(df_combinado3[df_combinado3.columns[0]])
-    #print(columnas_deseadas)
+    print(df_combinado3[df_combinado3.columns[0]])
+    print(columnas_deseadas)
 
     for col in columnas_deseadas:
         for row_value in df_combinado3[df_combinado3.columns[0]]:
@@ -599,15 +654,17 @@ def guardar_PedidoExcel_BBDD(ventana, df, bbdd):
     print(df_para_BBDDtiemposVehiculos)                                  # Mostrar el nuevo DataFrame
 
 
-    BBDD.insertar_pedido(bbdd,
-                         id_pedido,
-                         None,
-                         fecha_recepcion,
-                         fecha_estimada,
-                         None,
-                         consecutivo)
-    BBDD.insertar_vehiculos_df(bbdd, df_para_BBDDVehiculos)
-    BBDD.insertar_tiempos_vehiculos_df(bbdd, df_para_BBDDtiemposVehiculos)
+    return
+    # Persistimos en BBDDD solo si hay registros nulos
+    BBDD.insertar_pedido(bbdd,                                              # Guardamos pedido en BBDD
+                             id_pedido,
+                             None,
+                             fecha_recepcion,
+                             fecha_estimada,
+                             None,
+                             consecutivo)
+    BBDD.insertar_vehiculos_df(bbdd, df_para_BBDDVehiculos)                 # Guardamos los vehiculos
+    BBDD.insertar_tiempos_vehiculos_df(bbdd, df_para_BBDDtiemposVehiculos)  # Guardamos los tiempos_vehiculos
 
     
 def nombraArchivoExcel(programa):

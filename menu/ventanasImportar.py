@@ -19,6 +19,9 @@ class VentanaImportarPedido():
         self.rootAux.title("Importar Pedido")          #coloca titulo de ventana
         self.rootAux.geometry("500x260")                #dimensiones
         self.rootAux.resizable(False, False)            #deshabilita la redimension
+        self.rootAux.lift()  # Eleva la ventana Toplevel para que esté al frente
+        self.rootAux.attributes('-topmost', 1)  # También puede asegurar que quede al frente
+
 
         self.frameTitulo = ctk.CTkFrame(self.rootAux)
         self.frameTitulo.pack(side="top", fill="both")
@@ -33,7 +36,7 @@ class VentanaImportarPedido():
         self.labelSaltarFila.grid(row=0, column=0, sticky="ew", padx=20, pady=5)
         self.OptionSaltarFila = ctk.CTkOptionMenu(self.frameEntradas, font = numerosMedianos, fg_color= grisAzuladoClaro, width=20, variable=self.varSaltarFila)
         self.OptionSaltarFila.grid(row=0 ,column=1, sticky="ew", pady=5)
-        self.fila = ["1","2","3","4","5","6","7","8","9","10"]
+        self.fila = ["0","1","2","3","4","5","6","7","8","9","10"]
         self.OptionSaltarFila.configure(values=self.fila)      # Configurar el OptionMenu con los valores del diccionario
         self.OptionSaltarFila.set("1")
 
@@ -78,6 +81,8 @@ class VentanaImportarReferencias():
         self.rootAux.title("Importar Referencias/Modelos")          #coloca titulo de ventana
         self.rootAux.geometry("500x260")                #dimensiones
         self.rootAux.resizable(False, False)            #deshabilita la redimension
+        self.rootAux.lift()  # Eleva la ventana Toplevel para que esté al frente
+        self.rootAux.attributes('-topmost', 1)  # También puede asegurar que quede al frente
 
         self.frameTitulo = ctk.CTkFrame(self.rootAux)
         self.frameTitulo.pack(side="top", fill="both")
