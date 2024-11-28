@@ -12,13 +12,12 @@ def desplegar_nuevo(subMenu, root):
     nuevoVehiculo  = subMenu.add_command (label = "Nuevo Vehículo" , command = vent_nuevo_vehiculo)
     nuevoTecnico   = subMenu.add_command  (label = "Nuevo Técnico"  , command = vent_nuevo_tecnico)
     nuevoProceso   = subMenu.add_command  (label = "Nuevo Proceso"  , command = vent_nuevo_proceso)
-    nuevoProveedor = subMenu.add_command(label = "Nuevo Proveedor (vacio)", command = vent_nuevo_proveedor)
     subMenu.add_separator()
     subMenu.add_command(label="Salir", command=lambda: root.destroy)
     return
 
 def vent_nueva_planta():
-    eventos.step0_crearNuevaPlanta()
+    eventos.step_crearNuevaPlanta()
   
 def vent_nuevo_pedido():
     ventanaNuevoPedido.VentanaNuevoPedido()
@@ -44,5 +43,4 @@ def vent_nuevo_proceso():
     ventana.asignaFuncion(funcionGuardar = lambda: eventos.guardar_proceso_nuevo(ventana, glo.base_datos),
                           funcionCancelar= ventana.rootAux.destroy)
 
-def vent_nuevo_proveedor():
     pass

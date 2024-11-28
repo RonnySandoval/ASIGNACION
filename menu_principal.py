@@ -23,7 +23,6 @@ def crearMenuPrincipal(raiz):
     menuAbrir=tk.Menu(barraMenu, tearoff=0)
     barraMenu.add_cascade(label="Abrir", menu=menuAbrir)
     menuAbrir.add_command(label="Abrir Planta", command="")
-    menuAbrir.add_command(label="Abrir Pedido", command="")
     #############################################################################
 
 

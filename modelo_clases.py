@@ -5,24 +5,26 @@ import fechahora
 import glo
 import pandas as pd
 
-nombres_procesos = BBDD.leer_procesos_secuencia(glo.base_datos)
-id_procesos = BBDD.obtener_id_procesos_secuencia(glo.base_datos)
-orden_procesos = ['ninguno'] + id_procesos + ['DESPACHO', 'ENTREGADO']
+nombres_procesos = None
+id_procesos = None
+orden_procesos = None
+modelos = None
+tiempos = None
+tiemposVH = None
 
-print("orden de procesos : " , orden_procesos)
-class Tiempos():
-    def __init__(self):
-        self.procesos = {}
-        self.marcas =[]
-        self.modelos = []
-        self.tiempos = {}
+def obtiene_datos_iniciales():
+    global nombres_procesos, id_procesos, orden_procesos, modelos, tiempos, tiemposVH
 
-# Modelos de vehículos agrupados por marcas
+    nombres_procesos = BBDD.leer_procesos_secuencia(glo.base_datos)
+    id_procesos = BBDD.obtener_id_procesos_secuencia(glo.base_datos)
+    orden_procesos = ['ninguno'] + id_procesos + ['DESPACHO', 'ENTREGADO']
+    print("orden de procesos : " , orden_procesos)
 
-modelos = list(map(lambda modelo_marca: modelo_marca[2], BBDD.leer_modelos(glo.base_datos)))
-tiempos = BBDD.leer_tiempos_modelos_procesos(glo.base_datos)
-tiemposVH = BBDD.leer_tiempos_vehiculos_procesos(glo.base_datos)
-print(tiempos)
+    # Modelos de vehículos agrupados por marcas
+    modelos = list(map(lambda modelo_marca: modelo_marca[2], BBDD.leer_modelos(glo.base_datos)))
+    tiempos = BBDD.leer_tiempos_modelos_procesos(glo.base_datos)
+    tiemposVH = BBDD.leer_tiempos_vehiculos_procesos(glo.base_datos)
+    print(tiempos)
 
 def buscar_tiempo(modelo, proceso):
     #Devuelve el tiempo de un solo proceso para un modelo dado.
@@ -80,6 +82,12 @@ def buscar_tiemposVH(chasis):     #Devuelve una lista con los tiempos de todos l
         print(f"El modelo {chasis} no existe.")
         return None
 
+class Tiempos():
+    def __init__(self):
+        self.procesos = {}
+        self.marcas =[]
+        self.modelos = []
+        self.tiempos = {}
 
 class VehiculoBase:             # Son los tipos de vehiculos, es decir los modelos, con sus tiempos de proceso
     def __init__(self, modelo, marca):

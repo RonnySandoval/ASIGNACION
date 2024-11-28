@@ -122,6 +122,8 @@ class TablaVehiculos():     #Tabla para pedido
         
         #Crear Tabla
         self.styletreeviewVeh.layout("TreeviewVehiculos", [('Treeview.treearea', {'sticky': 'nswe'})])
+        print(self.styletreeviewVeh.theme_names())          # Lista los temas disponibles
+        print(self.styletreeviewVeh.layout("TreeviewVehiculos"))  # Verifica si el estilo está configurado correctamente
         self.tablaVehiculos = ttk.Treeview(contenido.canvas, show="headings", style="TreeviewVehiculos")
         self.tablaVehiculos["columns"] = ("Chasis", "Fecha de entrega", "Marca - Modelo", "Color", "Proceso", "Estado","Novedades", "Subcontratar", "Pedido", "Tiempos")
 
@@ -129,8 +131,6 @@ class TablaVehiculos():     #Tabla para pedido
         for col in self.tablaVehiculos["columns"]:
             self.tablaVehiculos.column(col, anchor=tk.CENTER, width=80)
             self.tablaVehiculos.heading(col, text=col, anchor=tk.CENTER)
-
-        # Crear un Scrollbar y conectarlo con el Canvas
 
         #Crear una barra de desplazamiento para la tabla y configurarla
         self.scrollbarTablaVehiculos = ttk.Scrollbar(contenido.frameTablaVehiculos, orient=tk.VERTICAL, command=self.tablaVehiculos.yview)

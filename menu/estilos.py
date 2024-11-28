@@ -4,20 +4,20 @@ tituloMedio   = ("Bahnschrift", 18)
 tituloBajo    = ("Bahnschrift", 16)
 tituloMinimo  = ("Bahnschrift", 14)
 
-texto1Grande   = ("Franklin Gothic Book", 17)
-texto1Medio    = ("Franklin Gothic Book", 15)
-texto1Bajo     = ("Franklin Gothic Book", 13)
-texto1Minimo   = ("Franklin Gothic Book", 11)
+texto1Grande   = ("Franklin Gothic Book", 16)
+texto1Medio    = ("Franklin Gothic Book", 14)
+texto1Bajo     = ("Franklin Gothic Book", 12)
+texto1Minimo   = ("Franklin Gothic Book", 10)
 
-textoGrande   = ("Segoe UI Black", 17)
-textoMedio    = ("Segoe UI Black", 15)
-textoBajo     = ("Segoe UI Black", 13)
-textoMinimo   = ("Segoe UI Black", 11)
+textoGrande   = ("Segoe UI Black", 16)
+textoMedio    = ("Segoe UI Black", 14)
+textoBajo     = ("Segoe UI Black", 12)
+textoMinimo   = ("Segoe UI Black", 10)
 
-numerosGrandes     = ("Arial Narrow", 17)
-numerosMedianos    = ("Arial Narrow", 15)
-numerosPequeños    = ("Arial Narrow", 13)
-numerosMuyPequeños = ("Arial Narrow", 11)
+numerosGrandes     = ("Arial Narrow", 16)
+numerosMedianos    = ("Arial Narrow", 14)
+numerosPequeños    = ("Arial Narrow", 12)
+numerosMuyPequeños = ("Arial Narrow", 10)
 
 
 

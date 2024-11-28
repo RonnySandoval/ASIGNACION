@@ -71,7 +71,6 @@ class Contenidos:
 
 stateFrame = Contenidos()
 
-
-base_datos = 'planta_manta.db'
-
+base_datos = None
+raiz_principal = None
 

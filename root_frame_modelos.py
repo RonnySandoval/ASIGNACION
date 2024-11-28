@@ -52,7 +52,7 @@ class ContenidoModelos():
                                                 hover_color=grisOscuro, fg_color=grisAzuladoClaro, border_color=blancoFrio,
                                                 border_width=1,width=40, corner_radius=10,
                                                 command= lambda:eventos.crear_modelo(bbdd))
-        self.button_CrearModelo.grid(row=0, column=7, padx=3)
+        self.button_CrearModelo.grid(row=0, column=7, padx=3, pady=5)
         
         #####################################################
         ############ Botones de EDITAR modelo ###############

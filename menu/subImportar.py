@@ -5,11 +5,14 @@ import eventos
 import glo
 
 def desplegar_importar(subMenu, root):
-    subMenu.add_command(label="Importar Modelos", command="")
-    subMenu.add_command(label="Importar Tecnicos", command="")
-    subMenu.add_command(label="Importar Vehiculos", command="")
+    
     subMenu.add_command(label="Importar Procesos", command="")
+    subMenu.add_command(label="Importar Tecnicos", command="")
+    subMenu.add_command(label="Importar Modelos", command="")
+    subMenu.add_command(label="Importar Tiempos", command="")    
     subMenu.add_command(label="Importar Referencias/Modelos", command=lambda : vent_importar_referencias_modelos(glo.base_datos))
+    subMenu.add_command(label="Importar Vehiculos", command="")
+
     subMenu.add_separator()
     subMenu.add_command(label="Importar Pedido", command=lambda : vent_importar_pedido(glo.base_datos))
     subMenu.add_command(label="Importar Programa", command="")

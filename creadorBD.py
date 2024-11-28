@@ -1,6 +1,161 @@
 from sqlalchemy import (create_engine, Column, String, Integer, ForeignKey, Index)
 from sqlalchemy.orm import declarative_base, relationship
 import re
+import os
+import ventanas_emergentes
+
+Base = declarative_base()  # Base de Declaración
+
+# Tablas en representación de clases
+
+class INFORMACION(Base):
+    __tablename__    = 'INFORMACION'
+    NOMBRE_PLANTA           = Column(String, primary_key=True)
+    DESCRIPCION      = Column(String)
+
+class PROCESOS(Base):
+    __tablename__   = 'PROCESOS'
+    ID_PROCESO      = Column(String, primary_key=True)
+    NOMBRE          = Column(String)
+    DESCRIPCION     = Column(String)
+    SECUENCIA       = Column(Integer)
+
+class TECNICOS(Base):
+    __tablename__   = 'TECNICOS'
+    ID_TECNICO      = Column(String, primary_key=True)
+    NOMBRE          = Column(String)
+    APELLIDO        = Column(String)
+    DOCUMENTO       = Column(String)
+    ESPECIALIDAD    = Column(String)
+
+class TECNICOSPROCESOS(Base):
+    __tablename__   = 'TECNICOS_PROCESOS'
+    TEC_PROC        = Column(String, primary_key=True)
+    ID_TECNICO      = Column(String)
+    ID_PROCESO      = Column(String)
+
+class MODELOS(Base):
+    __tablename__   = 'MODELOS'
+    ID_MODELO       = Column(String, primary_key=True)
+    MARCA           = Column(String)
+    MODELO          = Column(String)
+    ESPECIFICACION  = Column(String, nullable=True)
+
+class MODELOSREFERENCIAS(Base):
+    __tablename__   = 'MODELOS_REFERENCIAS'
+    REFERENCIA      = Column(String, primary_key=True)
+    ID_MODELO       = Column(String)
+
+class TIEMPOSMODELOS(Base):
+    __tablename__   = 'TIEMPOS_MODELOS'
+    PROCESO_MODELO  = Column(String, primary_key=True)
+    ID_PROCESO      = Column(String)
+    ID_MODELO       = Column(String)
+    TIEMPO          = Column(Integer)
+
+class PEDIDOS(Base):
+    __tablename__   = 'PEDIDOS'
+    ID_PEDIDO       = Column(String, primary_key=True)
+    CLIENTE         = Column(String)
+    FECHA_RECEPCION = Column(Integer)
+    ENTREGA_ESTIMADA = Column(Integer)
+    FECHA_ENTREGA   = Column(Integer)
+    CONSECUTIVO     = Column(Integer)
+
+class VEHICULOS(Base):
+    __tablename__   = 'VEHICULOS'
+    CHASIS          = Column(String, primary_key=True)
+    ID_MODELO       = Column(String)
+    COLOR           = Column(String)
+    REFERENCIA      = Column(String)
+    FECHA_INGRESO   = Column(Integer)
+    NOVEDADES       = Column(String)
+    SUBCONTRATAR    = Column(String)
+    ID_PEDIDO       = Column(String)
+
+class TIEMPOSVEHICULOS(Base):
+    __tablename__   = 'TIEMPOS_VEHICULOS'
+    PROCESO_CHASIS  = Column(String, primary_key=True)
+    ID_PROCESO      = Column(String)
+    CHASIS          = Column(String)
+    TIEMPO          = Column(Integer)
+
+class HISTORICOS(Base):
+    __tablename__       = 'HISTORICOS'
+    CODIGO_ASIGNACION   = Column(String, primary_key=True)
+    ID_TECNICO          = Column(String)
+    CHASIS              = Column(String)
+    ID_PROCESO          = Column(String)
+    OBSERVACIONES       = Column(String)
+    INICIO              = Column(Integer)
+    FIN                 = Column(Integer)
+    DURACION            = Column(Integer)
+    ESTADO              = Column(String)
+
+class PROGRAMAS(Base):
+    __tablename__   = 'PROGRAMAS'
+    ID_PROGRAMA     = Column(String, primary_key=True)
+    DESCRIPCION     = Column(String)
+
+class ORDENES(Base):
+    __tablename__   = 'ORDENES'
+    CODIGO_ORDEN    = Column(String, primary_key=True)
+    ID_PROGRAMA     = Column(String)
+    CHASIS          = Column(String)
+    ID_TECNICO      = Column(String)
+    ID_PROCESO      = Column(String)
+    OBSERVACIONES   = Column(String)
+    INICIO          = Column(Integer)
+    FIN             = Column(Integer)
+    DURACION        = Column(Integer)
+
+# Crear el motor de la base de datos y las tablas
+def crea_BBDD(nombre):
+    nombre_modificado = re.sub(r'\s+', '_', nombre).lower()  # Reemplaza múltiples espacios consecutivos por un solo '_' y pasa a minusculas
+    nombreBD =f"planta_{nombre_modificado}.db"
+
+    # Verificar si el archivo de la base de datos ya existe
+    if os.path.exists(nombreBD):
+        print(f"La base de datos '{nombreBD}' ya existe.")
+        ventanas_emergentes.messagebox.showinfo("Base de Datos existente", f"La base de datos '{nombreBD}' ya existe.")
+        return "existe"
+
+    motor = f"sqlite:///{nombreBD}"
+    engine = create_engine(motor) 
+    Base.metadata.create_all(engine)
+    mensaje= f"""
+    Base de datos creada con éxito.
+    Motor: {motor}
+    Nombre: {nombreBD}"""
+    
+    print(mensaje)
+    ventanas_emergentes.messagebox.showinfo("Base de Datos creada", mensaje)
+    return nombreBD
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##############################################################################################################################
+##############################################################################################################################
+##############################################################################################################################
+##############################################################################################################################
+##############################################################################################################################
+##############################################################################################################################
+##############################################################################################################################
+##############################################################################################################################
+
 
 # Base de Declaración
 BaseFK = declarative_base()
@@ -101,6 +256,12 @@ class TecnicosProcesosFK(BaseFK):
     id_tecnico      = Column(String, ForeignKey('tecnicos.id_tecnico'))
     id_proceso      = Column(String, ForeignKey('procesos.id_proceso'))
 
+class InformacionFK(BaseFK):
+    __tablename__   = 'informacion'
+    planta        = Column(String, primary_key=True)
+    descripcion      = Column(String)
+
+
 # Crear el motor de la base de datos y las tablas
 def crea_BBDD_FK(nombre):
     nombre = re.sub(r'\s+', '_', nombre)  # Reemplaza múltiples espacios consecutivos por un solo '_'
@@ -108,120 +269,6 @@ def crea_BBDD_FK(nombre):
 
     engine = create_engine(motor) 
     BaseFK.metadata.create_all(engine)
-    print(f"Base de datos creada con motor: {motor}")
-    return motor
-
-
-
-
-
-
-# Base de Declaración
-Base = declarative_base()
-
-# Tablas en representación de clases
-class Modelos(Base):
-    __tablename__   = 'modelos'
-    id_modelo       = Column(String, primary_key=True)
-    marca           = Column(String)
-    modelo          = Column(String)
-    especificacion  = Column(String, nullable=True)
-
-class Procesos(Base):
-    __tablename__   = 'procesos'
-    id_proceso      = Column(String, primary_key=True)
-    nombre          = Column(String)
-    descripcion     = Column(String)
-    secuencia       = Column(Integer)
-
-class Tecnicos(Base):
-    __tablename__   = 'tecnicos'
-    id_tecnico      = Column(String, primary_key=True)
-    nombre          = Column(String)
-    apellido        = Column(String)
-    especialidad    = Column(String)
-
-class Pedidos(Base):
-    __tablename__   = 'pedidos'
-    id_pedido       = Column(String, primary_key=True)
-    cliente         = Column(String)
-    fecha_recepcion = Column(Integer)
-    entrega_estimada = Column(Integer)
-    fecha_entrega   = Column(Integer)
-    consecutivo     = Column(Integer)
-
-class Vehiculos(Base):
-    __tablename__   = 'vehiculos'
-    chasis          = Column(String, primary_key=True)
-    id_modelo       = Column(String)
-    color           = Column(String)
-    referencia      = Column(String)
-    fecha_ingreso   = Column(Integer)
-    novedades       = Column(String)
-    subcontratar    = Column(String)
-    id_pedido       = Column(String)
-
-class ModelosReferencias(Base):
-    __tablename__   = 'modelos_referencias'
-    referencia      = Column(String, primary_key=True)
-    id_modelo       = Column(String)
-
-class TiemposModelos(Base):
-    __tablename__   = 'tiempos_modelos'
-    proceso_modelo  = Column(String, primary_key=True)
-    id_proceso      = Column(String)
-    id_modelo       = Column(String)
-    tiempo          = Column(Integer)
-
-class TiemposVehiculos(Base):
-    __tablename__   = 'tiempos_vehiculos'
-    proceso_chasis  = Column(String, primary_key=True)
-    id_proceso      = Column(String)
-    chasis          = Column(String)
-    tiempo          = Column(Integer)
-
-class Historicos(Base):
-    __tablename__       = 'historicos'
-    codigo_asignacion   = Column(String, primary_key=True)
-    id_tecnico          = Column(String)
-    chasis              = Column(String)
-    id_proceso          = Column(String)
-    observaciones       = Column(String)
-    inicio              = Column(Integer)
-    fin                 = Column(Integer)
-    duracion            = Column(Integer)
-    estado              = Column(String)
-
-class Programas(Base):
-    __tablename__   = 'programas'
-    id_programa     = Column(String, primary_key=True)
-    descripcion     = Column(String)
-
-class Ordenes(Base):
-    __tablename__   = 'ordenes'
-    codigo_orden    = Column(String, primary_key=True)
-    id_programa     = Column(String)
-    chasis          = Column(String)
-    id_tecnico      = Column(String)
-    id_proceso      = Column(String)
-    observaciones   = Column(String)
-    inicio          = Column(Integer)
-    fin             = Column(Integer)
-    duracion        = Column(Integer)
-
-class TecnicosProcesos(Base):
-    __tablename__   = 'tecnicos_procesos'
-    tec_proc        = Column(String, primary_key=True)
-    id_tecnico      = Column(String)
-    id_proceso      = Column(String)
-
-# Crear el motor de la base de datos y las tablas
-def crea_BBDD(nombre):
-    nombre = re.sub(r'\s+', '_', nombre)  # Reemplaza múltiples espacios consecutivos por un solo '_'
-    motor = f"sqlite:///planta_{nombre}.db"
-
-    engine = create_engine(motor) 
-    Base.metadata.create_all(engine)
     print(f"Base de datos creada con motor: {motor}")
     return motor
 

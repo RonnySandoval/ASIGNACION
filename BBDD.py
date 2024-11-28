@@ -5,11 +5,6 @@ import ventanas_emergentes as ventEmerg
 import fechahora
 #from planta import modelos, marcas, tiempos
 
-###########################################################################
-############################# CREACIÓN DE TABLAS###########################
-###########################################################################
-
-
 
 ###########################################################################
 ############################# ELIMINAR TABLAS##############################
@@ -37,6 +32,31 @@ def eliminar_tabla(bbdd, nombre_tabla):
 ############################# PARA PARA INSERTAR ###########################
 ###########################################################################
 
+def insertar_info_planta(bbdd, nombre, descripcion):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()          
+        insert_data_script = """INSERT INTO INFORMACION
+                                    (NOMBRE_PLANTA, DESCRIPCION)
+                                    VALUES (?, ?)
+                                """
+        cursor.execute(insert_data_script, ( nombre, descripcion))
+        conn.commit()
+        print("Registro de información general de planta añadido")
+        
+    except sqlite3.Error as e:
+        print(f"Error al insertar la información genenral de planta: {e}")
+        request = False
+
+    except UnboundLocalError as e:
+        print(f"No se llenaron todos los campos de la tabla de información general de planta: {e}")
+        request = False
+
+    finally:
+        conn.close()
+        request = None
+        return request
+
 def insertar_proceso(bbdd, id, proceso, descripcion, secuencia):
     try:
         conn = sqlite3.connect(bbdd)
@@ -57,6 +77,29 @@ def insertar_proceso(bbdd, id, proceso, descripcion, secuencia):
 
     finally:
         conn.close()
+
+def insertar_procesos_df(bbdd, dataframe):
+    try:
+        conn = sqlite3.connect(bbdd)
+
+        dataframe.to_sql("PROCESOS", conn, if_exists="append", index=False)
+        resultado = pd.read_sql("SELECT * FROM PROCESOS", conn)
+        print("dataframe de procesos añadido a la BBDD")
+        print(resultado)
+
+    except sqlite3.Error as e:
+        print(f"Error al insertar el dataframe con los procesos: {e}")
+        request = False
+    
+    except UnboundLocalError as e:
+        print(f"No se llenaron los campos obligatorios de la tabla procesos: {e}") 
+        request = False
+    
+    finally:
+        conn.close()
+        request = None
+        return request
+
 
 def insertar_modelo(bbdd, id, marca, modelo):
     try:
@@ -79,6 +122,28 @@ def insertar_modelo(bbdd, id, marca, modelo):
     finally:
         conn.close()
 
+def insertar_modelos_df(bbdd, dataframe):
+    try:
+        conn = sqlite3.connect(bbdd)
+
+        dataframe.to_sql("MODELOS", conn, if_exists="append", index=False)
+        resultado = pd.read_sql("SELECT * FROM MODELOS", conn)
+        print("dataframe de modelos añadido a la BBDD")
+        print(resultado)
+
+    except sqlite3.Error as e:
+        print(f"Error al insertar el dataframe con los modelos: {e}")
+        request = False
+
+    except UnboundLocalError as e:
+        print(f"No se llenaron los campos obligatorios de la tabla modelos: {e}") 
+        request = False
+
+    finally:
+        conn.close()
+        request = None
+        return request
+
 def insertar_tiempo_modelo(bbdd, procmodel, id_proceso, id_modelo, tiempo):
     try:
         conn = sqlite3.connect(bbdd)
@@ -100,6 +165,29 @@ def insertar_tiempo_modelo(bbdd, procmodel, id_proceso, id_modelo, tiempo):
     finally:
         conn.close()
 
+def insertar_tiempos_modelos_df(bbdd, dataframe):
+    try:
+        conn = sqlite3.connect(bbdd)
+
+        dataframe.to_sql("TIEMPOS_MODELOS", conn, if_exists="append", index=False)               # Guardar en SQLite usando to_sql
+        resultado = pd.read_sql("SELECT * FROM TIEMPOS_MODELOS", conn)                     # Leer los datos para verificar
+        print("dataframe de tiempos de modelos añadido a la BBDD")
+        print(resultado)
+
+    except sqlite3.Error as e:
+        print(f"Error al insertar el dataframe con los tiempos de modelos: {e}")
+        request = False
+
+    except UnboundLocalError as e:
+        print(f"No se llenaron los campos obligatorios de la tabla de tiempos de modelos: {e}") 
+        request = False
+
+    finally:
+        conn.close()
+        request = None
+        return request
+
+
 def insertar_tecnico(bbdd, id, nombre, apellido, documento, especialidad):
     try:
         conn = sqlite3.connect(bbdd)
@@ -120,6 +208,51 @@ def insertar_tecnico(bbdd, id, nombre, apellido, documento, especialidad):
 
     finally:
         conn.close()
+
+def insertar_tecnicos_df(bbdd, dataframe):
+    try:
+        conn = sqlite3.connect(bbdd)
+
+        dataframe.to_sql("TECNICOS", conn, if_exists="append", index=False)
+        resultado = pd.read_sql("SELECT * TECNICOS", conn)
+        print("dataframe de tecnicos añadido a la BBDD")
+        print(resultado)
+
+    except sqlite3.Error as e:
+        print(f"Error al insertar el dataframe con los tecnicos: {e}")
+        request = False
+
+    except UnboundLocalError as e:
+        print(f"No se llenaron los campos obligatorios de la tabla tecnicos: {e}") 
+        request = False
+
+    finally:
+        conn.close()
+        request = None
+        return request
+
+def insertar_tecnicos_procesos_df(bbdd, dataframe):
+    try:
+        conn = sqlite3.connect(bbdd)
+
+        dataframe.to_sql("TECNICOS_PROCESOS", conn, if_exists="append", index=False)
+        resultado = pd.read_sql("SELECT * TECNICOS_PROCESOS", conn)
+        print("dataframe de especialidades de tecnicos añadidos a la BBDD")
+        print(resultado)
+
+    except sqlite3.Error as e:
+        print(f"Error al insertar el dataframe con los tecnicos_procesos: {e}")
+        request = False
+
+    except UnboundLocalError as e:
+        print(f"No se llenaron los campos obligatorios de la tabla de especialidades de tecnicos: {e}") 
+        request = False
+
+    finally:
+        conn.close()
+        request = None
+        return request
+
 
 def insertar_vehiculo(bbdd, chasis, fecha_ingreso, id_modelo, color, novedades, subcontratar, id_pedido):
     try:
@@ -167,6 +300,47 @@ def insertar_tiempo_vehiculo(bbdd, procvehi, id_proceso, chasis, tiempo):
     finally:
         conn.close()
 
+def insertar_vehiculos_df(bbdd, df):
+    try:
+        conn = sqlite3.connect(bbdd)
+
+        df.to_sql("VEHICULOS", conn, if_exists="append", index=False)               # Guardar en SQLite usando to_sql
+        resultado = pd.read_sql("SELECT * FROM VEHICULOS", conn)                     # Leer los datos para verificar
+        print("dataframe de vehiculos añadido a la BBDD")
+        print(resultado)
+
+    except sqlite3.Error as e:
+        print(f"Error al insertar el dataframe con los vehiculos: {e}")
+
+    except UnboundLocalError as e:
+        print(f"No se llenaron los campos obligatorios de la tabla de vehiculos: {e}") 
+
+    finally:
+        conn.close()
+
+def insertar_tiempos_vehiculos_df(bbdd, df):
+    try:
+        conn = sqlite3.connect(bbdd)
+
+        df.to_sql("TIEMPOS_VEHICULOS", conn, if_exists="append", index=False)               # Guardar en SQLite usando to_sql
+        resultado = pd.read_sql("SELECT * FROM TIEMPOS_VEHICULOS", conn)                     # Leer los datos para verificar
+        print("dataframe de tiempos de vehiculos añadido a la BBDD")
+        print(resultado)
+
+    except sqlite3.Error as e:
+        print(f"Error al insertar el dataframe con los tiempos de vehiculos: {e}")
+        request = False
+
+    except UnboundLocalError as e:
+        print(f"No se llenaron los campos obligatorios: {e}") 
+        request = False
+
+    finally:
+        conn.close()
+        request = None
+        return request
+
+
 def insertar_pedido(bbdd, id_pedido, cliente, fecha_recepcion, entrega_estimada, fecha_entrega, consecutivo):
     try:
         conn = sqlite3.connect(bbdd)
@@ -213,59 +387,27 @@ def insertar_historico(bbdd, codigo, chasis, tec, proc, observ, start, end, delt
     finally:
         conn.close()
 
-def insertar_referencias_df(bbdd, df_registros):
+def insertar_referencias_df(bbdd, dataframe):
     try:
         conn = sqlite3.connect(bbdd)
 
-        df_registros.to_sql("MODELOS_REFERENCIAS", conn, if_exists="replace", index=False)     # Guardar en SQLite usando to_sql
+        dataframe.to_sql("MODELOS_REFERENCIAS", conn, if_exists="append", index=False)     # Guardar en SQLite usando to_sql
         resultado = pd.read_sql("SELECT * FROM MODELOS_REFERENCIAS", conn)                     # Leer los datos para verificar
-        print("dataframe añadidos a la BBDD")
+        print("dataframe de referencias de modeslo añadido a la BBDD")
         print(resultado)
 
     except sqlite3.Error as e:
         print(f"Error al insertar el dataframe con las referencias de modelos: {e}")
+        request = False
 
     except UnboundLocalError as e:
-        print(f"No se llenaron los campos obligatorios: {e}") 
-
+        print(f"No se llenaron los campos obligatorios de la tabla de referencias de modelos: {e}") 
+        request = False
+        
     finally:
         conn.close()
-
-def insertar_vehiculos_df(bbdd, df):
-    try:
-        conn = sqlite3.connect(bbdd)
-
-        df.to_sql("VEHICULOS", conn, if_exists="append", index=False)               # Guardar en SQLite usando to_sql
-        resultado = pd.read_sql("SELECT * FROM VEHICULOS", conn)                     # Leer los datos para verificar
-        print("dataframe de vehiculos añadido a la BBDD")
-        print(resultado)
-
-    except sqlite3.Error as e:
-        print(f"Error al insertar el dataframe con los vehiculos: {e}")
-
-    except UnboundLocalError as e:
-        print(f"No se llenaron los campos obligatorios: {e}") 
-
-    finally:
-        conn.close()
-
-def insertar_tiempos_vehiculos_df(bbdd, df):
-    try:
-        conn = sqlite3.connect(bbdd)
-
-        df.to_sql("TIEMPOS_VEHICULOS", conn, if_exists="append", index=False)               # Guardar en SQLite usando to_sql
-        resultado = pd.read_sql("SELECT * FROM TIEMPOS_VEHICULOS", conn)                     # Leer los datos para verificar
-        print("dataframe de tiempos de vehiculos añadido a la BBDD")
-        print(resultado)
-
-    except sqlite3.Error as e:
-        print(f"Error al insertar el dataframe con los tiempos de vehiculos: {e}")
-
-    except UnboundLocalError as e:
-        print(f"No se llenaron los campos obligatorios: {e}") 
-
-    finally:
-        conn.close()
+        request = None
+        return request
 
 ###########################################################################
 ############################ PARA PARA LEER ###############################
