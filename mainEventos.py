@@ -1,4 +1,5 @@
 import re
+import os
 import pandas as pd
 from tkinter.filedialog import askopenfilename
 import creadorBD
@@ -11,7 +12,21 @@ import modelo_clases, modelo_instancias
 import root
 import menu_principal
 
+def abrir_planta():
+    ruta = askopenfilename(title="Seleccionar la Planta",
+                            filetypes=[("Archivos Base de datos sqlite", "*.db")])
+    print(ruta)
+    glo.base_datos = os.path.basename(ruta)
 
+    print(glo.base_datos)
+    modelo_clases.obtiene_datos_iniciales()
+    modelo_instancias.obtiene_datos_iniciales()
+
+    raiz = glo.raiz_principal
+    raiz.base_root(glo.base_datos)
+    menu_principal.crearMenuPrincipal(raiz)
+    root.construye_root(raiz)
+    
 def step_crearNuevaPlanta():
     ventana = ventanaNuevaPlanta.VentanaNuevaPlanta()
     ventana.asignafuncion(funcionCancelar   = ventana.rootAux.destroy,
@@ -146,18 +161,17 @@ def nueva_root(bbdd):
     glo.base_datos = bbdd
     modelo_clases.obtiene_datos_iniciales()
     modelo_instancias.obtiene_datos_iniciales()
-    
+
     raiz = glo.raiz_principal
-    raiz.base_root(bbdd)
+    raiz.base_root(glo.raiz_principal)
     menu_principal.crearMenuPrincipal(raiz)
     root.construye_root(raiz)
-
 
 def genera_tiempos_modelos_default(df_modelos, df_procesos):
     df_combinaciones = pd.merge(df_modelos[['ID_MODELO']],    # Crear el DataFrame con las combinaciones deseadas
                                 df_procesos[['ID_PROCESO']],
                                 how='cross')
-    df_combinaciones['PROCESO_MODELO'] = df_combinaciones['ID_MODELO']+ '-' + df_combinaciones['ID_PROCESO']    # Crear la columna 'PROCESO_MODELO'
+    df_combinaciones['PROCESO_MODELO'] = df_combinaciones['ID_PROCESO'] + '-' + df_combinaciones['ID_MODELO']    # Crear la columna 'PROCESO_MODELO'
     df_combinaciones = df_combinaciones[['PROCESO_MODELO',    # Resultado final
                                          'ID_PROCESO',
                                          'ID_MODELO']]

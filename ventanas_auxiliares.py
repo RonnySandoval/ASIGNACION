@@ -10,8 +10,6 @@ import re
 import glo
 import BBDD
 
-
-
 class VentanaCreaEditaModelo():
     def __init__(self, accion, bbdd):
         self.accion = accion
@@ -665,6 +663,59 @@ class VentanaCambiarEstadoHist():
         self.buttonAgregar.configure(command = funcionAgregar)
         self.buttonCancelar.configure(command = funcionCancelar)
 
+class VentanaVistaPrevia():
+    
+    def __init__(self, nombreVentana, df, bbdd):
+
+        self.rootAux = ctk.CTkToplevel()                # Crea ventana auxiliar
+        self.rootAux.attributes('-topmost', True)       # Posiciona al frente de la pantalla
+        self.rootAux.title("Programación de Planta")    # Coloca título de ventana
+        self.rootAux.geometry("600x600")                # Dimensiones
+
+        self.rootAux.configure(bg=grisAzuladoOscuro)    # Fondo oscuro
+        ctk.set_appearance_mode("dark")                 # Establece el modo oscuro global
+
+        self.nombreVentana = nombreVentana.upper()
+        self.labeltitulo = ctk.CTkLabel(self.rootAux, text=f"{nombreVentana}\nvista previa", font =textoMedio)
+        self.labeltitulo.pack(expand=True, side="top", fill="both")
+
+        self.frameTreeview = ctk.CTkFrame(self.rootAux, fg_color=grisAzuladoOscuro)
+        self.frameTreeview.pack(expand=True, side="top", fill="both")
+
+        self.encabezados = list(df.columns)
+
+         #Crear estilo personalizado para las cabeceras y el cuerpo
+        self.styletreeviewInfo = ttk.Style()
+        self.styletreeviewInfo.configure("TreeviewPreviaPedido.Heading", foreground=moradoMedio, font=texto1Bajo, background=grisAzuladoOscuro)
+        self.styletreeviewInfo.configure("TreeviewPreviaPedido", background=grisAzuladoOscuro, foreground=blancoFrio, fieldbackground=grisAzuladoOscuro)
+        self.styletreeviewInfo.layout("TreeviewPreviaPedido", [('Treeview.treearea', {'sticky': 'nswe'})])
+
+        self.tree = ttk.Treeview(self.frameTreeview, columns=tuple(self.encabezados), show='headings',  style="TreeviewPreviaPedido")
+
+        # Definir encabezados en un bucle
+        self.encabezados = [(header, header) for header in self.encabezados]
+      
+        for col, texto in self.encabezados:
+            self.tree.heading(col, text=texto)
+            self.tree.column(col, anchor="w", width=100)
+
+        for _, registro in df.iterrows():              # Insertar los registros en el Treeview
+            self.tree.insert("", "end", values=list(registro))
+
+        self.tree.pack(expand=True, side = "top", fill="both")            # Agregar el Treeview a la ventana
+
+        self.frameBotones = ctk.CTkFrame(self.rootAux, fg_color=grisAzuladoOscuro)
+        self.frameBotones.pack(expand=True, side="bottom", fill="both")
+
+        self.buttonAceptar = ctk.CTkButton(self.frameBotones, text="Aceptar", font=textoMedio, fg_color=rojoClaro, text_color=moradoOscuro, hover_color=(moradoMedio, blancoFrio))
+        self.buttonAceptar.grid(row=0 ,column=0, sticky="ew", pady=5)
+        self.buttonCancelar = ctk.CTkButton(self.frameBotones, text="Cancelar", font=textoMedio, fg_color=rojoClaro, text_color=moradoOscuro, hover_color=(moradoMedio, blancoFrio))
+        self.buttonCancelar.grid(row=0 ,column=1, sticky="ew", pady=5, padx = 20)
+
+    def asignafuncion(self, funcionAceptar, funcionCancelar):               #Método para asignar la función al command button de aceptar y cancelar desde otro módulo.
+        self.buttonAceptar.configure(command = funcionAceptar)
+        self.buttonCancelar.configure(command = funcionCancelar)
+
 class VentanaVistaPreviaPedido():
         
     def __init__(self, df, bbdd):
@@ -689,59 +740,49 @@ class VentanaVistaPreviaPedido():
         self.frameEntradas.grid_columnconfigure(0, weight=1)
         self.frameEntradas.grid_columnconfigure(1, weight=1)
 
+        self.varNombre = tk.StringVar()
+        self.labelNombre    = ctk.CTkLabel(self.frameEntradas, text = "NOMBRE", font = texto1Bajo, anchor="w")
+        self.labelNombre.grid(row=0,column=0, sticky="ew", padx=20, pady=5)
+        self.entryNombre = ctk.CTkEntry   (self.frameEntradas, font = numerosMedianos, width=12, textvariable=self.varNombre)
+        self.entryNombre.grid (row=0 ,column=1, sticky="ew", padx=20 , pady=5)
+
+        self.varCliente = tk.StringVar()
+        self.labelCliente    = ctk.CTkLabel(self.frameEntradas, text = "DEPENDENCIA/CLIENTE", font = texto1Bajo, anchor="w")
+        self.labelCliente.grid(row=1,column=0, sticky="ew", padx=20, pady=5)
+        self.entryCliente = ctk.CTkEntry   (self.frameEntradas, font = numerosMedianos, width=12, textvariable=self.varCliente)
+        self.entryCliente.grid (row=1 ,column=1, sticky="ew", padx=20 , pady=5)
+
         self.varFecha_recepcion = tk.StringVar() 
         self.labelFecha_recepcion    = ctk.CTkLabel(self.frameEntradas, text = "FECHA RECEPCION", font = texto1Bajo, anchor="w")
-        self.labelFecha_recepcion.grid(row=1,column=0, sticky="ew", padx=20, pady=5)
+        self.labelFecha_recepcion.grid(row=2,column=0, sticky="ew", padx=20, pady=5)
         self.entryFecha_recepcion = ctk.CTkEntry   (self.frameEntradas, font = numerosMedianos, width=12, textvariable=self.varFecha_recepcion)
-        self.entryFecha_recepcion.grid (row=1 ,column=1, sticky="ew", padx=20 , pady=5)
-        self.entryFecha_recepcion.bind("<Button-1>", self.mostrar_calendario_recepcion)
+        self.entryFecha_recepcion.grid (row=2 ,column=1, sticky="ew", padx=20 , pady=5)
+        self.entryFecha_recepcion.bind("<Button-1>", lambda event: self.mostrar_calendario(self.varFecha_recepcion))
+
+        self.varFecha_ingreso = tk.StringVar() 
+        self.labelFecha_ingreso    = ctk.CTkLabel(self.frameEntradas, text = "FECHA INGRESO", font = texto1Bajo, anchor="w")
+        self.labelFecha_ingreso.grid(row=3,column=0, sticky="ew", padx=20, pady=5)
+        self.entryFecha_ingreso = ctk.CTkEntry   (self.frameEntradas, font = numerosMedianos, width=12, textvariable=self.varFecha_ingreso)
+        self.entryFecha_ingreso.grid (row=3 ,column=1, sticky="ew", padx=20 , pady=5)
+        self.entryFecha_ingreso.bind("<Button-1>", lambda event: self.mostrar_calendario(self.varFecha_ingreso))
+
+        self.varFecha_estimada = tk.StringVar() 
+        self.labelFecha_estimada    = ctk.CTkLabel(self.frameEntradas, text = "FECHA ESTIMADA", font = texto1Bajo, anchor="w")
+        self.labelFecha_estimada.grid(row=4,column=0, sticky="ew", padx=20, pady=5)
+        self.entryFecha_estimada = ctk.CTkEntry   (self.frameEntradas, font = numerosMedianos, width=12, textvariable=self.varFecha_estimada)
+        self.entryFecha_estimada.grid (row=4 ,column=1, sticky="ew", padx=20 , pady=5)
+        self.entryFecha_estimada.bind("<Button-1>", lambda event: self.mostrar_calendario(self.varFecha_estimada))
 
         self.varFecha_entrega = tk.StringVar() 
         self.labelFecha_entrega    = ctk.CTkLabel(self.frameEntradas, text = "FECHA ENTREGA", font = texto1Bajo, anchor="w")
-        self.labelFecha_entrega.grid(row=2,column=0, sticky="ew", padx=20, pady=5)
+        self.labelFecha_entrega.grid(row=5,column=0, sticky="ew", padx=20, pady=5)
         self.entryFecha_entrega = ctk.CTkEntry   (self.frameEntradas, font = numerosMedianos, width=12, textvariable=self.varFecha_entrega)
-        self.entryFecha_entrega.grid (row=2 ,column=1, sticky="ew", padx=20 , pady=5)
-        self.entryFecha_entrega.bind("<Button-1>", self.mostrar_calendario_entrega)
-
-        self.varNombre = tk.StringVar()
-        self.labelNombre    = ctk.CTkLabel(self.frameEntradas, text = "NOMBRE", font = texto1Bajo, anchor="w")
-        self.labelNombre.grid(row=3,column=0, sticky="ew", padx=20, pady=5)
-        self.entryNombre = ctk.CTkEntry   (self.frameEntradas, font = numerosMedianos, width=12, textvariable=self.varNombre)
-        self.entryNombre.grid (row=3 ,column=1, sticky="ew", padx=20 , pady=5)
-
-        # Frame para los datos generales
-        self.frameOption = ctk.CTkFrame(self.rootAux, fg_color=grisAzuladoOscuro)
-        self.frameOption.pack(side="top", fill="both")
-
-        # Configurar peso de las columnas del frame para que se expandan equitativamente
-        self.frameOption.grid_columnconfigure(0, weight=1)
-        self.frameOption.grid_columnconfigure(1, weight=1)
-        self.frameOption.grid_columnconfigure(2, weight=1)
+        self.entryFecha_entrega.grid (row=5 ,column=1, sticky="ew", padx=20 , pady=5)
+        self.entryFecha_entrega.bind("<Button-1>", lambda event: self.mostrar_calendario(self.varFecha_entrega))
 
         # Frame para los datos generales
         self.frameTreeview = ctk.CTkFrame(self.rootAux, fg_color=grisAzuladoOscuro)
         self.frameTreeview.pack(expand=True, side="top", fill="both")
-
-        self.varColumna1 = tk.StringVar()
-        self.optionNombreColumna=ctk.CTkOptionMenu(self.frameOption, font = numerosMedianos, fg_color= grisAzuladoClaro, width=20, variable=self.varColumna1)
-        self.optionNombreColumna.grid(row=0 ,column=0, sticky="ew", pady=5)
-        self.fila = ["CHASIS","MODELO","COLOR"]
-        self.optionNombreColumna.configure(values=self.fila)      # Configurar el OptionMenu con los valores del diccionario
-        self.optionNombreColumna.set("CHASIS")
-
-        self.varColumna2 = tk.StringVar()
-        self.optionNombreColumna=ctk.CTkOptionMenu(self.frameOption, font = numerosMedianos, fg_color= grisAzuladoClaro, width=20, variable=self.varColumna2)
-        self.optionNombreColumna.grid(row=0 ,column=1, sticky="ew", pady=5)
-        self.fila = ["CHASIS","MODELO","COLOR"]
-        self.optionNombreColumna.configure(values=self.fila)      # Configurar el OptionMenu con los valores del diccionario
-        self.optionNombreColumna.set("MODELO")
-
-        self.varColumna3 = tk.StringVar()
-        self.optionNombreColumna=ctk.CTkOptionMenu(self.frameOption, font = numerosMedianos, fg_color= grisAzuladoClaro, width=20, variable=self.varColumna3)
-        self.optionNombreColumna.grid(row=0 ,column=2, sticky="ew", pady=5)
-        self.fila = ["CHASIS","MODELO","COLOR"]
-        self.optionNombreColumna.configure(values=self.fila)      # Configurar el OptionMenu con los valores del diccionario
-        self.optionNombreColumna.set("COLOR")
 
         self.encabezados = list(df.columns)
 
@@ -773,11 +814,14 @@ class VentanaVistaPreviaPedido():
         self.buttonCancelar = ctk.CTkButton(self.frameBotones, text="Cancelar", font=textoMedio, fg_color=rojoClaro, text_color=moradoOscuro, hover_color=(moradoMedio, blancoFrio))
         self.buttonCancelar.grid(row=0 ,column=1, sticky="ew", pady=5)
 
-        glo.strVar_newPedido['fecha_entrega'] = self.varFecha_entrega
-        glo.strVar_newPedido['fecha_recepcion'] = self.varFecha_recepcion
         glo.strVar_newPedido['nombre'] = self.varNombre
+        glo.strVar_newPedido['cliente'] = self.varCliente
+        glo.strVar_newPedido['fecha_recepcion'] = self.varFecha_recepcion
+        glo.strVar_newPedido['fecha_ingreso'] = self.varFecha_entrega
+        glo.strVar_newPedido['fecha_estimada'] = self.varFecha_estimada
+        glo.strVar_newPedido['fecha_entrega'] = self.varFecha_entrega
 
-    def mostrar_calendario_recepcion(self, event):
+    def mostrar_calendario(self, varEntry):
         #Muestra un calendario para seleccionar la fecha
         top = ctk.CTkToplevel(self.rootAux)
         top.title("Seleccionar Fecha")
@@ -788,29 +832,11 @@ class VentanaVistaPreviaPedido():
         cal = Calendar(top, selectmode='day', date_pattern="yyyy-mm-dd")
         cal.pack(pady=20)
 
-        def seleccion_fecha():
-            self.varFecha_recepcion.set(cal.get_date())
+        def seleccion_fecha(varEntry):
+            varEntry.set(cal.get_date())
             top.destroy()
 
-        btnSeleccionar = tk.Button(top, text="Seleccionar", command=seleccion_fecha)
-        btnSeleccionar.pack()
-
-    def mostrar_calendario_entrega(self, event):
-        #Muestra un calendario para seleccionar la fecha
-        top = ctk.CTkToplevel(self.rootAux)
-        top.title("Seleccionar Fecha")
-        top.grab_set()
-        top.lift()  # Eleva la ventana Toplevel para que esté al frente
-        top.attributes('-topmost', 1)  # También puede asegurar que quede al frente
-
-        cal = Calendar(top, selectmode='day', date_pattern="yyyy-mm-dd")
-        cal.pack(pady=20)
-
-        def seleccion_fecha():
-            self.varFecha_entrega.set(cal.get_date())
-            top.destroy()
-
-        btnSeleccionar = tk.Button(top, text="Seleccionar", command=seleccion_fecha)
+        btnSeleccionar = tk.Button(top, text="Seleccionar", command = lambda : seleccion_fecha(varEntry))
         btnSeleccionar.pack()
 
     def asignafuncion(self, funcionAceptar, funcionCancelar):               #Método para asignar la función al command button de aceptar y cancelar desde otro módulo.
@@ -892,5 +918,49 @@ class VentanaVistaPreviaReferencias():
         self.buttonCancelar.grid(row=0 ,column=1, sticky="ew", pady=5, padx = 20)
 
     def asignafuncion(self, funcionAceptar, funcionCancelar):               #Método para asignar la función al command button de aceptar y cancelar desde otro módulo.
+        
         self.buttonAceptar.configure(command = funcionAceptar)
+        self.buttonCancelar.configure(command = funcionCancelar)
+
+class VentanaAgregarReferencias():
+    def __init__(self, referencias, bbdd):
+        self.rootAux = ctk.CTkToplevel()                #crea ventana auxiliar
+        self.rootAux.attributes('-topmost', True)       #posiciona al frente de la pantalla
+        self.rootAux.title("Programación de Planta")    #coloca titulo de ventana
+        self.rootAux.geometry("385x480")                #dimensiones
+
+        self.frameTitulo = ctk.CTkFrame(self.rootAux)
+        self.frameTitulo.pack(expand=True, side="top", fill="both")
+        self.frameEntradas = ctk.CTkFrame(self.rootAux)
+        self.frameEntradas.pack(expand=True, side="bottom", fill="both", pady=10)
+
+        self.referencias = referencias["REFERENCIA"].to_list()
+        self.dicReferencias = {}
+        self.entReferencias = {}
+
+        self.buttonCancelar = ctk.CTkButton(self.frameEntradas, text="Cancelar", font = texto1Medio,  fg_color = azulClaro, text_color = grisOscuro, hover_color = azulMedio, command="")   
+        self.buttonAgregar  = ctk.CTkButton(self.frameEntradas, text="Agregar",  font = textoGrande, fg_color = naranjaClaro, text_color = grisOscuro, hover_color =  naranjaMedio, command="")    
+
+        self.buttonCancelar.grid(row = len(referencias), column=0, padx=22, pady=10)
+        self.buttonAgregar.grid (row = len(referencias), column=1, padx=22, pady=10)
+
+    def construyeCamposReferencias(self, referencias, bbdd):
+
+        self.num = 0
+        self.frameEntradas.grid_columnconfigure(0, weight=1)  # Columna para labels
+        self.frameEntradas.grid_columnconfigure(1, weight=1)  # Columna para entrys
+        
+        for referencia in referencias:
+            self.num += 1
+            self.name = f"{referencia}"  # Clave del diccionario con stringVars
+            self.varReferencia[self.name] = ctk.StringVar()
+
+            self.entReferencias[self.name] = ctk.CTkLabel(self.frameEntradas, text=f"{referencia}", font=texto1Bajo, text_color=self.colorfuenteLabel, anchor="w", width=12)
+            self.entReferencias[self.name].grid(row=self.num, column=0, sticky="ew", padx=20, pady=5)
+
+            self.entReferencias[self.name] = ctk.CTkEntry(self.frameEntradas, font=numerosMedianos, textvariable=glo.strVar_nuevosTiemposVeh[self.name], width=12)
+            self.entReferencias[self.name].grid(row=self.num, column=1, sticky="ew", padx=20 , pady=5)
+
+    def asignaFuncion(self, funcionAgregar, funcionCancelar):
+        self.buttonAgregar.configure(command = funcionAgregar)
         self.buttonCancelar.configure(command = funcionCancelar)

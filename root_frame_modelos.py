@@ -31,6 +31,11 @@ class ContenidoModelos():
         self.canvasVehiculos.create_window((0, 0), window=self.frameVehiculosInterior, anchor="nw")
 
 
+
+        self.llenar_contenido(bbdd)
+
+    def llenar_contenido(self, bbdd):
+
         ### Añadir contenido al frame interno ###
         #Titulo de marcas
         self.labelVehiculos = ctk.CTkLabel(self.frameVehiculosInterior, text="MARCAS - Modelos", font=textoBajo, fg_color=grisOscuro, anchor="w")
@@ -40,10 +45,12 @@ class ContenidoModelos():
         self.labelTiemposVehiculos = ctk.CTkLabel(self.frameVehiculosInterior, text="Tiempos", font=textoBajo, fg_color=grisAzuladoClaro)
         self.labelTiemposVehiculos.grid(row=0, column=2, columnspan=5, sticky="ew")
         self.frameVehiculosInterior.grid_columnconfigure(1, weight=1)
-
-        self.llenar_contenido(bbdd)
-
-    def llenar_contenido(self, bbdd):
+        
+        self.button_actualizar = ctk.CTkButton(master=self.frameVehiculosInterior,text="Actualizar", font=textoBajo,
+                                                hover_color=amarilloMedio, fg_color=amarilloOscuro, border_color=blancoFrio,
+                                                border_width=1,width=40, corner_radius=10,
+                                                command= lambda:self.actualizar_contenido(bbdd))
+        self.button_actualizar.grid(row=0, column=0, padx=3, pady=5)
 
         #####################################################
         ############Botón de CREAR modelo nuevo##############
@@ -83,7 +90,7 @@ class ContenidoModelos():
         #############################################################
 
         # CREAR LOS LABEL PARA ID DE PROCESOS
-        dfTiempos = BBDD.leer_tiempos_modelos_procesos(bbdd)
+        dfTiempos = BBDD.leer_tiempos_modelos_df(bbdd)
         print(dfTiempos)
         titlesDf = dfTiempos.columns.tolist()
         print(titlesDf)

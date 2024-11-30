@@ -169,6 +169,7 @@ class TablaPedidos():     #Tabla para pedido
             print(datos)
             pedido = datos[0]
             print(pedido)
+            glo.pedido_seleccionado = pedido
             glo.stateFrame.tablaDetalles.llenarTabla(bbdd, pedido = pedido)
 
         #click derecho en información de vehículo       
@@ -267,5 +268,7 @@ class TablaPedidos():     #Tabla para pedido
 
     def programar_por_procesos(self, tipoPrograma):
         eventos.recoge_check_tecnicos()
+        print(glo.check_tecnicos)
+        print(glo.check_procesos)
         eventos.abrirFechayHoraProg(tipoPrograma)
         ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel("programar_por_procesos"))

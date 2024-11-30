@@ -10,7 +10,7 @@ Base = declarative_base()  # Base de Declaración
 
 class INFORMACION(Base):
     __tablename__    = 'INFORMACION'
-    NOMBRE_PLANTA           = Column(String, primary_key=True)
+    NOMBRE_PLANTA    = Column(String, primary_key=True)
     DESCRIPCION      = Column(String)
 
 class PROCESOS(Base):

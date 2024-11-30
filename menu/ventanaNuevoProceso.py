@@ -57,7 +57,6 @@ class VentanaNuevoProceso():       #Ventana para crear o editar modelos
         self.buttonCancelar.grid(row=4, column=0, padx=22, pady=10)
         self.buttonGuardar.grid(row=4, column=1, padx=22, pady=10)
 
-
     def asignaFuncion(self, funcionGuardar, funcionCancelar):
         self.buttonGuardar.configure(command = funcionGuardar)
         self.buttonCancelar.configure(command = funcionCancelar)

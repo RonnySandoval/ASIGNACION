@@ -76,6 +76,7 @@ class ContenidoTecnicos:
                 glo.check_tecnicos[self.check_name_tecnico].grid(row= 2 + fila, column=3, sticky="ew", padx=10, pady=0)
 
                 columna += 1
+                
             fila += 1
 
 

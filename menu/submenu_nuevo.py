@@ -5,25 +5,26 @@ import eventos
 import glo
 
 def desplegar_nuevo(subMenu, root):
-    nuevaPlanta    = subMenu.add_command   (label = "Nueva Planta"   , command = vent_nueva_planta)
+    nuevaPlanta    = subMenu.add_command(label = "Nueva Planta"   , command = vent_nueva_planta)
     subMenu.add_separator()
-    nuevoPedido    = subMenu.add_command   (label = "Nuevo Pedido (no funciona)"   , command = vent_nuevo_pedido)
-    nuevoModelo    = subMenu.add_command   (label = "Nuevo Modelo"   , command = vent_nuevo_modelo)
-    nuevoVehiculo  = subMenu.add_command (label = "Nuevo Vehículo" , command = vent_nuevo_vehiculo)
-    nuevoTecnico   = subMenu.add_command  (label = "Nuevo Técnico"  , command = vent_nuevo_tecnico)
-    nuevoProceso   = subMenu.add_command  (label = "Nuevo Proceso"  , command = vent_nuevo_proceso)
+    nuevoPedido    = subMenu.add_command(label = "Nuevo Pedido"   , command = vent_nuevo_pedido)
+    nuevoModelo    = subMenu.add_command(label = "Nuevo Modelo"   , command = vent_nuevo_modelo)
+    nuevoVehiculo  = subMenu.add_command(label = "Nuevo Vehículo" , command = vent_nuevo_vehiculo)
+    nuevoTecnico   = subMenu.add_command(label = "Nuevo Técnico"  , command = vent_nuevo_tecnico)
+    nuevoProceso   = subMenu.add_command(label = "Nuevo Proceso"  , command = vent_nuevo_proceso)
     subMenu.add_separator()
-    subMenu.add_command(label="Salir", command=lambda: root.destroy)
+    subMenu.add_command(label="Salir", command = root.destroy)
     return
 
 def vent_nueva_planta():
     eventos.step_crearNuevaPlanta()
   
 def vent_nuevo_pedido():
-    ventanaNuevoPedido.VentanaNuevoPedido()
-
+    ventana = ventanaNuevoPedido.VentanaNuevoPedido(bbdd=glo.base_datos)                                           # Llamar al constructor del objeto ventana
+    ventana.asignafuncion(funcionGuardar  = lambda:eventos.guardar_pedido_nuevo(ventana = ventana, bbdd = glo.base_datos),
+                          funcionCancelar = ventana.rootAux.destroy)                            # asignar los botones de guardar y cancelar en la ventana
+    
 def vent_nuevo_modelo():
-    print("pusó el botón crear modelo")
     ventana = ventanas_auxiliares.VentanaCreaEditaModelo(accion="CREAR", bbdd=glo.base_datos)              #Llamar al constructor del objeto ventana
     ventana.asignafuncion(funcionGuardar  = lambda:eventos.guardar_modelo_nuevo(accion = ventana, bbdd = glo.base_datos),
                           funcionCancelar = ventana.rootAux.destroy)                           #asignar los botones de guardar y cancelar en la ventana

@@ -76,7 +76,7 @@ class VentanaEliminarModelo():
         self.entryModelo = ctk.CTkOptionMenu(self.frameEntradas, font = numerosMedianos, fg_color= grisVerdeClaro, width=20, variable=self.varModelo)
         self.entryModelo.grid(row=0 ,column=1, sticky="ew", pady=5)
 
-        self.dfModelos = BBDD.leer_tiempos_modelos_procesos(bbdd)
+        self.dfModelos = BBDD.leer_tiempos_modelos_df(bbdd)
         self.marcas_modelos = [modelo for modelo in self.dfModelos['MODELO']]    # Crear diccionarios con comprensión
         self.entryModelo.configure(values=[""]+self.marcas_modelos)              # Configurar el OptionMenu con los valores del diccionario
         self.entryModelo.set("")                                                 # Establecer la cadena vacía como valor por defecto 

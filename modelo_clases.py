@@ -22,8 +22,8 @@ def obtiene_datos_iniciales():
 
     # Modelos de vehículos agrupados por marcas
     modelos = list(map(lambda modelo_marca: modelo_marca[2], BBDD.leer_modelos(glo.base_datos)))
-    tiempos = BBDD.leer_tiempos_modelos_procesos(glo.base_datos)
-    tiemposVH = BBDD.leer_tiempos_vehiculos_procesos(glo.base_datos)
+    tiempos = BBDD.leer_tiempos_modelos_df(glo.base_datos)
+    tiemposVH = BBDD.leer_tiempos_vehiculos_df(glo.base_datos)
     print(tiempos)
 
 def buscar_tiempo(modelo, proceso):
@@ -655,7 +655,8 @@ def programa_completo(pedido, tecnicos, horizonte, fechaStart, horaStart):
     return pedido.vehiculos
 
 def programa_por_proceso(pedido, tecnicos, procesos, horizonte, fechaStart, horaStart, bbdd):
-
+    print("INICIA EL PROGRAMADOR\n", "pedido", pedido.id_pedido)
+    print("VEHICULOS:___________________\n", pedido.vehiculos)
 
     """
     ETAPAS DE LA FUNCIÓN
@@ -672,6 +673,7 @@ def programa_por_proceso(pedido, tecnicos, procesos, horizonte, fechaStart, hora
     """
 
     print("****tecnicos")
+
     tecnicos_de_proceso = list(filter(lambda tec: tec.especializacion in procesos, tecnicos))   #selecciona solo a los técnicos que tiene como especialidad el proceso a programar
     for tecnico in tecnicos_de_proceso:
         if tecnico.libre == None:
@@ -690,7 +692,7 @@ def programa_por_proceso(pedido, tecnicos, procesos, horizonte, fechaStart, hora
 
     
     todos_los_procesos = list(BBDD.obtener_id_procesos(bbdd))                       # leer los ids de procesos en BD
-    todos_los_tiempos = BBDD.leer_tiempos_vehiculos_procesos(bbdd)                  # obtener un dataframe con los tiempos por vehiculo
+    todos_los_tiempos = BBDD.leer_tiempos_vehiculos_df(bbdd)                  # obtener un dataframe con los tiempos por vehiculo
     print(todos_los_tiempos)
 
     contador = 0

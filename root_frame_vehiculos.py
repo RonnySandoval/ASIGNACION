@@ -62,11 +62,9 @@ class FiltrosVehiculos():
         self.entry_subcontratar.grid(row=1, column=7, padx=5)
         self.entry_pedido = ctk.CTkEntry(self.frame_filtros, fg_color=moradoMedio, text_color=blancoHueso)
         self.entry_pedido.grid(row=1, column=8, padx=5)
-        self.entry_tiempos = ctk.CTkEntry(self.frame_filtros, fg_color=moradoMedio, text_color=blancoHueso)
-        self.entry_tiempos.grid(row=1, column=9, padx=5)
 
         # Configurar el peso de las columnas para que se expandan
-        for i in range(10): 
+        for i in range(9): 
             self.frame_filtros.grid_columnconfigure(i, weight=1)
 
 
@@ -91,7 +89,6 @@ class FiltrosVehiculos():
         filtro_novedades    = self.entry_novedades.get()
         filtro_subcontratar = self.entry_subcontratar.get()
         filtro_pedido       = self.entry_pedido.get()
-        filtro_tiempos      = self.entry_tiempos.get()
 
         # Limpiar la tabla
         for row in treeVehiculos.tablaVehiculos.get_children():
@@ -107,8 +104,7 @@ class FiltrosVehiculos():
                 filtro_estado.lower() in str(record[5]).lower() and
                 filtro_novedades.lower() in str(record[6]).lower() and
                 filtro_subcontratar.lower() in str(record[7]).lower() and
-                filtro_pedido.lower() in str(record[8]).lower() and
-                filtro_tiempos.lower() in str(record[9]).lower()):
+                filtro_pedido.lower() in str(record[8]).lower()):
 
                 treeVehiculos.tablaVehiculos.insert(parent='', index='end', iid=record[0], text='', values=record)
 
@@ -125,7 +121,7 @@ class TablaVehiculos():     #Tabla para pedido
         print(self.styletreeviewVeh.theme_names())          # Lista los temas disponibles
         print(self.styletreeviewVeh.layout("TreeviewVehiculos"))  # Verifica si el estilo está configurado correctamente
         self.tablaVehiculos = ttk.Treeview(contenido.canvas, show="headings", style="TreeviewVehiculos")
-        self.tablaVehiculos["columns"] = ("Chasis", "Fecha de entrega", "Marca - Modelo", "Color", "Proceso", "Estado","Novedades", "Subcontratar", "Pedido", "Tiempos")
+        self.tablaVehiculos["columns"] = ("Chasis", "Fecha de entrega", "Marca - Modelo", "Color", "Proceso", "Estado","Novedades", "Subcontratar", "Pedido")
 
         # Formatear las columnas
         for col in self.tablaVehiculos["columns"]:

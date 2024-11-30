@@ -70,7 +70,7 @@ class ContenidoReferencias():
         ############################################################################################
         ################################ Botones de EDITAR modelo ##################################
         ############################################################################################
-        self.df_Modelos_referencias = BBDD.leer_referencias_modelos(bbdd)
+        self.df_Modelos_referencias = BBDD.leer_referencias_modelos_df(bbdd)
         self.df_Modelos_referencias = self.df_Modelos_referencias.sort_values(by='ID_MODELO', ascending=True)
         print("el dataframe de referencias es\n:" , self.df_Modelos_referencias)
         self.idModelos = self.df_Modelos_referencias['ID_MODELO'].to_list()

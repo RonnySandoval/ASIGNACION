@@ -125,7 +125,7 @@ class TablaDetallePedido():     #Tabla para pedido
         if pedido is None:
             self.pedidoMostrado = list(BBDD.leer_vehiculos_completos(bbdd))
             self.datos = [(chasis, modelo, color, proceso, estado)
-                            for chasis, fecha, modelo, color, proceso, estado, novedades, subcontratar, pedido, tiempos
+                            for chasis, fecha, modelo, color, proceso, estado, novedades, subcontratar, pedido
                             in self.pedidoMostrado]
 
         if pedido is not None:

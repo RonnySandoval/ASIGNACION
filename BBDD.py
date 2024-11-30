@@ -86,7 +86,8 @@ def insertar_procesos_df(bbdd, dataframe):
         resultado = pd.read_sql("SELECT * FROM PROCESOS", conn)
         print("dataframe de procesos añadido a la BBDD")
         print(resultado)
-
+        return resultado
+    
     except sqlite3.Error as e:
         print(f"Error al insertar el dataframe con los procesos: {e}")
         request = False
@@ -97,7 +98,6 @@ def insertar_procesos_df(bbdd, dataframe):
     
     finally:
         conn.close()
-        request = None
         return request
 
 
@@ -169,10 +169,11 @@ def insertar_tiempos_modelos_df(bbdd, dataframe):
     try:
         conn = sqlite3.connect(bbdd)
 
-        dataframe.to_sql("TIEMPOS_MODELOS", conn, if_exists="append", index=False)               # Guardar en SQLite usando to_sql
+        dataframe.to_sql("TIEMPOS_MODELOS", conn, if_exists="append", index=False)
         resultado = pd.read_sql("SELECT * FROM TIEMPOS_MODELOS", conn)                     # Leer los datos para verificar
         print("dataframe de tiempos de modelos añadido a la BBDD")
         print(resultado)
+        request = resultado
 
     except sqlite3.Error as e:
         print(f"Error al insertar el dataframe con los tiempos de modelos: {e}")
@@ -184,8 +185,30 @@ def insertar_tiempos_modelos_df(bbdd, dataframe):
 
     finally:
         conn.close()
-        request = None
         return request
+
+def insRem_tiempos_modelos_df(bbdd, dataframe):
+    try:
+        # Usar 'with' para asegurar el cierre de la conexión de forma automática
+        with sqlite3.connect(bbdd) as conn:
+            cursor = conn.cursor()
+
+            # Crear una lista de tuplas con los valores del dataframe
+            data = [(row['PROCESO_MODELO'], row['ID_PROCESO'], row['ID_MODELO'], row['TIEMPO']) for _, row in dataframe.iterrows()]
+
+            # Usar un solo comando INSERT OR REPLACE INTO para todos los registros
+            cursor.executemany('''
+                INSERT OR REPLACE INTO TIEMPOS_MODELOS (PROCESO_MODELO, ID_PROCESO, ID_MODELO, TIEMPO)
+                VALUES (?, ?, ?, ?)
+            ''', data)
+
+            conn.commit()  # Hacer commit para guardar los cambios
+            print("Registros de tiempos actualizados exitosamente.")
+            return None  # Retornar None si no hay errores
+    
+    except sqlite3.Error as e:
+        print(f"Error al actualizar los registros de tiempos: {e}")
+        return False  # Retornar False en caso de error
 
 
 def insertar_tecnico(bbdd, id, nombre, apellido, documento, especialidad):
@@ -340,8 +363,7 @@ def insertar_tiempos_vehiculos_df(bbdd, df):
         request = None
         return request
 
-
-def insertar_pedido(bbdd, id_pedido, cliente, fecha_recepcion, entrega_estimada, fecha_entrega, consecutivo):
+def insertar_pedido(bbdd, id_pedido, cliente, fecha_recepcion, fecha_ingreso, entrega_estimada, fecha_entrega, consecutivo):
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()          
@@ -485,6 +507,20 @@ def leer_procesos_completo(bbdd):
         conn.close()
         return datos
 
+def leer_procesos_df(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        query = "SELECT * FROM PROCESOS"
+        dataframe = pd.read_sql_query(query, conn)
+        print(dataframe)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la tabla de procesos: {e}")
+        dataframe = None
+    finally:
+        conn.close()
+        return dataframe
+
 def leer_modelos(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
@@ -530,6 +566,20 @@ def leer_modelos_marcas(bbdd):
         conn.close()
         return datos
 
+def leer_modelos_marcas_df(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        query = "SELECT ID_MODELO, MARCA, MODELO FROM MODELOS"
+        dataframe = pd.read_sql_query(query, conn)
+        print(dataframe)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la tabla de marcas y modelos: {e}")
+        dataframe = None
+    finally:
+        conn.close()
+        return dataframe
+
 def leer_modelos_id_modelos(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
@@ -556,6 +606,21 @@ def leer_tecnicos(bbdd):
         conn.close()
     
     return datos
+
+def leer_tecnicos_df(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        query = "SELECT * FROM TECNICOS"
+        dataframe = pd.read_sql_query(query, conn)
+        print(dataframe)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la tabla de técnicos: {e}")
+        dataframe = None
+
+    finally:
+        conn.close()
+        return dataframe
 
 def leer_tecnicos_modificado(bbdd):
     try:
@@ -700,6 +765,20 @@ def leer_vehiculos(bbdd):
 
     return registros
 
+def leer_vehiculos_df(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        query = "SELECT * FROM VEHICULOS"
+        dataframe = pd.read_sql_query(query, conn)
+        print(dataframe)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la tabla de vehiculos: {e}")
+        dataframe = None
+    finally:
+        conn.close()
+        return dataframe
+
 def leer_tiempos_vehiculos(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
@@ -773,13 +852,9 @@ def leer_vehiculos_completos(bbdd):
 
                             VEHICULOS.NOVEDADES,
                             VEHICULOS.SUBCONTRATAR,
-                            VEHICULOS.ID_PEDIDO,
-                            
-                            COALESCE(GROUP_CONCAT(TIEMPOS_VEHICULOS.ID_PROCESO || ': ' || TIEMPOS_VEHICULOS.TIEMPO, ' | '), 'Sin procesos') AS PROCESOS_TIEMPOS
+                            VEHICULOS.ID_PEDIDO
                         FROM
                             VEHICULOS
-                        LEFT JOIN 
-                            TIEMPOS_VEHICULOS ON VEHICULOS.CHASIS = TIEMPOS_VEHICULOS.CHASIS
                         GROUP BY
                             VEHICULOS.CHASIS;
                         ''')
@@ -1256,7 +1331,7 @@ def generar_consulta_tiempos_modelos(bbdd):
     """
     return consulta_sql
 
-def leer_tiempos_modelos_procesos(bbdd):
+def leer_tiempos_modelos_df(bbdd):
     try:
         # Generar consulta SQL
         consulta = generar_consulta_tiempos_modelos(bbdd)
@@ -1296,7 +1371,7 @@ def generar_consulta_tiempos_vehiculos(bbdd):
     """
     return consulta_sql
 
-def leer_tiempos_vehiculos_procesos(bbdd):
+def leer_tiempos_vehiculos_df(bbdd):
     try:
         # Generar consulta SQL
         consulta = generar_consulta_tiempos_vehiculos(bbdd)
@@ -1331,7 +1406,21 @@ def leer_pedidos(bbdd):
         print(datos)
         return datos
 
-def leer_referencias_modelos(bbdd):
+def leer_pedidos_df(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        query = "SELECT * FROM PEDIDOS"
+        dataframe = pd.read_sql_query(query, conn)
+        print(dataframe)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la tabla de pedidos: {e}")
+        dataframe = None
+    finally:
+        conn.close()
+        return dataframe
+
+def leer_referencias_modelos_df(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
         df_datos = pd.read_sql_query("SELECT * FROM MODELOS_REFERENCIAS", conn)
@@ -1572,7 +1661,6 @@ def eliminar_pedido(bbdd, id):
     finally:
         conn.close()
 
-
 ###### FUNCIONES DE APOYO PARA LAS BBDD ######
 def next_consecutivoPedido(bbdd):
     try:
@@ -1584,11 +1672,12 @@ def next_consecutivoPedido(bbdd):
         max_consec = cursor.fetchone()[0]
         if max_consec is None:
             max_consec = 0
-        nuevo_consec = max_consec + 1          # Generar la nueva clave primaria personalizada
+        nuevo_consec = max_consec + 1          # avanzar el consecutivo
 
 
     except sqlite3.Error as e:
         print(f"No se pudo leer el maximo consecutivo de la tabla de pedidos: {e}")
+        nuevo_consec = None
 
     finally:
         conn.close()
@@ -1599,6 +1688,89 @@ def next_consecutivoPedido(bbdd):
 
 
 
+
+
+
+
+"""
+def leer_vehiculos_completos(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+
+        cursor.execute('''
+                        SELECT 
+                            VEHICULOS.CHASIS,
+                            VEHICULOS.FECHA_INGRESO,
+                            VEHICULOS.ID_MODELO,
+                            VEHICULOS.COLOR,
+                            
+                            -- Subconsulta para obtener el nombre del proceso o 'ninguno' si es NULL
+                            COALESCE(
+                                (SELECT PROCESOS.NOMBRE
+                                FROM HISTORICOS
+                                JOIN PROCESOS ON HISTORICOS.ID_PROCESO = PROCESOS.ID_PROCESO
+                                WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
+                                AND HISTORICOS.ESTADO = 'EN EJECUCION'
+                                LIMIT 1),
+                                (SELECT PROCESOS.NOMBRE
+                                FROM HISTORICOS
+                                JOIN PROCESOS ON HISTORICOS.ID_PROCESO = PROCESOS.ID_PROCESO
+                                WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
+                                AND HISTORICOS.ESTADO = 'TERMINADO'
+                                AND HISTORICOS.FIN = (
+                                    SELECT MAX(FIN)
+                                    FROM HISTORICOS AS HIST2
+                                    WHERE HIST2.CHASIS = VEHICULOS.CHASIS AND HIST2.ESTADO = 'TERMINADO'
+                                )
+                                LIMIT 1),
+                                'ninguno'
+                            ) AS NOMBRE_PROCESO,
+                            
+                            -- Subconsulta para obtener el estado o 'ninguno' si es NULL
+                            COALESCE(
+                                (SELECT HISTORICOS.ESTADO
+                                FROM HISTORICOS
+                                WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
+                                AND HISTORICOS.ESTADO = 'EN EJECUCION'
+                                LIMIT 1),
+                                (SELECT HISTORICOS.ESTADO
+                                FROM HISTORICOS
+                                WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
+                                AND HISTORICOS.ESTADO = 'TERMINADO'
+                                AND HISTORICOS.FIN = (
+                                    SELECT MAX(FIN)
+                                    FROM HISTORICOS AS HIST2
+                                    WHERE HIST2.CHASIS = VEHICULOS.CHASIS AND HIST2.ESTADO = 'TERMINADO'
+                                )
+                                LIMIT 1),
+                                'ninguno'
+                            ) AS ESTADO,
+
+                            VEHICULOS.NOVEDADES,
+                            VEHICULOS.SUBCONTRATAR,
+                            VEHICULOS.ID_PEDIDO,
+                            
+                            COALESCE(GROUP_CONCAT(TIEMPOS_VEHICULOS.ID_PROCESO || ': ' || TIEMPOS_VEHICULOS.TIEMPO, ' | '), 'Sin procesos') AS PROCESOS_TIEMPOS
+                        FROM
+                            VEHICULOS
+                        LEFT JOIN 
+                            TIEMPOS_VEHICULOS ON VEHICULOS.CHASIS = TIEMPOS_VEHICULOS.CHASIS
+                        GROUP BY
+                            VEHICULOS.CHASIS;
+                        ''')
+        registros = cursor.fetchall()
+        print(registros)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la Tabla de Tiempos_Vehiculos y de Vehiculos: {e}")
+        registros = None
+
+    finally:
+        conn.close()    # Cierra la conexión
+    
+    return registros
+"""
 
 
 

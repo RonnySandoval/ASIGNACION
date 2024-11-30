@@ -4,8 +4,8 @@ from tkinter import messagebox, filedialog
 import CRUD
 import numpy as np
 
-def desea_guardar(excel):
-    respuesta = messagebox.askokcancel("Exportar Programación", "¿Deseas exportar un archivo .xlsx?")
+def desea_exportar(excel, nombreVentana, df):
+    respuesta = messagebox.askokcancel(f"Exportar {nombreVentana}", "¿Deseas exportar a un archivo .xlsx?")
     if respuesta:
         print("Click en Aceptar")
 
@@ -18,7 +18,7 @@ def desea_guardar(excel):
         )
 
         if archivo:
-            df = CRUD.leer_ordenes_todas()            #leer tabla en BBDD
+            #df = CRUD.leer_ordenes_todas()            #leer tabla en BBDD
             df.to_excel(archivo, index=False)         # Guardar los datos en un archivo de Excel           
             print(f"Archivo se guardó en: {archivo}")   
 
@@ -82,9 +82,11 @@ def msg_registro_nulo(dataframe):
 
     {formateado}
 
-    Por favor, verifique el archivo fuente y las referencias de modelos en la base de Datos. Luego intente cargarlos de nuevo.
+    ¿Desea agregar más referencias para los vehículos no encontrados?
+    En caso contrario, verifique el archivo fuente y las referencias de modelos en la base de Datos.
+    Luego intente cargarlos de nuevo.
     """
-    messagebox.showinfo("Modelo no encontrado", mensaje)
+    return messagebox.askquestion("Referencia no encontrada", mensaje, )
 
 def msg_registro_duplicado(dataframe):
 

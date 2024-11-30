@@ -60,18 +60,12 @@ class FiltrosHistoricos():
         self.entry_duracion.grid(row=1, column=8, padx=5)
         self.entry_estado = ctk.CTkEntry(self.frame_filtros, fg_color=rojoOscuro, text_color=blancoHueso)
         self.entry_estado.grid(row=1, column=9, padx=5)
-        self.entry_novedades = ctk.CTkEntry(self.frame_filtros, fg_color=rojoOscuro, text_color=blancoHueso)
-        self.entry_novedades.grid(row=1, column=10, padx=5)
-        self.entry_observaciones = ctk.CTkEntry(self.frame_filtros, fg_color=rojoOscuro, text_color=blancoHueso)
-        self.entry_observaciones.grid(row=1, column=11, padx=5)
-        self.entry_subcontratar = ctk.CTkEntry(self.frame_filtros, fg_color=rojoOscuro, text_color=blancoHueso)
-        self.entry_subcontratar.grid(row=1, column=12, padx=5)
         self.entry_pedido = ctk.CTkEntry(self.frame_filtros, fg_color=rojoOscuro, text_color=blancoHueso)
-        self.entry_pedido.grid(row=1, column=13, padx=5)
+        self.entry_pedido.grid(row=1, column=10, padx=5)
 
 
         # Configurar el peso de las columnas para que se expandan
-        for i in range(14): 
+        for i in range(10): 
             self.frame_filtros.grid_columnconfigure(i, weight=1)
 
 
@@ -97,15 +91,12 @@ class FiltrosHistoricos():
         filtro_fin          = self.entry_fin.get()
         filtro_duracion     = self.entry_duracion.get()
         filtro_estado       = self.entry_estado.get()
-        filtro_novedades    = self.entry_novedades.get()
-        filtro_observaciones= self.entry_observaciones.get()
-        filtro_subcontratar = self.entry_subcontratar.get()
         filtro_pedido       = self.entry_pedido.get()
 
         # Limpiar la tabla
         for row in historicos.tablaHistoricos.get_children():
             historicos.tablaHistoricos.delete(row)
-        
+        print(self.datos)
         # Agregar datos filtrados a la tabla
         for record in self.datos:
             if (filtro_id.lower()           in str(record[0]).lower() and
@@ -118,10 +109,7 @@ class FiltrosHistoricos():
                 filtro_fin.lower()          in str(record[7]).lower() and
                 filtro_duracion.lower()     in str(record[8]).lower() and
                 filtro_estado.lower()       in str(record[9]).lower() and
-                filtro_novedades.lower()    in str(record[10]).lower() and
-                filtro_observaciones.lower()in str(record[11]).lower() and
-                filtro_subcontratar.lower() in str(record[12]).lower() and
-                filtro_pedido.lower()       in str(record[13]).lower()):
+                filtro_pedido.lower()       in str(record[10]).lower()):
 
                 historicos.tablaHistoricos.insert(parent='', index='end', iid=record[0], text='', values=record)
 
@@ -147,9 +135,6 @@ class TablaHistoricos():        #Tabla para historicos
                                            "Fin",
                                            "Duracion",
                                            "Estado",
-                                           "Novedades",
-                                           "Observaciones",
-                                           "Subcontratar",
                                            "Pedido")
 
         # Formatear las columnas
@@ -171,7 +156,11 @@ class TablaHistoricos():        #Tabla para historicos
         self.llenarTabla(bbdd)
 
     def llenarTabla(self, bbdd):    # Agregar datos a la tabla 
-        self.datos = BBDD.leer_historicos_completo(bbdd)
+        self.lectura = BBDD.leer_historicos_completo(bbdd)
+        self.datos = [(record[0], record[1], record[2], record[3], record[4], record[5], record[6], record[7], record[8], record[9], record[13])
+                        for record in self.lectura]
+        self.otrosDatos = [(record[0], record[10], record[11], record[12])
+                        for record in self.lectura]
         print(self.datos)
         for record in self.datos:
             print(record)
