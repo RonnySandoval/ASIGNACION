@@ -327,19 +327,27 @@ def insertar_vehiculos_df(bbdd, df):
     try:
         conn = sqlite3.connect(bbdd)
 
-        df.to_sql("VEHICULOS", conn, if_exists="append", index=False)               # Guardar en SQLite usando to_sql
+        df.to_sql("VEHICULOS", conn, if_exists="append", index=False)                # Guardar en SQLite usando to_sql
         resultado = pd.read_sql("SELECT * FROM VEHICULOS", conn)                     # Leer los datos para verificar
         print("dataframe de vehiculos añadido a la BBDD")
         print(resultado)
+        request = None
 
     except sqlite3.Error as e:
         print(f"Error al insertar el dataframe con los vehiculos: {e}")
+        request = False
 
     except UnboundLocalError as e:
-        print(f"No se llenaron los campos obligatorios de la tabla de vehiculos: {e}") 
+        print(f"No se llenaron los campos obligatorios de la tabla de vehiculos: {e}")
+        request = False
+
+    except Exception as e:
+        print(f"Error desconocido:  {e}")
+        request = False
 
     finally:
         conn.close()
+        return request
 
 def insertar_tiempos_vehiculos_df(bbdd, df):
     try:
@@ -358,20 +366,23 @@ def insertar_tiempos_vehiculos_df(bbdd, df):
         print(f"No se llenaron los campos obligatorios: {e}") 
         request = False
 
+    except Exception as e:
+        print(f"Error desconocido:  {e}")
+
     finally:
         conn.close()
         request = None
         return request
 
-def insertar_pedido(bbdd, id_pedido, cliente, fecha_recepcion, fecha_ingreso, entrega_estimada, fecha_entrega, consecutivo):
+def insertar_pedido(bbdd, id_pedido, cliente, fecha_recepcion, fecha_ingreso, fecha_estimada, fecha_entrega, consecutivo):
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()          
         insert_data_script = """INSERT INTO PEDIDOS
-                                    (ID_PEDIDO, CLIENTE, FECHA_RECEPCION, ENTREGA_ESTIMADA, FECHA_ENTREGA, CONSECUTIVO)
-                                    VALUES (?, ?, ?, ?, ?, ?)
+                                    (ID_PEDIDO, CLIENTE, FECHA_RECEPCION, FECHA_INGRESO, ENTREGA_ESTIMADA, FECHA_ENTREGA, CONSECUTIVO)
+                                    VALUES (?, ?, ?, ?, ?, ?, ?)
                                 """
-        cursor.execute(insert_data_script, (id_pedido, cliente, fecha_recepcion, entrega_estimada, fecha_entrega, consecutivo))
+        cursor.execute(insert_data_script, (id_pedido, cliente, fecha_recepcion, fecha_ingreso, fecha_estimada, fecha_entrega, consecutivo))
         conn.commit()
         print("Registro añadido")
         
@@ -380,6 +391,9 @@ def insertar_pedido(bbdd, id_pedido, cliente, fecha_recepcion, fecha_ingreso, en
 
     except UnboundLocalError as e:
         print(f"No se llenaron todos los campos: {e}") 
+
+    except Exception as e:
+        print(f"Error desconocido: {e}") 
 
     finally:
         conn.close()
@@ -531,6 +545,7 @@ def leer_modelos(bbdd):
         
     except sqlite3.Error as e:
         print(f"Error al leer el registro: {e}")
+        datos = None
 
     finally:
         conn.close()
@@ -1390,6 +1405,23 @@ def leer_tiempos_vehiculos_df(bbdd):
         print(f"Error en la consulta: {e}")
         return None
 
+def leer_pedido(bbdd, id):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM PEDIDOS WHERE ID_PEDIDO=?", (id,))
+        datos = cursor.fetchone()
+
+        print(datos)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer el registro: {e}")
+        datos = None
+
+    finally:
+        conn.close()
+        return datos  # Retorna los datos si se encuentran
+
 def leer_pedidos(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
@@ -1653,13 +1685,20 @@ def eliminar_pedido(bbdd, id):
         
         cursor.execute("DELETE FROM PEDIDOS WHERE ID_PEDIDO=?", (id,))
         conn.commit()
-        print(f"El pedido {id} se eliminó correctamente de la tabla TECNICOS")
+
 
     except sqlite3.Error as e:
         print(f"Error al eliminar el pedido {id}: {e}")
 
     finally:
         conn.close()
+        lectura_prueba = leer_pedido(bbdd, id)
+        if  lectura_prueba == None:
+            print(f"El pedido {id} se eliminó correctamente de la tabla PEDIDOS")
+
+        elif lectura_prueba != None:
+            print(f"No se eliminó el pedido {id}")
+
 
 ###### FUNCIONES DE APOYO PARA LAS BBDD ######
 def next_consecutivoPedido(bbdd):

@@ -101,7 +101,7 @@ class TablaPedidos():     #Tabla para pedido
         #Crear Tabla
         self.styletreeviewPedi.layout("TreeviewPedidos", [('Treeview.treearea', {'sticky': 'nswe'})])
         self.tablaPedidos = ttk.Treeview(contenido.canvas, show="headings", style="TreeviewPedidos")
-        self.tablaPedidos["columns"] = ("Id Pedido", "Fecha de ingreso", "Fecha Estimada", "Fecha de Entrega")
+        self.tablaPedidos["columns"] = ("Id Pedido", "Fecha recepcion", "Fecha ingreso", "Fecha Requerido", "Fecha Entregado")
 
         # Formatear las columnas
         for col in self.tablaPedidos["columns"]:
@@ -115,7 +115,8 @@ class TablaPedidos():     #Tabla para pedido
         self.tablaPedidos.configure(yscrollcommand=self.scrollbarTablaPedidos.set)
         self.tablaPedidos.pack(expand=True, fill="both", side="bottom")
         self.scrollbarTablaPedidos.pack(side='right', fill='y')
-        
+
+        self.pedido_seleccionado = None
         self.llenarTabla(bbdd)
 
         self.frameBotonesPedidos = ctk.CTkFrame(contenedor, bg_color=moradoMedio)
@@ -124,17 +125,17 @@ class TablaPedidos():     #Tabla para pedido
         #Botones de programar pedido
         self.botonProgramarTodo = ctk.CTkButton(master=self.frameBotonesPedidos ,text="Programar TODO",
                                                 font=textoGrande, hover_color=amarilloOscuro, fg_color=azulOscuro, border_color = blancoFrio,
-                                                corner_radius=20, command=lambda:self.programar_todo("completo"), width=60)
+                                                corner_radius=20, command=lambda:self.programar("completo"), width=60)
         self.botonProgramarTodo.pack(fill=tk.X, side="left", padx=15, pady=5)
 
         self.botonProgramarInmediato = ctk.CTkButton(master=self.frameBotonesPedidos, text="Programar INMEDIATO",
                                                      font=textoGrande, hover_color=amarilloOscuro, fg_color=azulOscuro, border_color = blancoFrio,
-                                                     corner_radius=20, command=lambda:self.programar_inmediato("inmediato"), width=60)
+                                                     corner_radius=20, command=lambda:self.programar("inmediato"), width=60)
         self.botonProgramarInmediato.pack(fill=tk.X, side="left", padx=15, pady=5)
 
         self.botonProgramarPorProcesos= ctk.CTkButton(master=self.frameBotonesPedidos, text="Programar POR PROCESO",
                                                       font=textoGrande, hover_color=amarilloOscuro, fg_color=azulOscuro, border_color = blancoFrio,
-                                                     corner_radius=20, command=lambda:self.programar_por_procesos("por procesos"), width=60)
+                                                     corner_radius=20, command=lambda:self.programar("por procesos"), width=60)
         self.botonProgramarPorProcesos.pack(fill=tk.X, side="left", padx=15, pady=5)
 
         self.frameCheckProcesos = ctk.CTkFrame(contenedor, bg_color=moradoMedio)
@@ -145,7 +146,7 @@ class TablaPedidos():     #Tabla para pedido
         for id in [proceso[0] for proceso in self.infoProcesos]:
 
             int_name = f"checkIntvar-{id}"                                        # generar el nombre de la IntVar del checkbutton
-            self.check_name_proceso = f"checkButton-{id}"                         # nombre del checkbutton
+            self.check_name_proceso = id                                          # nombre del checkbutton
             print(self.check_name_proceso)
             print(glo.intVar_procesos[int_name])
             glo.check_procesos[self.check_name_proceso] = ctk.CTkCheckBox(
@@ -156,7 +157,7 @@ class TablaPedidos():     #Tabla para pedido
 
     def llenarTabla(self, bbdd):    # Agregar datos a la tabla    
         self.lectura = list(BBDD.leer_pedidos(bbdd))
-        self.datos = [(a, c, d , e) for a, _, c, d, e, f in self.lectura]
+        self.datos = [(id, rec, ing , est, ent) for id, cli, rec, est, ent, cons, ing  in self.lectura]
         print(self.datos)
         for record in self.datos:
             self.tablaPedidos.insert(parent='', index='end', iid=record[0], text='', values=record)
@@ -164,11 +165,12 @@ class TablaPedidos():     #Tabla para pedido
         def click_fila(event):
             tabla = event.widget
             filas_seleccionadas = tabla.selection()
-            print("filas seleccionadas en click_fila:", filas_seleccionadas)
+            print("filas seleccionadas con click_fila:", filas_seleccionadas)
             datos = tabla.item(filas_seleccionadas[0], "values")
             print(datos)
             pedido = datos[0]
             print(pedido)
+            self.pedido_seleccionado = pedido
             glo.pedido_seleccionado = pedido
             glo.stateFrame.tablaDetalles.llenarTabla(bbdd, pedido = pedido)
 
@@ -208,7 +210,7 @@ class TablaPedidos():     #Tabla para pedido
             if fila:
                 valores = self.tablaPedidos.item(fila, 'values')     #obtener los valores de la fila
                 print(valores)
-                eliminar_vh(valores, bbdd)       
+                eliminar_pedido(valores, bbdd)       
         
         #CREAR MENU CONTEXTUAL
         self.menu = tk.Menu(self.raiz, tearoff=0)
@@ -219,10 +221,10 @@ class TablaPedidos():     #Tabla para pedido
         
         
         #Opciones del menú del click derecho
-        def eliminar_vh(valores, bbdd):
+        def eliminar_pedido(valores, bbdd):
             id_pedido = valores[0]
             print(f"Se eliminará {id_pedido}")
-            eventos.eliminar_VH_pedido(id_pedido)
+            eventos.eliminar_pedido_BD(id_pedido, bbdd)
 
         def modificar_vh(valores, bbdd):
             id_anterior = valores[0]
@@ -256,19 +258,11 @@ class TablaPedidos():     #Tabla para pedido
         
         self.llenarTabla(bbdd)
 
-    def programar_todo(self, tipoPrograma):
-        eventos.recoge_check_tecnicos()
-        eventos.abrirFechayHoraProg(tipoPrograma)
-        ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel("programar_todo"))
-
-    def programar_inmediato(self, tipoPrograma):
+    def programar(self, tipoPrograma):
+        pedido = self.pedido_seleccionado
+        if pedido == None:
+            ventanas_emergentes.messagebox.showerror("Programar todo", "Aún no has seleccionado un pedido para programar")
+            return
         eventos.recoge_check_tecnicos() 
-        eventos.abrirFechayHoraProg(tipoPrograma)
-        ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel("programar_inmediato"))
-
-    def programar_por_procesos(self, tipoPrograma):
-        eventos.recoge_check_tecnicos()
-        print(glo.check_tecnicos)
-        print(glo.check_procesos)
-        eventos.abrirFechayHoraProg(tipoPrograma)
-        ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel("programar_por_procesos"))
+        eventos.abrirFechayHoraProg(tipoPrograma, pedido)
+        ventanas_emergentes.desea_exportar(eventos.nombraArchivoExcel(tipoPrograma))

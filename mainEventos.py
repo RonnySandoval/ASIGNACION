@@ -19,8 +19,8 @@ def abrir_planta():
     glo.base_datos = os.path.basename(ruta)
 
     print(glo.base_datos)
-    modelo_clases.obtiene_datos_iniciales()
-    modelo_instancias.obtiene_datos_iniciales()
+    #modelo_clases.obtiene_datos_iniciales()
+    #modelo_instancias.obtiene_datos_iniciales()
 
     raiz = glo.raiz_principal
     raiz.base_root(glo.base_datos)

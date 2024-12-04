@@ -1,5 +1,4 @@
 from datetime import datetime
-import CRUD
 import BBDD
 import fechahora
 import glo
@@ -11,6 +10,8 @@ orden_procesos = None
 modelos = None
 tiempos = None
 tiemposVH = None
+personal = []
+listaOrdenes = []
 
 def obtiene_datos_iniciales():
     global nombres_procesos, id_procesos, orden_procesos, modelos, tiempos, tiemposVH
@@ -32,7 +33,7 @@ def buscar_tiempo(modelo, proceso):
         # Filtra el DataFrame para el modelo dado y obtiene el valor del proceso
         tiempo = tiempos.loc[tiempos['MODELO'] == modelo, proceso].values[0]
         print(f"Tiempo de {modelo} en {proceso} = {tiempo}")
-        return tiempo
+        return int(tiempo)
     
     except IndexError:
         print(f"El modelo {modelo} no existe.")
@@ -51,6 +52,7 @@ def buscar_tiempos(modelo):                             #Devuelve una lista con 
             print("Valores seleccionados:", tiempos_modelo)
         else:
             print("Error: Ninguna de las columnas en id_procesos está en el DataFrame.")                # Si no hay columnas válidas, se imprime un mensaje
+        return list(tiempos_modelo)
     
     except IndexError:
         print(f"El modelo {modelo} no existe.")
@@ -62,7 +64,7 @@ def buscar_tiempoVH(chasis, proceso):     #Devuelve el tiempo de un solo proceso
         # Filtra el DataFrame para el modelo dado y obtiene el valor del proceso
         tiempo = tiemposVH.loc[tiemposVH['CHASIS'] == chasis, proceso].values[0]
         print(f"Tiempo de {chasis} en {proceso} = {tiempo}")
-        return tiempo
+        return int(tiempo)
     
     except IndexError:
         print(f"El chasis {chasis} no existe.")
@@ -81,13 +83,6 @@ def buscar_tiemposVH(chasis):     #Devuelve una lista con los tiempos de todos l
     except IndexError:
         print(f"El modelo {chasis} no existe.")
         return None
-
-class Tiempos():
-    def __init__(self):
-        self.procesos = {}
-        self.marcas =[]
-        self.modelos = []
-        self.tiempos = {}
 
 class VehiculoBase:             # Son los tipos de vehiculos, es decir los modelos, con sus tiempos de proceso
     def __init__(self, modelo, marca):
@@ -192,7 +187,6 @@ class Vehiculo(VehiculoBase):               #Es cada vehiculo único que pasa po
         except IndexError:                          # Si no encuentra másprocesos en lista, arrojará un mensaje informando que el vehícuylo estará listo
             print(f"Vehículo {self.id_chasis} ha completado todos los procesos.")
 
-
     def obtener_tiempo_proceso_VH(self, proceso):          #Obtiene el tiempo del proceso en cuestion para ese objeto vehiculo
         return buscar_tiempoVH(self.id_chasis, proceso)
 
@@ -228,7 +222,6 @@ class Vehiculo(VehiculoBase):               #Es cada vehiculo único que pasa po
                 Plazo: {self.plazo},
                 vueltas : {self.vueltas} \n"""
  
-personal = []
 class Tecnico():                                  # Es cada técnico con nombre e ID
     
     def __init__(self, id_tecnico, nombre, especializacion):
@@ -285,7 +278,6 @@ class Tecnico():                                  # Es cada técnico con nombre 
     def reset(self):
         for key, value in self.estado_inicial.items():
             setattr(self, key, value)
-
 
     def asignar_vehiculo(self, vehiculo, fechaStart, horaStart):          # Asigna el vehículo al técnico que se pasa por parámetro,
                                                                 # actualiza los momentos de inicio, fin y estado y agrega
@@ -358,7 +350,6 @@ class Tecnico():                                  # Es cada técnico con nombre 
 
         return False
 
-
     def __repr__(self):        #Formato de impresión del técnico
         return f"""Tecnico(ID: {self.id_tecnico}, Nombre: {self.nombre}, Especialización: {self.especializacion}, Asignaciones: {self.historico_asignacion}), Libre en : {self.libre}\n"""
 
@@ -390,23 +381,22 @@ class Pedido:
         return f"Pedido(ID: {self.id_pedido}, Fecha Entrega: {self.plazo_entrega}, Vehículos: {self.vehiculos}), Estado: {self.estado}"
 
 class OrdenProduccion:
-    def __init__(self, vehiculo, proceso, tecnico, inicio, fin, pedido):
-        self.chasis         = vehiculo.id_chasis
-        self.marca          = vehiculo.marca
-        self.modelo         = vehiculo.modelo
-        self.color          = vehiculo.color
-        self.novedades      = vehiculo.novedades
-        self.pedido         = pedido
-        self.id_pedido      = pedido
-        self.proceso        = proceso
-        self.id_tecnico     = tecnico.id_tecnico
-        self.nombre_tecnico = tecnico.nombre
-        self.especialidad   = tecnico.especializacion
-        self.inicio         = inicio
-        self.fin            = fin
-        self.duracion       = fin-inicio
-        self.plazo          = vehiculo.fecha
-        self.codigo_orden   = self.codificar_orden()
+    def __init__(self, vehiculo, proceso, tecnico, inicio, fin, tiempo_productivo, pedido):
+        self.chasis             = vehiculo.id_chasis
+        self.marca              = vehiculo.marca
+        self.modelo             = vehiculo.modelo
+        self.color              = vehiculo.color
+        self.novedades          = vehiculo.novedades
+        self.pedido             = pedido
+        self.proceso            = proceso
+        self.id_tecnico         = tecnico.id_tecnico
+        self.nombre_tecnico     = tecnico.nombre
+        self.inicio             = inicio
+        self.fin                = fin
+        self.duracion           = (fin-inicio).total_seconds()/60
+        self.tiempo_productivo  = tiempo_productivo
+        self.plazo              = vehiculo.fecha
+        self.codigo_orden       = self.codificar_orden()
 
     def codificar_orden(self):
         chasis = self.chasis
@@ -435,26 +425,36 @@ class OrdenProduccion:
         #CODIGO_ORDEN, CHASIS, MARCA, MODELO, COLOR, NOVEDADES, PEDIDO, ID_PEDIDO, PROCESO, ID_TECNICO, NOMBRE_TECNICO, ESPECIALIDAD, INICIO, FIN, DURACION, PLAZO
         #CRUD.insertar_orden(*datos)
 
-
     def __repr__(self):
         return f"Orden: {self.codigo_orden}, Chasis: {self.chasis},Modelo: {self.modelo}, Marca: {self.marca}, Color: {self.color}, Proceso: {self.proceso}, Id_tecnico: {self.id_tecnico} Tecnico: {self.nombre_tecnico}, Pedido(ID: {self.id_pedido}, Inicio: {self.inicio}, Fin: {self.fin}, Duración: {self.duracion}, Fecha Entrega: {self.plazo}"
 
+class ProgramaDeProduccion:
+    def __init__(self, ordenes):
+        self.ordenes = ordenes
+    
+    def obtener_horizonte(self):
+        pass
 
+    def __repr__(self):
+        ordenes_repr = "\n".join([repr(orden) for orden in self.ordenes])        # Crear una representación legible desagregada
+        return f"ProgramaDeProduccion:\n{ordenes_repr}"
+
+    def to_dataframe(self):
+        data = [vars(orden) for orden in self.ordenes]        # Convertir las órdenes en una lista de diccionarios
+        return pd.DataFrame(data)                             # Crear un DataFrame a partir de la lista de diccionarios
 ######################################################################################################
 ######################################### METODOS ESTATICOS ##########################################
 ######################################################################################################
-listaOrdenes = []
 def programa_inmediato(pedido, tecnicos, horizonte, fechaStart, horaStart):
-
+    print("INICIA EL PROGRAMADOR\n", "pedido", pedido.id_pedido)
+    print("VEHICULOS:___________________\n", pedido.vehiculos)
     print("****tecnicos")
     for tecnico in tecnicos:
         if tecnico.libre == None:
             tecnico.libre = fechahora.parseDT(fechaStart,horaStart)
         print(tecnico)
 
-
     vehiculos_por_programar = pedido.vehiculos.copy()                   # Extrae una copia de la lista de vehiculos
-
 
     contador = 0
     while len(vehiculos_por_programar) > 0 and contador <=50:
@@ -471,8 +471,9 @@ def programa_inmediato(pedido, tecnicos, horizonte, fechaStart, horaStart):
         ultimo_estado = vehiculo_min_time.estado                                                    #Extrae el ultimo estado en el constructor del vehiculo seleccionado
         siguiente_estado = orden_procesos[orden_procesos.index(ultimo_estado) + 1]                  #Imprime el siguiente estado o proceso de la secuencia
         print(f"{vehiculo_min_time.id_chasis} necesita {siguiente_estado}")
+        tiempo_neto = vehiculo_min_time.obtener_tiempo_proceso_VH(siguiente_estado)
 
-        if vehiculo_min_time.obtener_tiempo_proceso(siguiente_estado) == 0:             #Avanza al siguiente estado sin asignar el tecnico en caso de tiempo = 0
+        if tiempo_neto == 0:                         #Avanza al siguiente estado sin asignar el tecnico en caso de tiempo = 0
             vehiculo_min_time.avanzar_estado(tecnico=None, bloques=None)
             print(f"****Tiempo de proceso{siguiente_estado} de {vehiculo_min_time} es 0")
             print (f"-----------------Termina vuelta #{contador}\n-------------------")
@@ -488,39 +489,40 @@ def programa_inmediato(pedido, tecnicos, horizonte, fechaStart, horaStart):
 
         
         tiempos_disponibles = list(map(lambda operario: operario.libre, tecnicos_disponibles))      #crea una lista solo con los tiempos
-        tiempos_disponibles.sort()                                                                 #ordena tiempos de menor a mayor
+        tiempos_disponibles.sort()                                                                  #ordena tiempos de menor a mayor
         print(f"****Tecnicos ordenados por disponibilidad para asignar : {tecnicos_disponibles}")                       #ordena tiempos de menor a mayor
         print(f"****tiempos disponibles : {tiempos_disponibles}")
         tecnico_min_time = tecnicos_disponibles[0]                                                 #selecciona el tecnico de menor tiempo (el primer elemento de la lista)
         print("****Tecnico seleccionado:", tecnico_min_time)
 
         for times in tiempos_disponibles:                                                         #buscamos en la lista de técnicos
-            print(f"****El proceso {siguiente_estado} para el chasis {vehiculo_min_time} queda : {times} + {vehiculo_min_time.obtener_tiempo_proceso(siguiente_estado)}")
+
+            print(f"****El proceso {siguiente_estado} para el chasis {vehiculo_min_time} queda : {times} + {tiempo_neto}")
 
             asignado = False
             maximaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(fechaStart, horaStart, horizonte ,am=(8,12), pm=(14,18)))
             terminaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(
-                                                                                str(times.date()),
-                                                                                str(times.time()),
-                                                                                vehiculo_min_time.obtener_tiempo_proceso(siguiente_estado),
-                                                                                am=(8,12),
-                                                                                pm=(14,18)
+                                                                                fecha_inicio = str(times.date()),
+                                                                                hora_inicio  = str(times.time()),
+                                                                                duracion     = tiempo_neto,
+                                                                                am           = (8,12),
+                                                                                pm           = (14,18)
                                                                                 )
                                                     )
-            print(f"****Se asignará : {times} + {vehiculo_min_time.obtener_tiempo_proceso(siguiente_estado)} = {terminaAsignacion}")
-
+            print(f"****Se asignará : {times} + {tiempo_neto} = {terminaAsignacion}")
 
             if terminaAsignacion <= maximaAsignacion:                                              #verificamos que el tiempo asignado no supere el horizonte
                 print("OK. Aun no se supera el horizonte")
                 tecnico_min_time.asignar_vehiculo(vehiculo_min_time, times.date(), times.time())   #SE ASIGNA VEHICULO A TÉCNICO desde el método en la clase técnico
                 asignado = True
                 print(f"****ASIGNADO = {asignado}. Se asignó {vehiculo_min_time.id_chasis} a {tecnico_min_time.id_tecnico} en el proceso {siguiente_estado}\n\n")                
-                listaOrdenes.append(OrdenProduccion(vehiculo_min_time, 
-                                                    siguiente_estado,
-                                                    tecnico_min_time,
-                                                    vehiculo_min_time.inicio,
-                                                    vehiculo_min_time.fin,
-                                                    vehiculo_min_time.pedido))
+                listaOrdenes.append(OrdenProduccion(vehiculo = vehiculo_min_time, 
+                                                    proceso  = siguiente_estado,
+                                                    tecnico  = tecnico_min_time,
+                                                    inicio   = vehiculo_min_time.inicio,
+                                                    fin      = vehiculo_min_time.fin,
+                                                    tiempo_productivo = tiempo_neto,
+                                                    pedido   = vehiculo_min_time.pedido))
                 print(f"****Resumen de orden de producción: {listaOrdenes[-1]}")
                 #listaOrdenes[-1].almacenar_orden()
                 break
@@ -537,10 +539,15 @@ def programa_inmediato(pedido, tecnicos, horizonte, fechaStart, horaStart):
         print("#############################################################")
 
 
+    scheduling = ProgramaDeProduccion(listaOrdenes)
+    df_scheduling = scheduling.to_dataframe()
+    df_scheduling.to_excel(f"programa_inmediato_{pedido.id_pedido}.xlsx", sheet_name="Hoja1", index=False)
+    print(df_scheduling.to_string())
     return pedido.vehiculos
 
 def programa_completo(pedido, tecnicos, horizonte, fechaStart, horaStart):
-
+    print("INICIA EL PROGRAMADOR\n", "pedido", pedido.id_pedido)
+    print("VEHICULOS:___________________\n", pedido.vehiculos)
     print("****tecnicos")
     for tecnico in tecnicos:
         if tecnico.libre == None:
@@ -550,7 +557,7 @@ def programa_completo(pedido, tecnicos, horizonte, fechaStart, horaStart):
     vehiculos_por_programar = pedido.vehiculos.copy()                   # Extrae una copia de la lista de vehiculos
 
     contador = 0
-    while len(vehiculos_por_programar) > 0  and contador <=100:
+    while len(vehiculos_por_programar) > 0  and contador <=200:
         contador = contador + 1
         print(f"---------------------->inicia vuelta #{contador}<------------------------")
 
@@ -583,8 +590,9 @@ def programa_completo(pedido, tecnicos, horizonte, fechaStart, horaStart):
             contador = contador + 1
             print("#############################################################")
             continue
-
-        if vehiculo_min_time.obtener_tiempo_proceso(siguiente_estado) == 0:             #Avanza al siguiente estado sin asignar el tecnico en caso de tiempo = 0
+        
+        tiempo_neto = vehiculo_min_time.obtener_tiempo_proceso_VH(siguiente_estado)
+        if tiempo_neto == 0:                                                        #Avanza al siguiente estado sin asignar el tecnico en caso de tiempo = 0
             vehiculo_min_time.avanzar_estado(tecnico=None, bloques=None)
             print(f"****Tiempo de proceso{siguiente_estado} de {vehiculo_min_time} es 0")
             print (f"--------------Termina vuelta #{contador}\n-----------------")
@@ -607,7 +615,7 @@ def programa_completo(pedido, tecnicos, horizonte, fechaStart, horaStart):
         print("****Tecnico seleccionado:", tecnico_min_time)
 
         for times in tiempos_disponibles:                                                                             #buscamos en la lista de técnicos
-            print(f"****El proceso {siguiente_estado} para el chasis {vehiculo_min_time} queda : {times} + {vehiculo_min_time.obtener_tiempo_proceso(siguiente_estado)}*****")
+            print(f"****El proceso {siguiente_estado} para el chasis {vehiculo_min_time} queda : {times} + {tiempo_neto}*****")
 
             asignado = False
             maximaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(fechaStart, horaStart, horizonte ,am=(8,12), pm=(14,18)))
@@ -619,7 +627,7 @@ def programa_completo(pedido, tecnicos, horizonte, fechaStart, horaStart):
                                                                                 pm=(14,18)
                                                                                 )
                                                     )
-            print(f"****Se asignará : {times}+{vehiculo_min_time.obtener_tiempo_proceso(siguiente_estado)}={terminaAsignacion}")
+            print(f"****Se asignará : {times}+{tiempo_neto}={terminaAsignacion}")
 
 
             if terminaAsignacion <= maximaAsignacion:                                               #verificamos que el tiempo asignado no supere el horizonte
@@ -627,12 +635,13 @@ def programa_completo(pedido, tecnicos, horizonte, fechaStart, horaStart):
                 tecnico_min_time.asignar_vehiculo(vehiculo_min_time, times.date(), times.time())    #SE ASIGNA VEHICULO A TÉCNICO desde el método en la clase técnico
                 asignado = True
                 print(f"****ASIGNADO = {asignado}. Se asignó {vehiculo_min_time.id_chasis} a {tecnico_min_time.id_tecnico} en el proceso {siguiente_estado}\n\n")                
-                listaOrdenes.append(OrdenProduccion(vehiculo_min_time, 
-                                                    siguiente_estado,
-                                                    tecnico_min_time,
-                                                    vehiculo_min_time.inicio,
-                                                    vehiculo_min_time.fin,
-                                                    vehiculo_min_time.pedido))
+                listaOrdenes.append(OrdenProduccion(vehiculo = vehiculo_min_time, 
+                                                    proceso  = siguiente_estado,
+                                                    tecnico  = tecnico_min_time,
+                                                    inicio   = vehiculo_min_time.inicio,
+                                                    fin      = vehiculo_min_time.fin,
+                                                    tiempo_productivo = tiempo_neto,
+                                                    pedido   = vehiculo_min_time.pedido))
                 print(f"****Resumen de orden de producción: {listaOrdenes[-1]}")
                 #listaOrdenes[-1].almacenar_orden()
                 break
@@ -652,11 +661,14 @@ def programa_completo(pedido, tecnicos, horizonte, fechaStart, horaStart):
         print("#############################################################")
         print("#############################################################")
         print("#############################################################")
+
+    scheduling = ProgramaDeProduccion(listaOrdenes)
+    df_scheduling = scheduling.to_dataframe()
+    df_scheduling.to_excel(f"programa_completo_{pedido.id_pedido}.xlsx", sheet_name="Hoja1", index=False)
+    print(df_scheduling.to_string())
     return pedido.vehiculos
 
 def programa_por_proceso(pedido, tecnicos, procesos, horizonte, fechaStart, horaStart, bbdd):
-    print("INICIA EL PROGRAMADOR\n", "pedido", pedido.id_pedido)
-    print("VEHICULOS:___________________\n", pedido.vehiculos)
 
     """
     ETAPAS DE LA FUNCIÓN
@@ -672,6 +684,8 @@ def programa_por_proceso(pedido, tecnicos, procesos, horizonte, fechaStart, hora
     5.3) generar la orden
     """
 
+    print("INICIA EL PROGRAMADOR\n", "pedido", pedido.id_pedido)
+    print("VEHICULOS:___________________\n", pedido.vehiculos)
     print("****tecnicos")
 
     tecnicos_de_proceso = list(filter(lambda tec: tec.especializacion in procesos, tecnicos))   #selecciona solo a los técnicos que tiene como especialidad el proceso a programar
@@ -688,9 +702,7 @@ def programa_por_proceso(pedido, tecnicos, procesos, horizonte, fechaStart, hora
 
     #vehiculos_por_programar = [vehiculo for vehiculo in vehiculos_por_programar     # Filtrar vehiculos de acuerdo a, si el primer elemento (el estado) de     
     #                            if vehiculo.historico_estados[0] in procesos]       # historico_estados se encuentra en la lista de procesos
-   
-
-    
+     
     todos_los_procesos = list(BBDD.obtener_id_procesos(bbdd))                       # leer los ids de procesos en BD
     todos_los_tiempos = BBDD.leer_tiempos_vehiculos_df(bbdd)                  # obtener un dataframe con los tiempos por vehiculo
     print(todos_los_tiempos)
@@ -745,8 +757,9 @@ def programa_por_proceso(pedido, tecnicos, procesos, horizonte, fechaStart, hora
             if any(estado[0] == proceso for estado in list(vehiculo_min_time.historico_estados)) == True:                # Comprobamos si el proceso ya fue ejecutado anteriormente
                 print(f"{vehiculo_min_time.id_chasis} ya había pasado por {proceso}")
                 continue
-
-            if vehiculo_min_time.obtener_tiempo_proceso_VH(proceso) == 0:                                            # Comprobamos si el tiempo de proceso es cero
+            
+            tiempo_neto = vehiculo_min_time.obtener_tiempo_proceso_VH(proceso)
+            if tiempo_neto == 0:                                                            # Comprobamos si el tiempo de proceso es cero
                 print(f"****Tiempo de proceso{proceso} de {vehiculo_min_time.id_chasis} es 0")
                 vehiculo_min_time.ingresar_a_proceso(tecnico=None, bloques=None, estado = proceso)
                 continue
@@ -769,7 +782,7 @@ def programa_por_proceso(pedido, tecnicos, procesos, horizonte, fechaStart, hora
        
 
             for times in tiempos_disponibles:     #buscamos en la lista de técnicos
-                print(f"****El proceso {proceso} para el chasis {vehiculo_min_time} queda : {times} + {vehiculo_min_time.obtener_tiempo_proceso_VH(proceso)}")
+                print(f"****El proceso {proceso} para el chasis {vehiculo_min_time} queda : {times} + {tiempo_neto}")
 
                 asignado = False
                 maximaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(fechaStart, horaStart, horizonte ,am=(8,12), pm=(14,18)))
@@ -781,7 +794,7 @@ def programa_por_proceso(pedido, tecnicos, procesos, horizonte, fechaStart, hora
                                                                                     pm=(14,18)
                                                                                     )
                                                         )
-                print(f"****Se asignará : {times} + {vehiculo_min_time.obtener_tiempo_proceso_VH(proceso)} = {terminaAsignacion}")
+                print(f"****Se asignará : {times} + {tiempo_neto} = {terminaAsignacion}")
 
 
                 if terminaAsignacion <= maximaAsignacion:                          #verificamos que el tiempo asignado no supere el horizonte
@@ -789,12 +802,13 @@ def programa_por_proceso(pedido, tecnicos, procesos, horizonte, fechaStart, hora
                     tecnico_min_time.asignar_vehiculo(vehiculo_min_time, times.date(), times.time())                                    #SE ASIGNA VEHICULO A TÉCNICO desde el método en la clase técnico
                     asignado = True
                     print(f"****ASIGNADO = {asignado}. Se asignó {vehiculo_min_time.id_chasis} a {tecnico_min_time.id_tecnico} en el proceso {proceso}\n\n")                
-                    listaOrdenes.append(OrdenProduccion(vehiculo_min_time, 
-                                                        proceso,
-                                                        tecnico_min_time,
-                                                        vehiculo_min_time.inicio,
-                                                        vehiculo_min_time.fin,
-                                                        vehiculo_min_time.pedido))
+                    listaOrdenes.append(OrdenProduccion(vehiculo = vehiculo_min_time, 
+                                                        proceso  = proceso,
+                                                        tecnico  = tecnico_min_time,
+                                                        inicio   = vehiculo_min_time.inicio,
+                                                        fin      = vehiculo_min_time.fin,
+                                                        tiempo_productivo = tiempo_neto,
+                                                        pedido   = vehiculo_min_time.pedido))
                     print(f"****Resumen de orden de producción: {listaOrdenes[-1]}")
                     #listaOrdenes[-1].almacenar_orden()
                     break
@@ -816,7 +830,10 @@ def programa_por_proceso(pedido, tecnicos, procesos, horizonte, fechaStart, hora
         print("#############################################################")
         
 
-
+    scheduling = ProgramaDeProduccion(listaOrdenes)
+    df_scheduling = scheduling.to_dataframe()
+    df_scheduling.to_excel(f"programa_{procesos}_{pedido.id_pedido}.xlsx", sheet_name="Hoja1", index=False)
+    print(df_scheduling.to_string())
     return pedido.vehiculos
 
 def calcular_horizonte(pedido):

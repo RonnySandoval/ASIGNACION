@@ -64,7 +64,7 @@ class ContenidoProcesos:
                 print(int_name)
                 glo.intVar_procesos[int_name] = tk.IntVar(value=1)                    # Guardar en el diccionario el nombre y la intvar
 
-                self.check_name_proceso = f"checkButton-{fila}"                       # nombre del checkbutton
+                self.check_name_proceso = filasProcesos[0]                            # nombre del checkbutton
                 print(self.check_name_proceso)
                 glo.check_procesos[self.check_name_proceso] = ctk.CTkCheckBox(
                     self.frameProcesosInterior, text="Incluir", 

@@ -3,6 +3,7 @@ import numpy as np
 import random as rdm
 import matplotlib.dates as mdates
 import fechahora
+import estilos
 
 
 
@@ -20,7 +21,7 @@ def crear_gantt_tecnicos(nombre_grafico, tecnicos, inicio, horizonte):
     hbar = 10
     num_tecnicos = len(tecnicos)
     iniciarEje = fechahora.define_franja(str(inicio.date()))[8]
-    fig, gantt = plt.subplots()  # Objetos del plot
+    fig, gantt = plt.subplots()                           # Objetos del plot
     print(iniciarEje)
 
     diagrama = {
@@ -32,14 +33,14 @@ def crear_gantt_tecnicos(nombre_grafico, tecnicos, inicio, horizonte):
         "horizonte": horizonte
     }
 
-    gantt.set_xlabel('Minutos')             # Etiqueta de eje X
+    gantt.set_xlabel('Fecha/hora')             # Etiqueta de eje X
     gantt.set_ylabel('Técnicos')            # Etiqueta de eje Y
 
     gantt.set_xlim(iniciarEje, horizonte)       # Límites eje X
     gantt.xaxis_date()
     gantt.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M'))  # Formato de fecha
 
-    locator = mdates.MinuteLocator(byminute=range(0, 60, 30), tz=None)  # Define intervalos exactos
+    locator = mdates.MinuteLocator(byminute=range(0, 60, 60), tz=None)  # Define intervalos exactos
     gantt.xaxis.set_major_locator(locator)
     gantt.grid(True, axis="x", which="both")
 
@@ -87,15 +88,23 @@ def agregar_vehiculo(nombre_grafico, t0, duracion, tecnico, nombre, color=None):
     duracion_num = duracion.total_seconds() / (24 * 3600)  # Duración en días
 
 
-    gantt.broken_barh([(inicio_tarea_num, duracion_num)],
+    rect = gantt.broken_barh([(inicio_tarea_num, duracion_num)],
                       (hbar * ind_tec, hbar),
                       facecolors=color
                       )
-    gantt.text(x=inicio_tarea_num + duracion_num / 2,
+    label = gantt.text(x=inicio_tarea_num + duracion_num / 2,
                y=hbar * ind_tec + hbar / 2,
                s=f'{nombre}\n({duracion})',
                va="center", ha="center",
                color="w", fontsize=6)
+    
+
+    if "barras" not in diagrama:    # Guardar información de la barra y la etiqueta para futuras interacciones
+        diagrama["etiq_barras"] = []
+    diagrama["etiq_barras"].append({"rect": rect,
+                               "label": label,
+                               "tecnico": tecnico,
+                               "nombre": nombre})
 
 # Función para mostrar un gráfico específico
 def mostrar_grafico_tecnicos(nombre_grafico):
@@ -105,9 +114,8 @@ def mostrar_grafico_tecnicos(nombre_grafico):
         return
 
     plt.figure(diagrama["fig"].number)  # Seleccionar la figura por número
+    plt.grid(color=estilos.grisOscuro)  # Ajusta el color de la grilla
     plt.show()
-
-
 
 
 ###################################################################################################################
@@ -134,13 +142,13 @@ def crear_gantt_vehiculos(nombre_grafico, vehiculos, inicio , horizonte):
     }
 
     gantt.set_xlabel('Fecha/hora')                     # Etiqueta de eje X
-    gantt.set_ylabel('Vehículos')                   # Etiqueta de eje Y
+    gantt.set_ylabel('Vehículos')                      # Etiqueta de eje Y
 
     gantt.set_xlim(iniciarEje, horizonte)               # Límites eje X
     gantt.xaxis_date()
     gantt.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M'))  # Formato de fecha
 
-    locator = mdates.MinuteLocator(byminute=range(0, 60, 30), tz=None)  # Define intervalos exactos
+    locator = mdates.MinuteLocator(byminute=range(0, 60, 60), tz=None)  # Define intervalos exactos
     gantt.xaxis.set_major_locator(locator)
     gantt.grid(True, axis="x", which="both")
 
@@ -157,8 +165,6 @@ def crear_gantt_vehiculos(nombre_grafico, vehiculos, inicio , horizonte):
     graficos_vehiculos[nombre_grafico] = diagrama
 
     return diagrama
-
-
 
 # Diccionario para almacenar los colores de cada técnico
 colores_tecnicos = {}
@@ -187,18 +193,24 @@ def agregar_proceso(nombre_grafico, t0, duracion, vehiculo, nombre, tecnico, col
     inicio_tarea_num = mdates.date2num(t0)
     duracion_num = duracion.total_seconds() / (24 * 3600)  # Duración en días
 
-
-
-    gantt.broken_barh(
+    rect = gantt.broken_barh(
         [(inicio_tarea_num, duracion_num)],
         (hbar * ind_veh, hbar),
         facecolors=color
         )
-    gantt.text(x=inicio_tarea_num + duracion_num / 2,
+    label = gantt.text(x=inicio_tarea_num + duracion_num / 2,
                y=hbar * ind_veh + hbar / 2, 
                s=f'{nombre}\n{duracion}\n({tecnico})', 
-               va="center", ha="center", color="w", fontsize=6)
-    
+               va="center", ha="center", color="w", fontsize=6)  
+
+
+    if "barras" not in diagrama:    # Guardar información de la barra y la etiqueta para futuras interacciones
+        diagrama["etiq_barras"] = []
+    diagrama["etiq_barras"].append({"rect": rect,
+                                    "label": label,
+                                    "vehiculo": vehiculo,
+                                    "nombre": nombre})
+
 
 # Función para mostrar un gráfico específico
 def mostrar_grafico_vehiculos(nombre_grafico):
@@ -208,4 +220,6 @@ def mostrar_grafico_vehiculos(nombre_grafico):
         return
 
     plt.figure(diagrama["fig"].number)  # Seleccionar la figura por número
+    plt.grid(color=estilos.grisOscuro)  # Ajusta el color de la grilla
     plt.show()
+

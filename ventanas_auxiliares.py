@@ -255,12 +255,12 @@ class VentanaGestionaVehiculos():
 
 class EstableceFechaHora():
 
-    def __init__(self):
+    def __init__(self, pedido):
         self.rootAux = tk.Toplevel()
         self.rootAux.title("Iniciar programa")
         self.rootAux.config(bg = grisAzuladoMedio)
         self.rootAux.iconbitmap("logo5.ico")
-        self.rootAux.geometry("300x300")
+        self.rootAux.geometry("400x300")
         self.rootAux.resizable(False, False)
 
         self.frameTitulo = tk.Frame(self.rootAux, bg=grisAzuladoMedio)
@@ -269,7 +269,7 @@ class EstableceFechaHora():
         self.frameEntradas.pack(expand=True, side="bottom", fill="both", pady=10)
 
 
-        self.labelTitulo   = tk.Label(self.frameTitulo, text = "Iniciar programa en", font = textoGrande, bg = grisAzuladoMedio, fg = blancoFrio)
+        self.labelTitulo   = tk.Label(self.frameTitulo, text = f"Iniciar programa del pedido {pedido} en", font = textoGrande, bg = grisAzuladoMedio, fg = blancoFrio)
         self.labelTitulo.pack(expand=True, side="top", fill="x", padx=20, pady=20)
         self.labelFecha    = tk.Label(self.frameEntradas, text = "FECHA", font = texto1Bajo, bg = grisAzuladoMedio, fg = blancoFrio, anchor="w")
         self.labelFecha.grid(row=1,column=0, sticky="ew", padx=20, pady=5)
@@ -767,14 +767,14 @@ class VentanaVistaPreviaPedido():
         self.entryFecha_ingreso.bind("<Button-1>", lambda event: self.mostrar_calendario(self.varFecha_ingreso))
 
         self.varFecha_estimada = tk.StringVar() 
-        self.labelFecha_estimada    = ctk.CTkLabel(self.frameEntradas, text = "FECHA ESTIMADA", font = texto1Bajo, anchor="w")
+        self.labelFecha_estimada    = ctk.CTkLabel(self.frameEntradas, text = "FECHA REQUERIDO", font = texto1Bajo, anchor="w")
         self.labelFecha_estimada.grid(row=4,column=0, sticky="ew", padx=20, pady=5)
         self.entryFecha_estimada = ctk.CTkEntry   (self.frameEntradas, font = numerosMedianos, width=12, textvariable=self.varFecha_estimada)
         self.entryFecha_estimada.grid (row=4 ,column=1, sticky="ew", padx=20 , pady=5)
         self.entryFecha_estimada.bind("<Button-1>", lambda event: self.mostrar_calendario(self.varFecha_estimada))
 
         self.varFecha_entrega = tk.StringVar() 
-        self.labelFecha_entrega    = ctk.CTkLabel(self.frameEntradas, text = "FECHA ENTREGA", font = texto1Bajo, anchor="w")
+        self.labelFecha_entrega    = ctk.CTkLabel(self.frameEntradas, text = "FECHA ENTREGADO", font = texto1Bajo, anchor="w")
         self.labelFecha_entrega.grid(row=5,column=0, sticky="ew", padx=20, pady=5)
         self.entryFecha_entrega = ctk.CTkEntry   (self.frameEntradas, font = numerosMedianos, width=12, textvariable=self.varFecha_entrega)
         self.entryFecha_entrega.grid (row=5 ,column=1, sticky="ew", padx=20 , pady=5)

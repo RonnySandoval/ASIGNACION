@@ -3,11 +3,10 @@
 import modelo_mostrarGantt
 #import datetime
 import fechahora
-
+import numpy as np
 
 #######GANTT DE VEHICULOS#########
 def generar_gantt_vehiculos(pedido, fechaStart, horaStart, horizonte_calculado):
-
 
     inicio = fechahora.parseDT(fechaStart, horaStart)
     lista_vehiculos =[]
@@ -16,7 +15,7 @@ def generar_gantt_vehiculos(pedido, fechaStart, horaStart, horizonte_calculado):
         lista_vehiculos.append(tarea.id_chasis)
 
     #generación de gráfico con etiquetas de ejes
-    modelo_mostrarGantt.crear_gantt_vehiculos("GRAFICO_DE_VEHICULOS_01",lista_vehiculos, inicio, horizonte_calculado)
+    diagrama = modelo_mostrarGantt.crear_gantt_vehiculos("GRAFICO_DE_VEHICULOS_01",lista_vehiculos, inicio, horizonte_calculado)
 
     for tarea in pedido.vehiculos:
 
@@ -37,10 +36,14 @@ def generar_gantt_vehiculos(pedido, fechaStart, horaStart, horizonte_calculado):
                     encargado
                 )
                 print(f"Se agregó {nombre_proceso} en {tarea.id_chasis}")
-        
+
+    configurar_zoom(fig = diagrama["fig"],
+                    ax  = diagrama["ejes"],
+                    etiquetas_y =lista_vehiculos,
+                    etiquetas_barras = diagrama["etiq_barras"],
+                    hbar =diagrama["hbar"])
+
     modelo_mostrarGantt.mostrar_grafico_vehiculos("GRAFICO_DE_VEHICULOS_01")
-
-
 
 #######GANTT DE TECNICOS#########
 def generar_gantt_tecnicos(personal, fechaStart, horaStart, horizonte_calculado):
@@ -53,7 +56,7 @@ def generar_gantt_tecnicos(personal, fechaStart, horaStart, horizonte_calculado)
         lista_personas.append(persona.id_tecnico)
 
     #generación de gráfico con etiquetas de ejes
-    modelo_mostrarGantt.crear_gantt_tecnicos("GRAFICO_DE_TECNICOS_02", lista_personas, inicio, horizonte_calculado)
+    diagrama = modelo_mostrarGantt.crear_gantt_tecnicos("GRAFICO_DE_TECNICOS_02", lista_personas, inicio, horizonte_calculado)
 
     for tarea in personal:
 
@@ -73,8 +76,56 @@ def generar_gantt_tecnicos(personal, fechaStart, horaStart, horizonte_calculado)
                     id_vehiculo
                     )
                 print(f"Se agregó {id_vehiculo} en {tarea.id_tecnico} inicio: {init} y duracion {duracion}")
-        
+    
+    configurar_zoom(fig = diagrama["fig"],
+                ax  = diagrama["ejes"],
+                etiquetas_y =lista_personas,
+                etiquetas_barras = diagrama["etiq_barras"],
+                hbar =diagrama["hbar"])
     modelo_mostrarGantt.mostrar_grafico_tecnicos("GRAFICO_DE_TECNICOS_02")
+
+#MANEJO DEL EVENTO ZOOM DEL MOUSE
+def configurar_zoom(fig, ax, etiquetas_y, etiquetas_barras, hbar):
+    """Configura la interacción del zoom en el gráfico."""
+    def on_scroll(event):
+        if event.inaxes != ax:
+            return
+
+        # Obtén los límites actuales del eje x
+        x_min, x_max = ax.get_xlim()
+        range_x = x_max - x_min
+
+        # Calcula el factor de zoom
+        factor_zoom = 0.8 if event.button == 'up' else 1.25
+
+        # Calcular nuevos límites
+        nuevo_centro = event.xdata
+        nuevo_min = nuevo_centro - (nuevo_centro - x_min) * factor_zoom
+        nuevo_max = nuevo_centro + (x_max - nuevo_centro) * factor_zoom
+
+        # Ajusta los límites del eje x
+        ax.set_xlim(nuevo_min, nuevo_max)
+
+        # Reajusta las etiquetas de eje Y para que permanezcan en el lugar correcto
+        ax.set_yticks(
+            np.arange(hbar / 2, hbar * len(etiquetas_y) - hbar / 2 + hbar, hbar)
+        )
+        ax.set_yticklabels(etiquetas_y)
+
+        # Actualiza la visibilidad de las etiquetas de las barras
+        for barra_info in etiquetas_barras:
+            etiqueta = barra_info["label"]
+            etiqueta.set_visible(True)          # Mostrar por defecto
+            pos_x, _ = etiqueta.get_position()  # Coordenadas de la etiqueta
+            print(f"Posición de etiqueta: {pos_x}, Rango: ({nuevo_min}, {nuevo_max})")
+            if pos_x < nuevo_min or pos_x > nuevo_max:
+                etiqueta.set_visible(False)     # Ocultar si está fuera de rango
+        # Redibuja el gráfico
+        fig.canvas.draw_idle()
+
+    # Vincula el evento de scroll al gráfico
+    fig.canvas.mpl_connect('scroll_event', on_scroll)
+
 
 
 #generar_gantt_tecnicos(personal,  "2024-11-05", "08:45:00", horizonte_calculado)

@@ -46,12 +46,12 @@ def obtener_dia_semana(fecha):
     dia_semana_ingles = fecha.date().strftime("%A")        # Obtener el nombre del día de la semana en inglés
     return dias_semana[dia_semana_ingles]                           # Retornar la traducción al español
 
-
-# Ejemplo de uso
-#fecha = "2024-10-06"
-#dia_semana = obtener_dia_semana(fecha)
-#print(f"La fecha {fecha} es un {dia_semana}")
-
+"""
+ Ejemplo de uso
+fecha = "2024-10-06"
+dia_semana = obtener_dia_semana(fecha)
+print(f"La fecha {fecha} es un {dia_semana}")
+"""
 def siguiente_dia(fecha):
     return fecha  +1
 

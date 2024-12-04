@@ -162,7 +162,7 @@ class TablaVehiculos():     #Tabla para pedido
         for id in [proceso[0] for proceso in self.infoProcesos]:
 
             int_name = f"checkIntvar-{id}"                                        # generar el nombre de la IntVar del checkbutton
-            self.check_name_proceso = f"checkButton-{id}"                         # nombre del checkbutton
+            self.check_name_proceso = id                                          # nombre del checkbutton
             print(self.check_name_proceso)
             print(glo.intVar_procesos[int_name])
             glo.check_procesos[self.check_name_proceso] = ctk.CTkCheckBox(

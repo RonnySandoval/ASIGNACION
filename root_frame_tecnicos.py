@@ -49,7 +49,7 @@ class ContenidoTecnicos:
         for filasTecnicos in self.personal:
             columna = 0
             for columnasTecnicos in filasTecnicos:
-                ##################  LABELS  #################
+                ####################################  LABELS  ############################################
 
                 label_name_tecnico = f"labeltecnico_{fila}_{columna}_{filasTecnicos[1]}_{columnasTecnicos}"
                 print(label_name_tecnico)
@@ -61,13 +61,13 @@ class ContenidoTecnicos:
                 glo.lbl_Tecnicos[label_name_tecnico].grid(row= 2 + fila, column=0 + columna, sticky="ew", padx=0, pady=0)
 
 
-                ################ CHECKBUTTON ###############
+                ################################## CHECKBUTTON ##########################################
 
                 int_name = f"checkIntvar-{filasTecnicos[0]}"                          #nombre de variable asociada a las intvar
                 print(int_name)
                 glo.intVar_tecnicos[int_name] = tk.IntVar(value=1)                    # Guardar en el diccionario el nombre y la intvar
 
-                self.check_name_tecnico = f"checkButton-{fila}"                       # nombre del checkbutton
+                self.check_name_tecnico = filasTecnicos[0]                            # nombre del checkbutton
                 print(self.check_name_tecnico)
                 glo.check_tecnicos[self.check_name_tecnico] = ctk.CTkCheckBox(
                     self.frameTecnicosInterior, text="Programar", 

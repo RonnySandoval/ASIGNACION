@@ -34,6 +34,8 @@ pedido_seleccionado = None
 strVar_newPedido = {}
 cons_newPedido = {}
 
+base_datos = None
+raiz_principal = None
 ################################################
 ###### FRAMES DE CONTENIDOS PRINCIPALES ########
 class Contenidos:
@@ -70,8 +72,14 @@ class Contenidos:
                 self.filtroVehiculos,
                 self.contenidoDeReferencias]
 
-stateFrame = Contenidos()
+class ProgramaPlanta ():
+    def __init__(self):
+        self.procesos = None 
+        self.tecnicos = None
+        self.modelos = None
+        self.vehiculos = None
+        self.pedidos = None
 
-base_datos = None
-raiz_principal = None
+stateFrame = Contenidos()
+scheduling = ProgramaPlanta()
 

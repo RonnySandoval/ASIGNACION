@@ -4,7 +4,7 @@ from tkinter import messagebox, filedialog
 import CRUD
 import numpy as np
 
-def desea_exportar(excel, nombreVentana, df):
+def desea_exportar(nombreExcel, nombreVentana, df):
     respuesta = messagebox.askokcancel(f"Exportar {nombreVentana}", "¿Deseas exportar a un archivo .xlsx?")
     if respuesta:
         print("Click en Aceptar")
@@ -14,7 +14,7 @@ def desea_exportar(excel, nombreVentana, df):
             title="Exportar archivo a Excel",
             defaultextension=".xlsx",  # Extensión por defecto del archivo
             filetypes=(("Archivos Excel", "*.xlsx"), ("Todos los archivos", "*.*")),
-            initialfile=excel  # Nombre de archivo inicial sugerido
+            initialfile=nombreExcel  # Nombre de archivo inicial sugerido
         )
 
         if archivo:
@@ -25,11 +25,25 @@ def desea_exportar(excel, nombreVentana, df):
     else:
         print("Click en Cancelar")
 
-def ms_eliminar_tec(id_tecnico, nombre):
+def msg_eliminar_tec(id_tecnico, nombre):
     respuesta = messagebox.askokcancel(
-        title="Eliminar Eliminar",
+        title="Eliminar Técnico",
         message=f"¡Está a punto de eliminar el técnico {nombre} con id: {id_tecnico}!\n"
         "Este cambio afectará las tablas TECNICOS y TECNICOS_ESPECIALIDAD, y es irreversible.\n"
+        "¿Seguro desea eliminarlo?"
+    )
+    if respuesta:
+        print("Click en Aceptar")
+        return "Aceptar"
+    else:
+        print("Click en Cancelar")
+        return "Cancelar"
+
+def msg_eliminar_ped(id):
+    respuesta = messagebox.askokcancel(
+        title="Eliminar Pedido",
+        message=f"¡Está a punto de eliminar el pedido {id}!\n"
+        "Este cambio afectará las tablas de PEDIDOS, y es irreversible.\n"
         "¿Seguro desea eliminarlo?"
     )
     if respuesta:
@@ -71,7 +85,7 @@ def msg_eliminar_mod(modelo, vehiculos):
     else:
         print("Click en Cancelar")
         return "Cancelar"
-    
+
 def msg_registro_nulo(dataframe):
 
     registros = dataframe.to_dict(orient='records')    # Convertir el DataFrame a una lista de diccionarios
