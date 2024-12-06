@@ -8,6 +8,8 @@ import root_frame_pedidos       as framePedi
 import root_frame_detallePedido as frameDeta
 import root_frame_historicos    as frameHist
 import root_frame_referencias   as frameRefe
+import root_frame_programas     as frameProg
+import root_frame_ordenes       as frameOrde
 import glo
 
 # Configuración global del estilo de customtkinter
@@ -44,6 +46,18 @@ def construye_root(root):
 
 
     ################################################################################################################################################
+    ################################################### Añadir contenidos al frame de PROGRAMAS ######################################################
+    ################################################################################################################################################
+    glo.stateFrame.contenidoDeProgramas = frameProg.ContenidoProgramas(root.frameProgramas)
+    glo.stateFrame.tablaProgramas       = frameProg.TablaProgramas(glo.stateFrame.contenidoDeProgramas, root.frameProgramas, root, bbdd=glo.base_datos)
+    glo.stateFrame.filtroProgramas      = frameProg.FiltrosProgramas(glo.stateFrame.tablaProgramas, glo.stateFrame.contenidoDeProgramas, bbdd=glo.base_datos)
+
+    glo.stateFrame.contenidoDeOrdenes = frameOrde.ContenidoOrdenes(root.frameProgramas)
+    glo.stateFrame.tablaOrdenes       = frameOrde.TablaOrdenes(glo.stateFrame.contenidoDeOrdenes, root.frameProgramas, root, bbdd=glo.base_datos)
+    glo.stateFrame.filtroOrdenes     = frameOrde.FiltrosOrdenes(glo.stateFrame.tablaOrdenes, glo.stateFrame.contenidoDeOrdenes, bbdd=glo.base_datos)
+
+
+    ################################################################################################################################################
     ################################################### Añadir contenidos al frame de HISTÓRICOS ###################################################
     ################################################################################################################################################
     glo.stateFrame.contenidoDeHistoricos= frameHist.ContenidoHistoricos(root.frameHistoricos)
@@ -54,7 +68,7 @@ def construye_root(root):
     ################################################################################################################################################
     ################################################### Añadir contenidos al frame de REFERENCIAS ##################################################
     ################################################################################################################################################
-    glo.stateFrame.contenidoDeReferencias   = frameRefe.ContenidoReferencias(root.frameReferencias, bbdd='planta_manta.db')
+    glo.stateFrame.contenidoDeReferencias   = frameRefe.ContenidoReferencias(root.frameReferencias, bbdd=glo.base_datos)
 
 
     root.mainloop()

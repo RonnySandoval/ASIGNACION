@@ -28,7 +28,6 @@ def desplegar_nuevo(subMenu, root):
 def desplegar_abrir(subMenu, root):
     subMenu.add_command(label = "Abrir Planta", command = vent_abrir_planta)
 
-
 def vent_nueva_planta():
     mainEventos.step_crearNuevaPlanta()
     

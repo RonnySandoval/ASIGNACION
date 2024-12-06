@@ -1,5 +1,5 @@
 import tkinter as tk
-import ventanas_auxiliares
+import ventanas_topLevel
 from . import ventanasEliminar, ventanasImportar
 import eventos
 import glo
@@ -48,6 +48,6 @@ def vent_exportar(nombreVentana, bbdd):
     elif nombreVentana == "HISTORICOS":
         pass
 
-    ventana = ventanas_auxiliares.VentanaVistaPrevia(nombreVentana, dataframe, bbdd)
+    ventana = ventanas_topLevel.VentanaVistaPrevia(nombreVentana, dataframe, bbdd)
     ventana.asignafuncion(funcionAceptar  = lambda : eventos.aceptar_exportar_to_excel(ventana, dataframe, nombreVentana),
                           funcionCancelar = ventana.rootAux.destroy)

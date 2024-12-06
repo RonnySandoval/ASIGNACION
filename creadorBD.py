@@ -96,18 +96,20 @@ class PROGRAMAS(Base):
     __tablename__   = 'PROGRAMAS'
     ID_PROGRAMA     = Column(String, primary_key=True)
     DESCRIPCION     = Column(String)
+    CONSECUTIVO     = Column(Integer)
 
 class ORDENES(Base):
-    __tablename__   = 'ORDENES'
-    CODIGO_ORDEN    = Column(String, primary_key=True)
-    ID_PROGRAMA     = Column(String)
-    CHASIS          = Column(String)
-    ID_TECNICO      = Column(String)
-    ID_PROCESO      = Column(String)
-    OBSERVACIONES   = Column(String)
-    INICIO          = Column(Integer)
-    FIN             = Column(Integer)
-    DURACION        = Column(Integer)
+    __tablename__     = 'ORDENES'
+    CODIGO_ORDEN      = Column(String, primary_key=True)
+    ID_PROGRAMA       = Column(String)
+    CHASIS            = Column(String)
+    ID_TECNICO        = Column(String)
+    ID_PROCESO        = Column(String)
+    OBSERVACIONES     = Column(String)
+    INICIO            = Column(Integer)
+    FIN               = Column(Integer)
+    DURACION          = Column(Integer)
+    TIEMPO_PRODUCTIVO = Column(Integer)
 
 # Crear el motor de la base de datos y las tablas
 def crea_BBDD(nombre):

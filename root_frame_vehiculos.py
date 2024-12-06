@@ -151,7 +151,7 @@ class TablaVehiculos():     #Tabla para pedido
 
         self.botonProgramarPorProcesos= ctk.CTkButton(master=self.frameBotonesVehiculos, text="Programar POR PROCESO",
                                                       font=textoGrande, hover_color=amarilloOscuro, fg_color=naranjaOscuro, border_color = blancoFrio,
-                                                     corner_radius=20, command=lambda:self.programar_por_procesos("por procesos"), width=60)
+                                                     corner_radius=20, command=lambda:self.programar_por_procesos("procesos"), width=60)
         self.botonProgramarPorProcesos.pack(fill=tk.X, side="left", padx=15, pady=5)
 
         self.frameCheckProcesos = ctk.CTkFrame(contenedor, bg_color=moradoMedio)
@@ -260,17 +260,12 @@ class TablaVehiculos():     #Tabla para pedido
         
         self.llenarTabla(bbdd)
 
-    def programar_todo(self, tipoPrograma):
+    def programar_todo(self, tipoPrograma, bbdd):
+        vehiculos = self.vehiculos_seleccionados
+        if vehiculos == None:
+            ventanas_emergentes.messagebox.showerror("Programar vehiculos", "Aún no has seleccionado vehiculos para programar")
+            return
         eventos.recoge_check_tecnicos()
-        eventos.abrirFechayHoraProg(tipoPrograma)
-        ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel("programar_todo"))
+        eventos.abrirFechayHoraProg(tipoPrograma, bbdd)
+        ventanas_emergentes.desea_exportar(eventos.nombraArchivoExcel(tipoPrograma))
 
-    def programar_inmediato(self, tipoPrograma):
-        eventos.recoge_check_tecnicos() 
-        eventos.abrirFechayHoraProg(tipoPrograma)
-        ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel("programar_inmediato"))
-
-    def programar_por_procesos(self, tipoPrograma):
-        eventos.recoge_check_tecnicos()
-        eventos.abrirFechayHoraProg(tipoPrograma)
-        ventanas_emergentes.desea_guardar(eventos.nombraArchivoExcel("programar_inmediato"))

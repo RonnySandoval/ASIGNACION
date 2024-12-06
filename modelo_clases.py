@@ -135,7 +135,6 @@ class Vehiculo(VehiculoBase):               #Es cada vehiculo único que pasa po
                                'historico_estados': [],
                                'vueltas':[]}
 
-
     def reset(self):
         # Ahora restauramos los atributos específicos de Vehiculo
         super().reset()
@@ -222,7 +221,7 @@ class Vehiculo(VehiculoBase):               #Es cada vehiculo único que pasa po
                 Plazo: {self.plazo},
                 vueltas : {self.vueltas} \n"""
  
-class Tecnico():                                  # Es cada técnico con nombre e ID
+class Tecnico:                                  # Es cada técnico con nombre e ID
     
     def __init__(self, id_tecnico, nombre, especializacion):
 
@@ -402,7 +401,7 @@ class OrdenProduccion:
         chasis = self.chasis
         tecnico = self.nombre_tecnico
         proceso = self.proceso
-        self.codigo_orden = str(chasis) +'-' + '-'+ str(tecnico) + '-' + str(proceso)
+        self.codigo_orden = str(chasis)[-4:].upper() + str(tecnico)[-4:].upper() + str(proceso).upper() + str(int(self.duracion))
         return self.codigo_orden
 
     def almacenar_orden(self):
@@ -426,7 +425,7 @@ class OrdenProduccion:
         #CRUD.insertar_orden(*datos)
 
     def __repr__(self):
-        return f"Orden: {self.codigo_orden}, Chasis: {self.chasis},Modelo: {self.modelo}, Marca: {self.marca}, Color: {self.color}, Proceso: {self.proceso}, Id_tecnico: {self.id_tecnico} Tecnico: {self.nombre_tecnico}, Pedido(ID: {self.id_pedido}, Inicio: {self.inicio}, Fin: {self.fin}, Duración: {self.duracion}, Fecha Entrega: {self.plazo}"
+        return f"Orden: {self.codigo_orden}, Chasis: {self.chasis},Modelo: {self.modelo}, Marca: {self.marca}, Color: {self.color}, Proceso: {self.proceso}, Id_tecnico: {self.id_tecnico} Tecnico: {self.nombre_tecnico}, Pedido(ID: {self.pedido}, Inicio: {self.inicio}, Fin: {self.fin}, Duración: {self.duracion}, Fecha Entrega: {self.plazo}"
 
 class ProgramaDeProduccion:
     def __init__(self, ordenes):
@@ -442,9 +441,11 @@ class ProgramaDeProduccion:
     def to_dataframe(self):
         data = [vars(orden) for orden in self.ordenes]        # Convertir las órdenes en una lista de diccionarios
         return pd.DataFrame(data)                             # Crear un DataFrame a partir de la lista de diccionarios
+
 ######################################################################################################
-######################################### METODOS ESTATICOS ##########################################
+################################## FUNCIONES PARA SCHEDULING #########################################
 ######################################################################################################
+
 def programa_inmediato(pedido, tecnicos, horizonte, fechaStart, horaStart):
     print("INICIA EL PROGRAMADOR\n", "pedido", pedido.id_pedido)
     print("VEHICULOS:___________________\n", pedido.vehiculos)
@@ -541,9 +542,11 @@ def programa_inmediato(pedido, tecnicos, horizonte, fechaStart, horaStart):
 
     scheduling = ProgramaDeProduccion(listaOrdenes)
     df_scheduling = scheduling.to_dataframe()
-    df_scheduling.to_excel(f"programa_inmediato_{pedido.id_pedido}.xlsx", sheet_name="Hoja1", index=False)
+    #df_scheduling.to_excel(f"programa_inmediato_{pedido.id_pedido}.xlsx", sheet_name="Hoja1", index=False)
     print(df_scheduling.to_string())
-    return pedido.vehiculos
+    return {"id"         : "inmediato_"+ pedido.id_pedido,
+            "vehiculos"  : pedido.vehiculos,
+            "programa"   : df_scheduling}
 
 def programa_completo(pedido, tecnicos, horizonte, fechaStart, horaStart):
     print("INICIA EL PROGRAMADOR\n", "pedido", pedido.id_pedido)
@@ -664,24 +667,43 @@ def programa_completo(pedido, tecnicos, horizonte, fechaStart, horaStart):
 
     scheduling = ProgramaDeProduccion(listaOrdenes)
     df_scheduling = scheduling.to_dataframe()
-    df_scheduling.to_excel(f"programa_completo_{pedido.id_pedido}.xlsx", sheet_name="Hoja1", index=False)
+    #df_scheduling.to_excel(f"programa_completo_{pedido.id_pedido}.xlsx", sheet_name="Hoja1", index=False)
     print(df_scheduling.to_string())
-    return pedido.vehiculos
+    return {"id"         : "completo_"+ pedido.id_pedido,
+            "vehiculos"  : pedido.vehiculos,
+            "programa"   : df_scheduling}
 
-def programa_por_proceso(pedido, tecnicos, procesos, horizonte, fechaStart, horaStart, bbdd):
-
+def programar_procesos(pedido, tecnicos, procesos, horizonte, fechaStart, horaStart, bbdd):
     """
-    ETAPAS DE LA FUNCIÓN
-    1) Seleccionar los técnicos que tiene como especialidad los procesos a programar
-    2) Obtener los históricos de los vehiculos en la BBDD
-    3) obtener procesos y tiempos en BBDD para todos los vehiculos
-    4) ITERAR SOBRE CADA VEHICULO DE LA LISTA
-    4.1) obtener diccionario de tiempos restantes por chasis
-    4.2) seleccionar vehiculo con menor tiempo restante 
-    5) ITERAR SOBRE CADA PROCESO A PROGRAMAR
-    5.1) avanzar el primer proceso de la lista al vehiculo
-    5.2) asignar el vehiculo a un tecnico del proceso
-    5.3) generar la orden
+    Programa los procesos de un pedido asignando técnicos y generando un programa.
+
+    Args:
+        pedido (Pedido): Objeto de la clase Pedido que contiene la información del pedido.
+        tecnicos (list[Tecnico]): Lista de objetos de la clase Técnico disponibles.
+        procesos (list[str]): Lista de nombres de los procesos a programar.
+        horizonte (int): Tiempo en minutos del horizonte de programación.
+        fechaStart (datetime): Fecha de inicio del programa.
+        horaStart (datetime): Hora de inicio del programa.
+        bbdd (str): Nombre de la base de datos.
+
+    Returns:
+        dict: Diccionario que contiene:
+            - `vehiculos_actualizados` (list[Vehiculo]): Lista de objetos Vehículo con los históricos modificados.
+            - `programa` (pd.DataFrame): DataFrame con las órdenes generadas en el programa.
+
+    Etapas de la función:
+        1. Seleccionar los técnicos que tienen como especialidad los procesos a programar.
+        2. Obtener los históricos de los vehículos desde la base de datos.
+        3. Obtener los procesos y tiempos desde la base de datos para todos los vehículos.
+        4. Iterar sobre cada vehículo en la lista:
+            4.1. Obtener un diccionario con los tiempos restantes por chasis.
+            4.2. Seleccionar el vehículo con el menor tiempo restante.
+        5. Iterar sobre cada proceso a programar:
+            5.1. Avanzar el primer proceso de la lista para el vehículo.
+            5.2. Asignar el vehículo a un técnico especializado en el proceso.
+            5.3. Generar la orden correspondiente.
+            5.4. Remover vehículos ya asignados
+        6. Generar el programa de producción y convertirlo en un df
     """
 
     print("INICIA EL PROGRAMADOR\n", "pedido", pedido.id_pedido)
@@ -832,9 +854,11 @@ def programa_por_proceso(pedido, tecnicos, procesos, horizonte, fechaStart, hora
 
     scheduling = ProgramaDeProduccion(listaOrdenes)
     df_scheduling = scheduling.to_dataframe()
-    df_scheduling.to_excel(f"programa_{procesos}_{pedido.id_pedido}.xlsx", sheet_name="Hoja1", index=False)
+    #df_scheduling.to_excel(f"programa_{procesos}_{pedido.id_pedido}.xlsx", sheet_name="Hoja1", index=False)
     print(df_scheduling.to_string())
-    return pedido.vehiculos
+    return {"id"         :f"procesos{procesos}"+ pedido.id_pedido,
+            "vehiculos"  : pedido.vehiculos,
+            "programa"   : df_scheduling}
 
 def calcular_horizonte(pedido):
     vehiculos_programados = []                       # Lista para almacenar vehículos válidos

@@ -1,5 +1,5 @@
 import tkinter as tk
-import ventanas_auxiliares
+import ventanas_topLevel
 from . import ventanaNuevaPlanta, ventanaNuevoPedido, ventanaNuevoModelo, ventanaNuevoVehiculo, ventanaNuevoTecnico, ventanaNuevoProceso
 import eventos
 import glo
@@ -25,12 +25,12 @@ def vent_nuevo_pedido():
                           funcionCancelar = ventana.rootAux.destroy)                            # asignar los botones de guardar y cancelar en la ventana
     
 def vent_nuevo_modelo():
-    ventana = ventanas_auxiliares.VentanaCreaEditaModelo(accion="CREAR", bbdd=glo.base_datos)              #Llamar al constructor del objeto ventana
+    ventana = ventanas_topLevel.VentanaCreaEditaModelo(accion="CREAR", bbdd=glo.base_datos)              #Llamar al constructor del objeto ventana
     ventana.asignafuncion(funcionGuardar  = lambda:eventos.guardar_modelo_nuevo(accion = ventana, bbdd = glo.base_datos),
                           funcionCancelar = ventana.rootAux.destroy)                           #asignar los botones de guardar y cancelar en la ventana
 
 def vent_nuevo_vehiculo():
-    ventana = ventanas_auxiliares.VentanaGestionaVehiculos(accion = "AGREGAR", bbdd = glo.base_datos)      #Llamar al constructor del objeto ventana
+    ventana = ventanas_topLevel.VentanaGestionaVehiculos(accion = "AGREGAR", bbdd = glo.base_datos)      #Llamar al constructor del objeto ventana
     ventana.asignafuncion(funcionAgregar = lambda:eventos.aceptar_agregar_vehiculo(ventana, glo.base_datos),
                           funcionCancelar = ventana.rootAux.destroy)                                             #asignar los botones de guardar y cancelar en la ventana
 

@@ -7,9 +7,8 @@ import BBDD
 import glo
 import menu.stepsNuevaPlanta as steps_nueva_planta
 import menu.ventanaNuevaPlanta as ventanaNuevaPlanta
-import ventanas_auxiliares
+import ventanas_topLevel
 import ventanas_emergentes
-import Mod_clases, Mod_objetos
 import modelo_clases, modelo_instancias
 import modelo_llamarGantt
 import fechahora
@@ -172,7 +171,7 @@ def genera_tiempos_modelos_default(df_modelos, df_procesos):
 #####################################################################
 def crear_modelo(bbdd):
     print("pusó el botón crear modelo")
-    ventana = ventanas_auxiliares.VentanaCreaEditaModelo("CREAR", bbdd)              #Llamar al constructor del objeto ventana
+    ventana = ventanas_topLevel.VentanaCreaEditaModelo("CREAR", bbdd)              #Llamar al constructor del objeto ventana
     ventana.asignafuncion(funcionGuardar  = lambda:guardar_modelo_nuevo(ventana, bbdd),
                                funcionCancelar = lambda:cancelar(ventana))    #asignar los botones de guardar y cancelar en la ventana
 
@@ -234,7 +233,7 @@ def recoger_datos_modelo(filaBoton, bbdd):
 def editar_modelo(botonPulsado, bbdd):
     print(recoger_datos_modelo(botonPulsado, bbdd))
     datos = recoger_datos_modelo(botonPulsado, bbdd)                         # llamar a la función que recoge los datos de los entry en el panel de modelos
-    ventana = ventanas_auxiliares.VentanaCreaEditaModelo("EDITAR", bbdd)     # Llamar al constructor del objeto ventana para editar el modelo
+    ventana = ventanas_topLevel.VentanaCreaEditaModelo("EDITAR", bbdd)     # Llamar al constructor del objeto ventana para editar el modelo
     ventana.set_values(datos)                                                # llamar al metodo del objeto ventana creada, que llena los campos de modelo y tiempos
     ventana.asignafuncion(lambda:guardar_modelo_actualizado(ventana, datos, bbdd), lambda:cancelar(ventana))    #asignar los botones de guardar y cancelar en la ventana
 
@@ -304,7 +303,7 @@ def guardar_modelo_actualizado(ventana, datos_iniciales, bbdd):
 def agregar_vehiculo(botonPulsado, bbdd):
     datos = recoger_datos_modelo(botonPulsado, bbdd)
     print(datos)
-    ventana = ventanas_auxiliares.VentanaGestionaVehiculos("AGREGAR", bbdd)
+    ventana = ventanas_topLevel.VentanaGestionaVehiculos("AGREGAR", bbdd)
     ventana.set_values(datos, None, "AGREGAR")
     ventana.asignafuncion(lambda:aceptar_agregar_vehiculo(ventana, bbdd), lambda:cancelar(ventana))
 
@@ -431,7 +430,7 @@ def modificar_vehiculo_pedido(chasis_anterior, bbdd):
 
     print("Los datos en el modulo eventos son: ", datos)
     print("Los tiempos en el modulo eventos son: ", tiempos)
-    ventana = ventanas_auxiliares.VentanaGestionaVehiculos("MODIFICAR", bbdd)       #CREAR LA VENTANA EMERGENTE PARA EDITAR EL VEHICULO
+    ventana = ventanas_topLevel.VentanaGestionaVehiculos("MODIFICAR", bbdd)       #CREAR LA VENTANA EMERGENTE PARA EDITAR EL VEHICULO
     ventana.set_values(datos, tiempos, "MODIFICAR")                                        #AGREGAR LOS DATOS DE LA BBDD A LA VENTANA
     ventana.asignafuncion(lambda:modificarVH_en_BBDD(ventana, chasis_anterior, bbdd), lambda:cancelar(ventana))  #ASIGNAR BOTONES
 
@@ -513,11 +512,11 @@ def ventana_infoVehiculo(chasisVh, bbdd):
             message="No hay registros históricos del vehiculo con chasis "+ chasisVh)
         
     else:
-        ventana = ventanas_auxiliares.VentanaMuestraInfoVH(bbdd, registros_modificados, datosVehiculo)
+        ventana = ventanas_topLevel.VentanaMuestraInfoVH(bbdd, registros_modificados, datosVehiculo)
         ventana.asignafuncionBoton(lambda:cancelar(ventana))
 
 def ventana_AsignarUnVehiculo(chasis, bbdd):
-    ventana = ventanas_auxiliares.VentanaAsignaVehiculo(chasis, bbdd)
+    ventana = ventanas_topLevel.VentanaAsignaVehiculo(chasis, bbdd)
     ventana.asignaFuncion(funcionAceptar = lambda:aceptar_AsignarUnVehiculo(ventana, chasis, bbdd),
                           funcionCancelar = lambda:cancelar(ventana))
 
@@ -587,11 +586,11 @@ def eliminar_pedido_BD(id, bbdd):
 #####################################################################
 
 def ventanaResumenHistorico(id, bbdd):
-    ventana = ventanas_auxiliares.VentanaMuestraInfoHis(id, bbdd)
+    ventana = ventanas_topLevel.VentanaMuestraInfoHis(id, bbdd)
     ventana.asignafuncionBoton(funcionCerrar = ventana.rootAux.destroy)
 
 def ventanaCambiarEstado(id, bbdd):
-    ventana = ventanas_auxiliares.VentanaCambiarEstadoHist(id, bbdd)
+    ventana = ventanas_topLevel.VentanaCambiarEstadoHist(id, bbdd)
     ventana.asignafuncion(funcionAgregar  = lambda: aceptarCambiarEstado(),
                           funcionCancelar = ventana.rootAux.destroy)
 
@@ -611,102 +610,6 @@ def ventana_eliminarHistorico(id_historico):
 ###########################################################################
 #################### MANEJO DE ARCHIVOS DE EXCEL ##########################
 ###########################################################################
-
-
-def abrirFechayHoraProg(tipoPrograma, pedido):
-    ventana = ventanas_auxiliares.EstableceFechaHora(pedido)
-    ventana.asignaFuncion(lambda:aceptarFechayHoraProg(ventana, tipoPrograma), lambda:cancelar(ventana))
-    
-def aceptarFechayHoraProg(ventana, tipoPrograma):
-    fecha = ventana.varFecha.get()
-    hora = ventana.varHora.get()
-    print(f"Fecha: {fecha}, Hora: {hora}")
-    ventana.rootAux.destroy()
-
-    modelo_clases.obtiene_datos_iniciales()
-    procesos, objeModelos, objeVehiculos, objeTecnicos, objePedidos, tiempos = modelo_instancias.obtiene_datos_iniciales()
-
-    if tipoPrograma == "completo":
-        id_pedido = glo.pedido_seleccionado
-        modelo_clases.programa_completo(pedido     = objePedidos[id_pedido],
-                                        tecnicos   = modelo_clases.personal,
-                                        horizonte  = 4000,
-                                        fechaStart = fecha,
-                                        horaStart  = hora)
-        horizonte_calculado = Mod_clases.calcular_horizonte(objePedidos[id_pedido])
-        print(f"el horizonte es {horizonte_calculado}")
-
-        #GRAFICAR PROGRAMACIÓN EN GANTT##########
-        modelo_llamarGantt.generar_gantt_tecnicos(personal   = modelo_clases.personal,
-                                                  fechaStart = fecha,
-                                                  horaStart  = hora,
-                                                  horizonte_calculado=horizonte_calculado)
-        modelo_llamarGantt.generar_gantt_vehiculos(pedido     = objePedidos[id_pedido],
-                                                   fechaStart = fecha,
-                                                   horaStart  = hora,
-                                                   horizonte_calculado=horizonte_calculado)
-    
-    if tipoPrograma == "inmediato":
-        id_pedido = glo.pedido_seleccionado
-        modelo_clases.programa_inmediato(objePedidos[id_pedido],
-                                      tecnicos   = modelo_clases.personal,
-                                      horizonte  = 4000,
-                                      fechaStart = fecha,
-                                      horaStart  = hora)
-        horizonte_calculado = modelo_clases.calcular_horizonte(objePedidos[id_pedido])
-        print(f"el horizonte es {horizonte_calculado}")
-
-        #GRAFICAR PROGRAMACIÓN EN GANTT##########
-        modelo_llamarGantt.generar_gantt_tecnicos(personal = modelo_clases.personal,
-                                                  fechaStart = fecha,
-                                                  horaStart  = hora,
-                                                  horizonte_calculado=horizonte_calculado)
-        modelo_llamarGantt.generar_gantt_vehiculos(pedido  = objePedidos[id_pedido],
-                                                   fechaStart = fecha,
-                                                   horaStart  = hora,
-                                                   horizonte_calculado=horizonte_calculado)
-
-    if tipoPrograma == "por procesos":
-        
-        print("______________OBJEPEDIDOS________________\n", objePedidos)
-        print("______________GLOBAL PEDIDO______________\n",glo.pedido_seleccionado)
-        print("______________OBJETECNICOS________________\n", objeTecnicos)
-        print("______________GLOBAL TECNICOS______________\n",glo.check_tecnicos)
-        print("______________GLOBAL PROCESOS______________\n",glo.check_procesos)
-
-        pedido_a_programar   = [pedido for id, pedido in objePedidos.items()
-                                if pedido.id_pedido == glo.pedido_seleccionado][0]
-        
-        tecnicos_a_programar = [tecnico for id, tecnico in objeTecnicos.items()
-                                if glo.check_tecnicos.get(id).get() == 1]
-        
-        procesos_a_programar = [id_proceso for id_proceso, seleccionado in glo.check_procesos.items()
-                                if seleccionado.get() == 1]
-        
-        print(pedido_a_programar)
-        print(tecnicos_a_programar)
-        print(procesos_a_programar)
-
-        modelo_clases.programa_por_proceso(pedido     = pedido_a_programar,
-                                           tecnicos   = tecnicos_a_programar,
-                                           procesos   = procesos_a_programar,
-                                           horizonte  = 4000,
-                                           fechaStart = fecha,
-                                           horaStart  = hora,
-                                           bbdd       = glo.base_datos)
-        horizonte_calculado = modelo_clases.calcular_horizonte(pedido_a_programar)
-        print(f"el horizonte es {horizonte_calculado}")
-
-        #GRAFICAR PROGRAMACIÓN EN GANTT##########
-        modelo_llamarGantt.generar_gantt_tecnicos(personal    = tecnicos_a_programar,
-                                                  fechaStart  = fecha,
-                                                  horaStart   = hora,
-                                                  horizonte_calculado=horizonte_calculado)
-        modelo_llamarGantt.generar_gantt_vehiculos(pedido     =  pedido_a_programar,
-                                                   fechaStart = fecha,
-                                                   horaStart  = hora,
-                                                   horizonte_calculado=horizonte_calculado)
-
 def aceptar_cargar_referencias_excel(ventana, bbdd):
     ruta = ventana.ruta
     columns = ventana.varColumnas.get()
@@ -718,7 +621,7 @@ def aceptar_cargar_referencias_excel(ventana, bbdd):
     print("XLSX-->datosExcel: \n", dataframe)
     
     ventana.rootAux.destroy()
-    ventVistaPrevia = ventanas_auxiliares.VentanaVistaPreviaReferencias(dataframe, bbdd)
+    ventVistaPrevia = ventanas_topLevel.VentanaVistaPreviaReferencias(dataframe, bbdd)
     ventVistaPrevia.asignafuncion(funcionAceptar  = lambda: guardar_ReferenciasExcel_BBDD(ventVistaPrevia, dataframe, bbdd), 
                                   funcionCancelar = ventVistaPrevia.rootAux.destroy)
     return dataframe
@@ -746,7 +649,7 @@ def aceptar_cargar_pedido_excel(ventana, bbdd):
     print("XLSX-->datosExcel: \n", dataframe)
     
     ventana.rootAux.destroy()
-    ventVistaPrevia = ventanas_auxiliares.VentanaVistaPreviaPedido(dataframe, bbdd)
+    ventVistaPrevia = ventanas_topLevel.VentanaVistaPreviaPedido(dataframe, bbdd)
     ventVistaPrevia.asignafuncion(funcionAceptar  = lambda : guardar_PedidoExcel_BBDD(ventVistaPrevia, dataframe, bbdd), 
                                   funcionCancelar = ventVistaPrevia.rootAux.destroy)
 
@@ -824,13 +727,13 @@ def aceptar_cargar_excel(ventana, nombreVentana, bbdd):
     if nombreVentana == "PEDIDO":
         ventana.rootAux.destroy()
         funcion = lambda : guardar_PedidoExcel_BBDD(ventVistaPrevia, dataframe, bbdd)
-        ventVistaPrevia = ventanas_auxiliares.VentanaVistaPreviaPedido(dataframe, bbdd)
+        ventVistaPrevia = ventanas_topLevel.VentanaVistaPreviaPedido(dataframe, bbdd)
         ventVistaPrevia.asignafuncion(funcionAceptar  = lambda : guardar_PedidoExcel_BBDD(ventVistaPrevia, dataframe, bbdd), 
                                       funcionCancelar = ventVistaPrevia.rootAux.destroy)
         return
     
     ventana.rootAux.destroy()
-    ventVistaPrevia = ventanas_auxiliares.VentanaVistaPrevia(nombreVentana, dataframe, bbdd)
+    ventVistaPrevia = ventanas_topLevel.VentanaVistaPrevia(nombreVentana, dataframe, bbdd)
     ventVistaPrevia.asignafuncion(funcionAceptar  = funcion,
                                   funcionCancelar = ventVistaPrevia.rootAux.destroy)
 
@@ -882,7 +785,7 @@ def guardar_TiemposModelosExcel_BBDD(ventana, df, bbdd):
     df_idModelos_tiempos =df_idModelos_tiempos[["ID_MODELO"] +          # ubicamos de primera la columna de id_modelo
                                                [colum for colum in df_idModelos_tiempos
                                                 if colum !="ID_MODELO"]]
-    df_tiempos_modelos = transformar_dataframe(df_idModelos_tiempos, "MODELO")   # convertimos el dataframe a uno con la estructura de la tabla TIEMPOS_MODELOS en la BD
+    df_tiempos_modelos = transformar_dataframe_tiempos(df_idModelos_tiempos, "MODELO")   # convertimos el dataframe a uno con la estructura de la tabla TIEMPOS_MODELOS en la BD
     print(df_tiempos_modelos)
     ventana.rootAux.destroy()
     try:
@@ -897,7 +800,7 @@ def guardar_TiemposModelosExcel_BBDD(ventana, df, bbdd):
 
 def aceptar_agregar_referencias(ventana, bbdd):
     ventana.rootAux.destroy()
-    print("PRESIÓN AGREGAR REFERENCIAS")
+    print("PRESIONÓ AGREGAR REFERENCIAS")
     print("Aun no se almacenan, ni se cargan los modelos en el pedido")
 
 def aceptar_exportar_to_excel(ventana, df, nombreVentana):
@@ -940,6 +843,135 @@ def nombraArchivoExcel(nombre):
 def cancelar(ventana):
     ventana.rootAux.destroy()
 
+###############################################################################
+######################### EVENTOS PARA EL SCHEDULING ##########################
+###############################################################################
+
+def abrirFechayHoraProg(tipoPrograma, pedido, bbdd):
+    ventana = ventanas_topLevel.EstableceFechaHora(pedido)
+    ventana.asignaFuncion(lambda:aceptarFechayHoraProg(ventana, tipoPrograma, bbdd), lambda:cancelar(ventana))
+    
+def aceptarFechayHoraProg(ventana, tipoPrograma, bbdd):
+    #RECOGER LOS DATOS DE LA VENTANA DE FECHA Y HORA
+    fecha = ventana.varFecha.get()
+    hora = ventana.varHora.get()
+    print(f"Fecha: {fecha}, Hora: {hora}")
+    ventana.rootAux.destroy()
+
+    #RECOGER DE LA BASE DE DATOS TODA LA INFORMACIÓN DE LA PLANTA Y GENERAR LOS OBJETOS PARA EL PROGRAMADOR
+    modelo_clases.obtiene_datos_iniciales()
+    procesos, objeModelos, objeVehiculos, objeTecnicos, objePedidos, tiempos = modelo_instancias.obtiene_datos_iniciales()
+
+    #SELECCIONAR SOLO LOS TECNICOS INCLUIDOS A PROGRAMAR  
+    tecnicos_a_programar = [tecnico for id, tecnico in objeTecnicos.items()
+                            if glo.check_tecnicos.get(id).get() == 1]
+
+    pedido_a_programar   = [pedido for id, pedido in objePedidos.items()
+                                if pedido.id_pedido == glo.pedido_seleccionado][0]
+    
+    print("______________OBJEPEDIDOS________________\n", objePedidos)
+    print("______________GLOBAL PEDIDO______________\n",glo.pedido_seleccionado)
+    print("______________OBJETECNICOS________________\n", objeTecnicos)
+    print("______________GLOBAL TECNICOS______________\n",glo.check_tecnicos)
+    print("______________GLOBAL PROCESOS______________\n",glo.check_procesos)
+
+    if tipoPrograma == "completo":
+        diccPrograma = modelo_clases.programa_completo(pedido     = pedido_a_programar,
+                                                       tecnicos   = tecnicos_a_programar,
+                                                       horizonte  = 4000,
+                                                       fechaStart = fecha,
+                                                       horaStart  = hora)
+        horizonte_calculado = modelo_clases.calcular_horizonte(pedido_a_programar)
+        print(f"el horizonte es {horizonte_calculado}")
+
+    if tipoPrograma == "inmediato":
+        diccPrograma = modelo_clases.programa_inmediato(pedido     = pedido_a_programar,
+                                                        tecnicos   = tecnicos_a_programar,
+                                                        horizonte  = 4000,
+                                                        fechaStart = fecha,
+                                                        horaStart  = hora)
+        horizonte_calculado = modelo_clases.calcular_horizonte(pedido_a_programar)
+        print(f"el horizonte es {horizonte_calculado}")
+
+    if tipoPrograma == "por procesos":
+        
+        procesos_a_programar = [id_proceso for id_proceso, seleccionado in glo.check_procesos.items()
+                                if seleccionado.get() == 1]
+        
+        print(pedido_a_programar)
+        print(tecnicos_a_programar)
+        print(procesos_a_programar)
+
+        diccPrograma = modelo_clases.programar_procesos(pedido = pedido_a_programar,
+                                           tecnicos   = tecnicos_a_programar,
+                                           procesos   = procesos_a_programar,
+                                           horizonte  = 4000,
+                                           fechaStart = fecha,
+                                           horaStart  = hora,
+                                           bbdd       = glo.base_datos)
+        horizonte_calculado = modelo_clases.calcular_horizonte(pedido_a_programar)
+        print(f"el horizonte es {horizonte_calculado}")
+
+    ########## GRAFICAR PROGRAMACIÓN EN GANTT ##########
+    modelo_llamarGantt.generar_gantt_tecnicos(personal    = tecnicos_a_programar,
+                                              fechaStart  = fecha,
+                                              horaStart   = hora,
+                                              horizonte_calculado = horizonte_calculado)
+    modelo_llamarGantt.generar_gantt_vehiculos(pedido     =  pedido_a_programar,
+                                              fechaStart  = fecha,
+                                              horaStart   = hora,
+                                              horizonte_calculado = horizonte_calculado)
+    
+    ########## PREPARAR INFORMACIÓN PARA BASE DE DATOS ############
+    id_programa = diccPrograma["id"]
+    df_previo   = diccPrograma["programa"]
+    df_programa = transformar_dataframe_ordenes(df_ordenes  = df_previo,
+                                                id_programa = id_programa,
+                                                bbdd        = bbdd)
+    print(id_programa)
+    print(df_programa)
+
+
+    abrirVistaPrevia_programa(pedido    = pedido_a_programar,
+                              programa  = id_programa,
+                              df_to_BD  = df_programa,
+                              df_previo = df_previo,
+                              bbdd      = bbdd)
+
+
+def abrirVistaPrevia_programa(pedido, programa, df_to_BD, df_previo, bbdd):
+    titulo =f"Programa de producción\nPedido: {pedido.id_pedido}\nId Programa : {programa}"
+    ventana = ventanas_topLevel.VentanaVistaPrevia(nombreVentana = titulo,
+                                                   df            = df_previo,
+                                                   bbdd          = bbdd)
+    ventana.asignafuncion(funcionAceptar  = lambda : aceptar_guardar_programa(ventana, programa, df_to_BD, bbdd),
+                          funcionCancelar = ventana.rootAux.destroy)
+
+def aceptar_guardar_programa(ventana, programa, df_programa, bbdd):
+    id_inicial  = programa
+    consecutivo = BBDD.next_consecutivoPrograma(bbdd)
+    id_programa = id_inicial + "_" + str(consecutivo)
+    ventana.rootAux.destroy()
+    print(programa)
+    print(df_programa)
+
+    cargaOrdenes  = BBDD.insertar_ordenes_df(bbdd, df_programa)
+    cargaPrograma = BBDD.insertar_programa(bbdd, id_programa, consecutivo)
+
+    if cargaOrdenes is False:
+        if cargaPrograma is False:
+            ventanas_emergentes.messagebox.showinfo("Error al agregar programa y órdenes", f"Ocurrió un error al añadir las órdenes y el programa a la base de datos")
+        ventanas_emergentes.messagebox.showinfo("Error al agregar las órdenes", f"Ocurrió un error al añadir las órdenes a la base de datos") 
+
+    elif cargaPrograma is False:
+        ventanas_emergentes.messagebox.showinfo("Error al agregar programa", f"Ocurrió un error al añadir el programa a la base de datos")
+    
+    else:
+        ventanas_emergentes.messagebox.showinfo("Programa Agregado", f"Se agregaron correctamente las órdenes y el  programa de producción a la base de datos")
+
+###############################################################################
+###############################################################################
+###############################################################################
 
 
 ###############################################################################
@@ -960,7 +992,7 @@ def elimina_Duplicados_df(df, columna):
 ###############################################################################
 ####################### FUNCIONES PARA TRANSFORMAR DF #########################
 ###############################################################################
-def transformar_dataframe(df, ids):
+def transformar_dataframe_tiempos(df, ids):
     # Nombre de la primera columna
     if ids == "MODELO":
         columna_principal = "ID_MODELO"
@@ -1015,7 +1047,7 @@ def transformar_vehiculos_pedido_cargado(df, id_pedido, fecha_ingreso, bbdd):
         respuesta = ventanas_emergentes.msg_registro_nulo(registros_nulos)
         if respuesta == "yes":
             print(registros_nulos)
-            ventAgregaRef = ventanas_auxiliares.VentanaAgregarReferencias(registros_nulos, bbdd)
+            ventAgregaRef = ventanas_topLevel.VentanaAgregarReferencias(registros_nulos, bbdd)
             ventAgregaRef.asignaFuncion(funcionAgregar = lambda : aceptar_agregar_referencias(ventAgregaRef, bbdd),
                                         funcionCancelar = ventAgregaRef.rootAux.destroy)
         if respuesta == "No":
@@ -1069,3 +1101,34 @@ def transformar_vehiculos_pedido_cargado(df, id_pedido, fecha_ingreso, bbdd):
     print(df_para_BBDDtiemposVehiculos)                                  # Mostrar el nuevo DataFrame
     print("___________________TRANSFORMACION TERMINADA___________________")
     return df_para_BBDDVehiculos, df_para_BBDDtiemposVehiculos
+
+def transformar_dataframe_ordenes(df_ordenes, id_programa, bbdd):
+    """
+    Prepara un DataFrame para cargar a la base de datos.
+
+    Args:
+        df_ordenes (pd.DataFrame): DataFrame con la orden como la retorna el programador.
+        id_programa (str): Código de orden generado por el programador.
+        bbdd (str): Nombre de la base de datos.
+
+    Returns:
+        pd.DataFrame: DataFrame reducido con las columnas exactas para cargar a la base de datos.
+
+    Procedure:
+        1. Elimina del DataFrame de órdenes las columnas que no van en la base de datos.
+        2. Cambia el nombre de la columna "procesos" a "id_proceso".
+        3. Agrega una columna "id_programa" al DataFrame.
+    """
+
+    df_reducido = df_ordenes.drop(["marca",                           #RETIRAR LAS COLUMNAS QUE NO VAN EN LA BBDD
+                                    "modelo",
+                                    "color",
+                                    "novedades",
+                                    "pedido",
+                                    "nombre_tecnico",
+                                    "plazo"],
+                       axis=1)
+    df_reducido["id_programa"] = id_programa                           # AÑADIR EL MISMO PROGRAMA A TODAS LAS ÓRDENES
+    df_reducido = df_reducido.rename(columns={"proceso":"ID_PROCESO"}) # CAMBIAR EL NOMBRE DE LA COLUMNA DE PROCESO
+    print(df_reducido.to_string())
+    return df_reducido
