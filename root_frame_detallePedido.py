@@ -130,6 +130,7 @@ class TablaDetallePedido():     #Tabla para pedido
 
         if pedido is not None:
             self.datos = list(BBDD.leer_vehiculos_por_pedido(bbdd, pedido))
+
         print(self.datos)
 
         for item in self.tablaDetallePedi.get_children():

@@ -11,160 +11,50 @@ graficos_vehiculos = {}
 graficos_tecnicos = {}
 
 colores = {
-    "rojo": "#8B0000",  # Oscuro
-    "verde_oscuro": "#006400",
-    "azul_marino": "#000080",
-    "amarillo": "#CCCC00",  # Oscuro
-    "naranja": "#CC5500",  # Oscuro
-    "violeta": "#6A0DAD",  # Oscuro
-    "marrón": "#6F4F37",
-    "negro": "#000000",
-    "marrón_claro": "#4B3F26",  # Oscuro
-    "gris": "#808080",
-    "rojo_fuego": "#B22222",
-    "azul_pavo": "#4682B4",  # Oscuro
-    "rojo_rubí": "#9B111E",
-    "verde_lima": "#228B22",  # Oscuro
-    "azul_turquesa": "#008B8B",  # Oscuro
-    "rosa": "#B23276",  # Oscuro
-    "magenta": "#8B008B",  # Oscuro
-    "gris_oscuro": "#A9A9A9",
-    "perla": "#C0B0A4",  # Oscuro
-    "coral": "#8B3E2F",  # Oscuro
-    "fucsia": "#C71585",  # Oscuro
-    "chocolate": "#8B4513",
-    "caramelo": "#8B5A2B",  # Oscuro
-    "turquesa_oscuro": "#00CED1",
-    "esmeralda": "#2E8B57",  # Oscuro
-    "perla_claro": "#C4C4C4",  # Oscuro
-    "lavanda_oscuro": "#6A4C92",
-    "rojo_oscuro": "#8B0000",
-    "azul_acero": "#4682B4",
-    "verde_menta": "#98FB98",  # Oscuro
-    "verde_manzana": "#6B8E23",  # Oscuro
-    "verde_pastel": "#66CDAA",  # Oscuro
-    "verde_mar": "#2E8B57",
-    "perla_gris": "#B8B8B8",  # Oscuro
-    "lila": "#C8A2C8",
-    "jade": "#006747",  # Oscuro
-    "fucsia_claro": "#D700FF",  # Oscuro
-    "salmon": "#D2691E",  # Oscuro
-    "lavanda_claro": "#B080C7",  # Oscuro
-    "verde_pino": "#228B22",
-    "vino": "#800000",
-    "azul_indigo": "#4B0082",
-    "rosa_oscuro": "#C71585",
-    "amarillo_claro": "#CCCC00",  # Oscuro
-    "celeste": "#4682B4",  # Oscuro
-    "esmeralda_claro": "#2E8B57",
-    "rojo_claro": "#B22222",
-    "naranja_oscuro": "#FF8C00",
-    "gris_azulado": "#708090",
-    "gris_verde": "#9E9E9E",
-    "cobalto": "#0047AB",
-    "ciruela": "#8E4585",
-    "verde_agua": "#20B2AA",
-    "acero": "#A2A2A1",
-    "azul_piscina": "#2E8B57",  # Oscuro
-    "granate": "#9E2A2F",
-    "piedra": "#B6B6B6",
-    "beige": "#F5F5DC",
-    "melocotón": "#FFB07C",  # Oscuro
-    "madera": "#C2B280",
-    "azul_papel": "#5F9EA0",  # Oscuro
-    "café_oscuro": "#3E2723",
-    "carbón": "#333333",
-    "acero_azul": "#4682B4",
-    "beige_oscuro": "#C4A57C",  # Oscuro
-    "rojo_ladrillo": "#8B0000",
-    "oro": "#FFD700",
-    "verde_turquesa": "#40E0D0",
-    "morado_claro": "#8A2BE2",  # Oscuro
-    "madera_oscuro": "#6F4F37",
-    "pistacho": "#6E7B3C",  # Oscuro
-    "burlington": "#7D3C29",
-    "azul_golf": "#4B9CD3",
-    "turquesa": "#40E0D0",
-    "rosa_claro": "#D58D7A",  # Oscuro
-    "salmón_claro": "#FF9E3B",  # Oscuro
-    "lavanda": "#7A3D91",  # Oscuro
-    "cielo": "#4B8BBE",  # Oscuro
-    "rojo": "#8B0000",
-    "rojo_oscuro": "#8B0000",
-    "azul_galaxia": "#2A2D99",
-    "naranja_claro": "#FF6600",  # Oscuro
-    "madera_claro": "#9E7B4A",  # Oscuro
-    "grana": "#9E2A2F",
-    "morado": "#800080",
-    "turquesa_claro": "#008B8B",
-    "lima": "#9ACD32",  # Oscuro
-    "gris_claro": "#A9A9A9",
-    "gris_plata": "#A2A2A1",  # Oscuro
-    "piedra_claro": "#A3A3A3",  # Oscuro
-    "agua_marina": "#66CDAA",
-    "pistacho_claro": "#7C9A1F",   # Oscuro
     "azul_noche": "#1A1A7D",
     "marrón_oscuro": "#3E2A47",
     "gris_plomo": "#5A5A5A",
-    "rojo_morado": "#9B2335",
     "café_claro": "#4A2C2A",
-    "rosa_palo": "#C88C8C",
-    "madera_tierra": "#6F4F37",
-    "gris_antracita": "#2F4F4F",
-    "ocre": "#CC7722",
-    "verde_grisaceo": "#6B8E23",
-    "azul_tintado": "#4C6A92",
-    "naranja_oscuro_2": "#D75B4E",
-    "rojo_corcho": "#9C3D34",
-    "gris_oscuro_2": "#6C6C6C",
-    "verde_botella": "#006747",
-    "morado_vino": "#800000",
     "verde_hoja": "#2F6B3E",
-    "azul_oscuro_2": "#1D3C6A",
-    "negro_azulado": "#0A0F3D",
+    "azul_oscuro": "#003366",
+    "naranja_oscuro": "#D75B4E",
+    "rojo_vino": "#9B2335",
+    "verde_gris": "#6B8E23",
+    "gris_antracita": "#2F4F4F",
+    "rojo_oscuro": "#8B0000",
+    "madera_tierra": "#6F4F37",
+    "verde_oscuro": "#006400",
+    "morado_vino": "#800000",
+    "azul_tintado": "#4C6A92",
+    "marrón_rico": "#7A3F32",
+    "rojo_granate": "#9B111E",
+    "gris_plata": "#A2A2A1",
+    "azul_mediterráneo": "#2C75B2",
+    "verde_army": "#4B5320",
+    "café_miel": "#6B4F2F",
     "amarillo_terroso": "#BDBB73",
     "gris_roto": "#8A8A8A",
-    "marrón_toscano": "#6B4226",
-    "rojo_granate": "#9B111E",
-    "naranja_terroso": "#A53C2D",
-    "agua_marina_oscuro": "#4B8F8C",
-    "ocre_gris": "#B7A67E",
-    "verde_subido": "#468C45",
-    "rojo_frambuesa": "#990000",
-    "morado_oscuro_2": "#5A3D6E",
-    "cielo_piedra": "#8F8F8F",
-    "verde_oscuro_2": "#006400",
-    "azul_grisáceo": "#3B5F73",
-    "verde_army": "#4B5320",
-    "marrón_rico": "#7A3F32",
-    "gris_oxido": "#706C61",
-    "azul_gris_2": "#6A7F80",
-    "café_miel": "#6B4F2F",
-    "piedra_oscuro": "#5C5C5C",
-    "madera_natural": "#8B6F47",
-    "rojo_marrón": "#8B3A3A",
-    "gris_plata_2": "#A2A2A1",
-    "verde_oscuro_3": "#4B6A4E",
-    "azul_claro_oscuro": "#003366",
-    "amarillo_oscuro_2": "#7B7B00",
-    "gris_como_piedra": "#B8B8B8",
-    "madera_oscura_2": "#5D3F2C",
-    "rojo_ladrillo_2": "#8B2A1F",
-    "morado_oscuro_3": "#4E2C8C",
-    "azul_grisáceo_2": "#6B7F89",
-    "amarillo_tierra": "#9E7A2D",
-    "marrón_cobarde": "#B67A3D",
-    "verde_petróleo": "#2C6B3A",
     "rojo_cereza": "#9E1B32",
-    "gris_plata_3": "#C0C0C0",
-    "beige_oscuro_2": "#C3B091",
-    "azul_mediterráneo": "#2C75B2",
-    "verde_fango": "#4C5A3C",
+    "madera_natural": "#8B6F47",
+    "verde_subido": "#468C45",
+    "azul_grisáceo": "#3B5F73",
+    "naranja_terroso": "#A53C2D",
+    "madera_oscura": "#5D3F2C",
+    "rojo_frambuesa": "#990000",
+    "verde_turquesa": "#3F9C87",
+    "gris_como_piedra": "#B8B8B8",
+    "verde_oliva": "#6B8E23",
+    "rojo_marrón": "#8B3A3A",
+    "marrón_toscano": "#6B4226",
+    "azul_galaxia": "#2A2D99",
     "rojo_oscuridad": "#8B0000",
-    "café_turquesa": "#5B4D3A",
-    "naranja_tetra": "#8B4500"
-
+    "azul_pavo": "#5F9EA0",
+    "verde_agua": "#3C8D6E",
+    "gris_azulado": "#708090",
+    "verde_fango": "#4C5A3C",
+    "azul_grisáceo_2": "#6B7F89",
 }
+
 
 
 colores_tecnicos = {}                               # Diccionario para almacenar los colores de cada técnico

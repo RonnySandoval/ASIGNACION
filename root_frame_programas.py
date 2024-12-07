@@ -131,7 +131,7 @@ class TablaProgramas():     #Tabla para pedido
 
     def llenarTabla(self, bbdd):    # Agregar datos a la tabla    
         self.lectura = list(BBDD.leer_programas(bbdd))
-        self.datos = [(id, desc) for id, desc  in self.lectura]
+        self.datos = [(id, desc) for id, desc, consec  in self.lectura]
         print(self.datos)
         for record in self.datos:
             self.tablaProgramas.insert(parent='', index='end', iid=record[0], text='', values=record)

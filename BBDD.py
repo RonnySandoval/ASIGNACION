@@ -1543,7 +1543,7 @@ def leer_programas(bbdd):
         conn.close()
         print(datos)
         return datos
-    
+
 def leer_orden(bbdd, codigo):
     try:
         conn = sqlite3.connect(bbdd)
@@ -1561,86 +1561,83 @@ def leer_orden(bbdd, codigo):
         conn.close()
         return datos  # Retorna los datos si se encuentran
     
-def leer_ordenes_df(bbdd, dataframe):
-    try:
-        conn = sqlite3.connect(bbdd)
-        query = "SELECT * FROM ORDENES"
-        dataframe = pd.read_sql_query(query, conn)
-        print(dataframe)
-
-    except sqlite3.Error as e:
-        print(f"Error al leer la tabla de ordenes: {e}")
-        dataframe = None
-    finally:
-        conn.close()
-        return dataframe
-
-def leer_ordenes_por_programa(bbdd, pedido):
+def leer_ordenes_completo(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()
 
         cursor.execute('''
-                        SELECT 
-                            VEHICULOS.CHASIS,
+                        SELECT
+                            ORDENES.CODIGO_ORDEN,
+                            ORDENES.CHASIS,
+                            ORDENES.INICIO,
+                            ORDENES.FIN,
+                            ORDENES.DURACION,
+                            ORDENES.TIEMPO_PRODUCTIVO,
+                            PROCESOS.NOMBRE,
+                            ORDENES.OBSERVACIONES,
                             VEHICULOS.ID_MODELO,
                             VEHICULOS.COLOR,
-                            
-                            -- Subconsulta para obtener el nombre del proceso o 'ninguno' si es NULL
-                            COALESCE(
-                                (SELECT PROCESOS.NOMBRE
-                                FROM HISTORICOS
-                                JOIN PROCESOS ON HISTORICOS.ID_PROCESO = PROCESOS.ID_PROCESO
-                                WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
-                                AND HISTORICOS.ESTADO = 'EN EJECUCION'
-                                LIMIT 1),
-                                (SELECT PROCESOS.NOMBRE
-                                FROM HISTORICOS
-                                JOIN PROCESOS ON HISTORICOS.ID_PROCESO = PROCESOS.ID_PROCESO
-                                WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
-                                AND HISTORICOS.ESTADO = 'TERMINADO'
-                                AND HISTORICOS.FIN = (
-                                    SELECT MAX(FIN)
-                                    FROM HISTORICOS AS HIST2
-                                    WHERE HIST2.CHASIS = VEHICULOS.CHASIS AND HIST2.ESTADO = 'TERMINADO'
-                                )
-                                LIMIT 1),
-                                'ninguno'
-                            ) AS NOMBRE_PROCESO,
-                            
-                            -- Subconsulta para obtener el estado o 'ninguno' si es NULL
-                            COALESCE(
-                                (SELECT HISTORICOS.ESTADO
-                                FROM HISTORICOS
-                                WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
-                                AND HISTORICOS.ESTADO = 'EN EJECUCION'
-                                LIMIT 1),
-                                (SELECT HISTORICOS.ESTADO
-                                FROM HISTORICOS
-                                WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
-                                AND HISTORICOS.ESTADO = 'TERMINADO'
-                                AND HISTORICOS.FIN = (
-                                    SELECT MAX(FIN)
-                                    FROM HISTORICOS AS HIST2
-                                    WHERE HIST2.CHASIS = VEHICULOS.CHASIS AND HIST2.ESTADO = 'TERMINADO'
-                                )
-                                LIMIT 1),
-                                'ninguno'
-                            ) AS ESTADO
+                            TECNICOS.NOMBRE || TECNICOS.APELLIDO AS TECNICO
                         FROM
-                            VEHICULOS
+                            ORDENES
                         LEFT JOIN 
-                            PEDIDOS ON VEHICULOS.ID_PEDIDO = PEDIDOS.ID_PEDIDO
-                        WHERE
-                            PEDIDOS.ID_PEDIDO = ?
-                        GROUP BY
-                            VEHICULOS.CHASIS;
-                        ''', (pedido,))
+                            VEHICULOS ON VEHICULOS.CHASIS = ORDENES.CHASIS
+                        LEFT JOIN
+                            TECNICOS ON TECNICOS.ID_TECNICO = ORDENES.ID_TECNICO
+                        LEFT JOIN
+                            PROGRAMAS ON PROGRAMAS.ID_PROGRAMA = ORDENES.ID_PROGRAMA
+                        LEFT JOIN
+                            PROCESOS ON PROCESOS.ID_PROCESO = ORDENES.ID_PROCESO
+                        ''')
         registros = cursor.fetchall()
         print(registros)
 
     except sqlite3.Error as e:
-        print(f"Error al leer la Tabla de Tiempos_Vehiculos y de Vehiculos: {e}")
+        print(f"Error al leer alguna de las Tabla: de Órdenes, de Programas, de Vehículos o de Técnicos: {e}")
+        registros = None
+
+    finally:
+        conn.close()    # Cierra la conexión
+    
+    return registros
+
+def leer_ordenes_por_programa(bbdd, programa):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+
+        cursor.execute('''
+                        SELECT
+                            ORDENES.CODIGO_ORDEN,
+                            ORDENES.CHASIS,
+                            ORDENES.INICIO,
+                            ORDENES.FIN,
+                            ORDENES.DURACION,
+                            ORDENES.TIEMPO_PRODUCTIVO,
+                            PROCESOS.NOMBRE,
+                            ORDENES.OBSERVACIONES,
+                            VEHICULOS.ID_MODELO,
+                            VEHICULOS.COLOR,
+                            TECNICOS.NOMBRE || TECNICOS.APELLIDO AS TECNICO
+                        FROM
+                            ORDENES
+                        LEFT JOIN 
+                            VEHICULOS ON VEHICULOS.CHASIS = ORDENES.CHASIS
+                        LEFT JOIN
+                            TECNICOS ON TECNICOS.ID_TECNICO = ORDENES.ID_TECNICO
+                        LEFT JOIN
+                            PROGRAMAS ON PROGRAMAS.ID_PROGRAMA = ORDENES.ID_PROGRAMA
+                        LEFT JOIN
+                            PROCESOS ON PROCESOS.ID_PROCESO = ORDENES.ID_PROCESO
+                        WHERE
+                            PROGRAMAS.ID_PROGRAMA = ?
+                        ''', (programa,))
+        registros = cursor.fetchall()
+        print(registros)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer alguna de las Tabla: de Órdenes, de Programas, de Vehículos o de Técnicos: {e}")
         registros = None
 
     finally:
@@ -1753,6 +1750,30 @@ def actualizar_tiempo_vehiculo(bbdd, procvehi, id_proceso, chasis, tiempo, procv
     finally:
         conn.close()
 
+def actualizar_orden(bbdd, id_programa_anterior, id_programa_nuevo):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+
+        # Asegurar que los valores clave no sean None
+        if all(item is not None for item in (id_programa_anterior, id_programa_nuevo)):
+            
+            update_data_script = """UPDATE ORDENES
+                                    SET ID_PROGRAMA = ?
+                                    WHERE ID_PROGRAMA = ?
+                                """
+            
+            cursor.execute(update_data_script, (id_programa_nuevo, id_programa_anterior))
+            conn.commit()
+            print("Registros de órdenes actualizados")
+
+    except sqlite3.Error as e:
+        print(f"Error al actualizar la orden: {e}")
+
+    finally:
+        conn.close()
+
+actualizar_orden(bbdd='planta_tulcan.db', id_programa_anterior='procesosTELGUAYAQUIL_3_6', id_programa_nuevo='procesosTELGUAYAQUIL_3_6')
 ####################################################################
 ########################## ELIMINAR REGISTROS ######################
 

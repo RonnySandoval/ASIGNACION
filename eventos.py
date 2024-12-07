@@ -924,13 +924,13 @@ def aceptarFechayHoraProg(ventana, tipoPrograma, bbdd):
     
     ########## PREPARAR INFORMACIÓN PARA BASE DE DATOS ############
     id_programa = diccPrograma["id"]
+    id_programa_new = id_programa + "_" + str(BBDD.next_consecutivoPrograma(bbdd))
     df_previo   = diccPrograma["programa"]
     df_programa = transformar_dataframe_ordenes(df_ordenes  = df_previo,
-                                                id_programa = id_programa,
+                                                id_programa = id_programa_new,
                                                 bbdd        = bbdd)
-    print(id_programa)
+    print(id_programa_new)
     print(df_programa)
-
 
     abrirVistaPrevia_programa(pedido    = pedido_a_programar,
                               programa  = id_programa,
@@ -956,7 +956,7 @@ def aceptar_guardar_programa(ventana, programa, df_programa, bbdd):
     print(df_programa)
 
     cargaOrdenes  = BBDD.insertar_ordenes_df(bbdd, df_programa)
-    cargaPrograma = BBDD.insertar_programa(bbdd, id_programa, consecutivo)
+    cargaPrograma = BBDD.insertar_programa(bbdd, id_programa, None, consecutivo)
 
     if cargaOrdenes is False:
         if cargaPrograma is False:

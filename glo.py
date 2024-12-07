@@ -57,6 +57,14 @@ class Contenidos:
         self.tablaDetalles = None
         self.filtroDetalles = None
 
+        self.contenidoDeProgramas = None
+        self.tablaProgramas = None
+        self.filtroProgramas = None
+
+        self.contenidoDeOrdenes = None
+        self.tablaOrdenes = None
+        self.filtroOrdenes = None
+
         self.contenidoDeHistoricos = None
         self.tablaHistoricos = None
         self.filtroHistoricos = None
@@ -70,6 +78,21 @@ class Contenidos:
                 self.contenidoDeVehiculos,
                 self.tablaVehiculos,
                 self.filtroVehiculos,
+                self.contenidoDePedidos,
+                self.tablaPedidos,
+                self.filtroPedidos,
+                self.contenidoDeDetalles,
+                self.tablaDetalles,
+                self.filtroDetalles,
+                self.contenidoDeProgramas,
+                self.tablaProgramas,
+                self.filtroProgramas,
+                self.contenidoDeOrdenes,
+                self.tablaOrdenes,
+                self.filtroOrdenes,
+                self.contenidoDeHistoricos,
+                self.tablaHistoricos,
+                self.filtroHistoricos,
                 self.contenidoDeReferencias]
 
 class ProgramaPlanta ():

@@ -132,7 +132,7 @@ class TablaPedidos():     #Tabla para pedido
                                                      corner_radius=20, command=lambda:self.programar("inmediato", bbdd), width=60)
         self.botonProgramarInmediato.pack(fill=tk.X, side="left", padx=15, pady=5)
 
-        self.botonProgramarPorProcesos= ctk.CTkButton(master=self.frameBotonesPedidos, text="Programar POR PROCESO",
+        self.botonProgramarPorProcesos= ctk.CTkButton(master=self.frameBotonesPedidos, text="Programar POR PROCESOS",
                                                       font=textoGrande, hover_color=amarilloOscuro, fg_color=azulOscuro, border_color = blancoFrio,
                                                      corner_radius=20, command=lambda:self.programar("por procesos", bbdd), width=60)
         self.botonProgramarPorProcesos.pack(fill=tk.X, side="left", padx=15, pady=5)
@@ -260,8 +260,8 @@ class TablaPedidos():     #Tabla para pedido
     def programar(self, tipoPrograma, bbdd):
         pedido = self.pedido_seleccionado
         if pedido == None:
-            ventanas_emergentes.messagebox.showerror("Programar vehiculos", "Aún no has seleccionado un pedido para programar")
+            ventanas_emergentes.messagebox.showerror("Programar vehiculos", "Aún no ha seleccionado un pedido para programar")
             return
         eventos.recoge_check_tecnicos() 
         eventos.abrirFechayHoraProg(tipoPrograma, pedido, bbdd)
-        ventanas_emergentes.desea_exportar(eventos.nombraArchivoExcel(tipoPrograma))
+        #ventanas_emergentes.desea_exportar(eventos.nombraArchivoExcel(tipoPrograma))

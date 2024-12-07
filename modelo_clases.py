@@ -3,6 +3,8 @@ import BBDD
 import fechahora
 import glo
 import pandas as pd
+import random as rnd
+import re
 
 nombres_procesos = None
 id_procesos = None
@@ -401,7 +403,7 @@ class OrdenProduccion:
         chasis = self.chasis
         tecnico = self.nombre_tecnico
         proceso = self.proceso
-        self.codigo_orden = str(chasis)[-4:].upper() + str(tecnico)[-4:].upper() + str(proceso).upper() + str(int(self.duracion))
+        self.codigo_orden = str(chasis)[-4:].upper() + str(tecnico)[-4:].upper() + str(proceso).upper() + f"{rnd.randint(0, 9999):04d}"
         return self.codigo_orden
 
     def almacenar_orden(self):
@@ -544,7 +546,7 @@ def programa_inmediato(pedido, tecnicos, horizonte, fechaStart, horaStart):
     df_scheduling = scheduling.to_dataframe()
     #df_scheduling.to_excel(f"programa_inmediato_{pedido.id_pedido}.xlsx", sheet_name="Hoja1", index=False)
     print(df_scheduling.to_string())
-    return {"id"         : "inmediato_"+ pedido.id_pedido,
+    return {"id"         : reemplazar_caracteres("inmediato_"+ pedido.id_pedido),
             "vehiculos"  : pedido.vehiculos,
             "programa"   : df_scheduling}
 
@@ -669,7 +671,7 @@ def programa_completo(pedido, tecnicos, horizonte, fechaStart, horaStart):
     df_scheduling = scheduling.to_dataframe()
     #df_scheduling.to_excel(f"programa_completo_{pedido.id_pedido}.xlsx", sheet_name="Hoja1", index=False)
     print(df_scheduling.to_string())
-    return {"id"         : "completo_"+ pedido.id_pedido,
+    return {"id"         : reemplazar_caracteres("completo_"+ pedido.id_pedido),
             "vehiculos"  : pedido.vehiculos,
             "programa"   : df_scheduling}
 
@@ -856,7 +858,7 @@ def programar_procesos(pedido, tecnicos, procesos, horizonte, fechaStart, horaSt
     df_scheduling = scheduling.to_dataframe()
     #df_scheduling.to_excel(f"programa_{procesos}_{pedido.id_pedido}.xlsx", sheet_name="Hoja1", index=False)
     print(df_scheduling.to_string())
-    return {"id"         :f"procesos{procesos}"+ pedido.id_pedido,
+    return {"id"         : reemplazar_caracteres(f"procesos{procesos}"+ pedido.id_pedido),
             "vehiculos"  : pedido.vehiculos,
             "programa"   : df_scheduling}
 
@@ -874,3 +876,8 @@ def calcular_horizonte(pedido):
     else:
         print("No hay vehículos programados válidos.")
         return None
+
+def reemplazar_caracteres(cadena):
+    # Usamos expresiones regulares para reemplazar los caracteres no deseados
+    cadena_modificada = re.sub(r'''[\[\]{}\'",.]''', '', cadena)
+    return cadena_modificada
