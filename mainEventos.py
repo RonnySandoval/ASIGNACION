@@ -77,7 +77,7 @@ def crear_plantaBD(dataframes, name, description, ventana):
     df_merged = pd.merge(df_referencias, df_modelos, on='MODELO', how='left')       # Realiza el merge entre df_referencias y df_modelos
     df_referencias = df_merged [['REFERENCIA', 'ID_MODELO']]                            # Reasigna el dataframe
 
-    df_tecnicos, df_tecnicos_procesos = genera_df_tecnicos_proceso(df = df_tecnicos)
+    df_tecnicos, df_tecnicos_procesos = genera_df_tecnicos_proceso(df_tec = df_tecnicos, df_proc = df_procesos)
     df_tiempos_modelos = genera_tiempos_modelos_default(df_modelos, df_procesos)
     print(df_procesos)
     print(df_tecnicos)
@@ -129,22 +129,23 @@ def crear_plantaBD(dataframes, name, description, ventana):
     
     nueva_root(bbdd = base_datos)
 
-def genera_df_tecnicos_proceso(df): 
-    especialidad_cols = df.filter(like='ESPECIALIDAD').columns                                 # Filtrar columnas que contienen 'ESPECIALIDAD'
-    df_tecnicos = df.loc[:, ~df.columns.str.contains('ESPECIALIDAD')]                          # Eliminar las columnas que contienen la cadena 'ESPECIALIDAD'
+def genera_df_tecnicos_proceso(df_tec, df_proc): 
+    especialidad_cols = df_tec.filter(like='ESPECIALIDAD').columns                             # Filtrar columnas que contienen 'ESPECIALIDAD'
+    df_tecnicos = df_tec.loc[:, ~df_tec.columns.str.contains('ESPECIALIDAD')]                  # Eliminar las columnas que contienen la cadena 'ESPECIALIDAD'
     df_tecnicos = df_tecnicos[["ID_TECNICO", "NOMBRE", "APELLIDO","DOCUMENTO"]]                # Reordenamos las columnas
-    df_tecnicos["ESPECIALIDAD"] = df[especialidad_cols].apply(lambda row:
+    df_tecnicos["ESPECIALIDAD"] = df_tec[especialidad_cols].apply(lambda row:
                                                                ", ".join(row.dropna().
                                                                          astype(str)), axis=1) # Crear listas con valores de 'ESPECIALIDAD'
-
-
-    especialidades_columns = df.columns[df.columns.str.contains('ESPECIALIDAD')]               # Obtenemos las columnas 'ESPECIALIDAD', 'ESPECIALIDAD.1', etc.
+    especialidades_columns = df_tec.columns[df_tec.columns.str.contains('ESPECIALIDAD')]        # Obtenemos las columnas 'ESPECIALIDAD', 'ESPECIALIDAD.1', etc.
+    
     df_tecnicos_procesos = pd.DataFrame(columns=['TEC_PROC', 'ID_TECNICO', 'ID_PROCESO'])      # Ahora creamos un DataFrame donde concatenamos ID_TECNICO con las especialidades
+    ids_procesos = df_proc.set_index('NOMBRE')['ID_PROCESO'].to_dict()
+
 
     for col in especialidades_columns:                                                         # Iteramos sobre las columnas de especialidades para generar el nuevo DataFrame
-        temp_df = df[['ID_TECNICO', col]].dropna(subset=[col])                                 # Eliminamos filas con valores nulos en esa especialidad
-        temp_df['TEC_PROC'] = temp_df['ID_TECNICO'] + temp_df[col]                             # Concatenamos ID_TECNICO y el valor de la especialidad
-        temp_df['ID_PROCESO'] = temp_df[col]                                                   # Asignamos el valor de la especialidad a ID_PROCESO
+        temp_df = df_tec[['ID_TECNICO', col]].dropna(subset=[col])                             # Eliminamos filas con valores nulos en esa especialidad
+        temp_df['ID_PROCESO']=temp_df[col].map(ids_procesos)                                   # Asignamos el valor del id para la especialidad a ID_PROCESO
+        temp_df['TEC_PROC'] = temp_df['ID_TECNICO'] + temp_df['ID_PROCESO']                    # Concatenamos ID_TECNICO y el valor de la especialidad
         temp_df = temp_df[['TEC_PROC', 'ID_TECNICO', 'ID_PROCESO']]                            # Reordenamos las columnas
         df_tecnicos_procesos = pd.concat([df_tecnicos_procesos, temp_df], ignore_index=True)   # Concatenamos al DataFrame final
 

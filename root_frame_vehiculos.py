@@ -141,17 +141,17 @@ class TablaVehiculos():     #Tabla para pedido
         #Botones de programar pedido
         self.botonProgramarTodo = ctk.CTkButton(master=self.frameBotonesVehiculos ,text="Programar TODO",
                                                 font=textoGrande, hover_color=amarilloOscuro, fg_color=naranjaOscuro, border_color = blancoFrio,
-                                                corner_radius=20, command=lambda:self.programar_todo("completo"), width=60)
+                                                corner_radius=20, command=lambda:self.programar("completo", bbdd), width=60)
         self.botonProgramarTodo.pack(fill=tk.X, side="left", padx=15, pady=5)
 
         self.botonProgramarInmediato = ctk.CTkButton(master=self.frameBotonesVehiculos, text="Programar INMEDIATO",
                                                      font=textoGrande, hover_color=amarilloOscuro, fg_color=naranjaOscuro, border_color = blancoFrio,
-                                                     corner_radius=20, command=lambda:self.programar_inmediato("inmediato"), width=60)
+                                                     corner_radius=20, command=lambda:self.programar("inmediato", bbdd), width=60)
         self.botonProgramarInmediato.pack(fill=tk.X, side="left", padx=15, pady=5)
 
         self.botonProgramarPorProcesos= ctk.CTkButton(master=self.frameBotonesVehiculos, text="Programar POR PROCESO",
                                                       font=textoGrande, hover_color=amarilloOscuro, fg_color=naranjaOscuro, border_color = blancoFrio,
-                                                     corner_radius=20, command=lambda:self.programar_por_procesos("procesos"), width=60)
+                                                     corner_radius=20, command=lambda:self.programar("procesos", bbdd), width=60)
         self.botonProgramarPorProcesos.pack(fill=tk.X, side="left", padx=15, pady=5)
 
         self.frameCheckProcesos = ctk.CTkFrame(contenedor, bg_color=moradoMedio)
@@ -232,7 +232,7 @@ class TablaVehiculos():     #Tabla para pedido
         def modificar_vh(valores, bbdd):
             chasis_anterior = valores[0]
             print(f"modificará el chasis {chasis_anterior}")
-            eventos.modificar_vehiculo_pedido(chasis_anterior, bbdd)
+            eventos.modificar_datos_vehiculo(chasis_anterior, bbdd)
 
         def informacion_vh(valores, bbdd):
             chasis = valores[0]
@@ -260,7 +260,7 @@ class TablaVehiculos():     #Tabla para pedido
         
         self.llenarTabla(bbdd)
 
-    def programar_todo(self, tipoPrograma, bbdd):
+    def programar(self, tipoPrograma, bbdd):
         vehiculos = self.vehiculos_seleccionados
         if vehiculos == None:
             ventanas_emergentes.messagebox.showerror("Programar vehiculos", "Aún no has seleccionado vehiculos para programar")

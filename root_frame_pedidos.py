@@ -228,7 +228,7 @@ class TablaPedidos():     #Tabla para pedido
         def modificar_vh(valores, bbdd):
             id_anterior = valores[0]
             print(f"modificará el chasis {id_anterior}")
-            eventos.modificar_vehiculo_pedido(id_anterior, bbdd)
+            eventos.modificar_datos_vehiculo(id_anterior, bbdd)
 
         def informacion_vh(valores, bbdd):
             id_pedido = valores[0]

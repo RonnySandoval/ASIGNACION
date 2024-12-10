@@ -7,8 +7,29 @@ import fechahora
 
 
 ###########################################################################
-############################# ELIMINAR TABLAS##############################
+########################### MANEJO DE TABLAS ##############################
 ###########################################################################
+def crear_tabla(bbdd):
+    try:
+        # Conectarse a la base de datos
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+        
+        # Crear el comando SQL para eliminar la tabla
+        drop_table_script = f'''CREATE TABLE IF NOT EXISTS TECNICOS_PROCESOS_PRUEBA (
+        TEC_PROC TEXT PRIMARY KEY,
+        ID_TECNICO TEXT NOT NULL,
+        ID_PROCESO TEXT NOT NULL)'''
+        cursor.execute(drop_table_script)
+        conn.commit()
+        print(f"Tabla creada exitosamente.")
+        
+    except sqlite3.Error as e:
+        print(f"Error al crear la tabla: {e}")
+    
+    finally:
+        conn.close()
+
 def eliminar_tabla(bbdd, nombre_tabla):
     try:
         # Conectarse a la base de datos
@@ -27,9 +48,24 @@ def eliminar_tabla(bbdd, nombre_tabla):
     finally:
         conn.close()
 
+def renombrar_tabla(bbdd, tabla_actual, nueva_tabla):
+    # Conectar a la base de datos
+    conn = sqlite3.connect(bbdd)
+    cursor = conn.cursor()
+
+    try:
+        # Renombrar la tabla
+        cursor.execute(f"ALTER TABLE {tabla_actual} RENAME TO {nueva_tabla}")
+        print(f"Tabla '{tabla_actual}' renombrada a '{nueva_tabla}' correctamente.")
+    except sqlite3.Error as e:
+        print(f"Error al renombrar la tabla: {e}")
+    finally:
+        # Cerrar la conexión
+        conn.commit()
+        conn.close()
 
 ###########################################################################
-############################# PARA PARA INSERTAR ###########################
+############################# PARA PARA INSERTAR ##########################
 ###########################################################################
 
 def insertar_info_planta(bbdd, nombre, descripcion):
@@ -232,6 +268,27 @@ def insertar_tecnico(bbdd, id, nombre, apellido, documento, especialidad):
     finally:
         conn.close()
 
+def insertar_tecnico_proceso(bbdd, proc_tec, id_tecnico, id_proceso):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()          
+        insert_data_script = """INSERT INTO TECNICOS_PROCESOS
+                                    (TEC_PROC, ID_TECNICO, ID_PROCESO)
+                                    VALUES (?, ?, ?)
+                                """
+        cursor.execute(insert_data_script, (proc_tec, id_tecnico, id_proceso))
+        conn.commit()
+        print("Registro de especialidad de técnico añadido")
+        
+    except sqlite3.Error as e:
+        print(f"Error al insertar el registro de especialidad de técnico: {e}")
+
+    except UnboundLocalError as e:
+        print(f"No se llenaron todos los campos: {e}") 
+
+    finally:
+        conn.close()
+
 def insertar_tecnicos_df(bbdd, dataframe):
     try:
         conn = sqlite3.connect(bbdd)
@@ -275,7 +332,6 @@ def insertar_tecnicos_procesos_df(bbdd, dataframe):
         conn.close()
         request = None
         return request
-
 
 def insertar_vehiculo(bbdd, chasis, fecha_ingreso, id_modelo, color, novedades, subcontratar, id_pedido):
     try:
@@ -494,6 +550,159 @@ def insertar_programa(bbdd, nombrePrograma, descripcion, consecutivo):
 ############################ PARA PARA LEER ###############################
 ###########################################################################
 
+def leer_historicos(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+
+        cursor.execute('SELECT * FROM HISTORICOS')
+        registros = cursor.fetchall()
+        print(registros)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la Tabla de Históricoss: {e}")
+
+    finally:
+        conn.close()
+
+    return registros
+
+def leer_historicos_completo(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+
+        cursor.execute('''SELECT DISTINCT
+                            h.CODIGO_ASIGNACION,
+                            h.CHASIS,
+                            t.NOMBRE AS NOMBRE_TECNICO,
+                            p.NOMBRE AS NOMBRE_PROCESO,
+                            v.ID_MODELO,
+                            v.COLOR,
+                            h.INICIO,
+                            h.FIN,
+                            h.DURACION,
+                            h.ESTADO,
+                            v.NOVEDADES,
+                            h.OBSERVACIONES,
+                            v.SUBCONTRATAR,
+                            v.ID_PEDIDO
+                        FROM 
+                            HISTORICOS AS h
+                        JOIN 
+                            PROCESOS AS p ON h.ID_PROCESO = p.ID_PROCESO
+                        JOIN 
+                            TECNICOS AS t ON h.ID_TECNICO = t.ID_TECNICO
+                        JOIN 
+                            VEHICULOS AS v ON h.CHASIS = v.CHASIS''')
+        registros = cursor.fetchall()
+        print(registros)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la Tabla de Tiempos_Vehiculos y de Vehiculos: {e}")
+        registros = None
+
+    finally:
+        conn.close()    # Cierra la conexión
+    
+    return registros
+
+def leer_historico_chasis(bbdd, chasis):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+
+        cursor.execute('SELECT * FROM HISTORICOS WHERE CHASIS = ?', (chasis,))
+        registros = cursor.fetchall()
+        print(registros)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la Tabla de Históricos: {e}")
+        registros = None
+        
+    finally:
+        conn.close()
+
+    return registros
+
+def leer_historico_completo(bbdd, chasis):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+        vehiculo = chasis
+        cursor.execute('''SELECT 
+                            h.CODIGO_ASIGNACION,
+                            h.CHASIS,
+                            t.NOMBRE || ' ' || t.APELLIDO AS NOMBRE_COMPLETO,
+                            h.ID_PROCESO,
+                            v.ID_MODELO,
+                            v.COLOR,
+                            h.INICIO,
+                            h.FIN,
+                            h.DURACION,
+                            h.ESTADO,
+                            v.NOVEDADES,
+                            h.OBSERVACIONES,
+                            v.SUBCONTRATAR,
+                            v.ID_PEDIDO
+                        FROM 
+                            HISTORICOS AS h
+                        JOIN 
+                            TECNICOS AS t ON h.ID_TECNICO = t.ID_TECNICO
+                        JOIN 
+                            VEHICULOS AS v ON h.CHASIS = v.CHASIS
+                        WHERE h.CHASIS = ?''', (vehiculo,))
+        registros = cursor.fetchall()
+        print(registros)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la Tabla de Tiempos_Vehiculos y de Vehiculos: {e}")
+        registros = None
+
+    finally:
+        conn.close()    # Cierra la conexión
+    
+    return registros
+
+def leer_historico_completo_porId(bbdd, id):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+        codigo = id
+        cursor.execute('''SELECT 
+                            h.CODIGO_ASIGNACION,
+                            h.CHASIS,
+                            t.NOMBRE || ' ' || t.APELLIDO AS NOMBRE_COMPLETO,
+                            h.ID_PROCESO,
+                            v.ID_MODELO,
+                            v.COLOR,
+                            h.INICIO,
+                            h.FIN,
+                            h.DURACION,
+                            h.ESTADO,
+                            v.NOVEDADES,
+                            v.SUBCONTRATAR,
+                            h.OBSERVACIONES,
+                            v.ID_PEDIDO
+                        FROM 
+                            HISTORICOS AS h
+                        JOIN 
+                            TECNICOS AS t ON h.ID_TECNICO = t.ID_TECNICO
+                        JOIN 
+                            VEHICULOS AS v ON h.CHASIS = v.CHASIS
+                        WHERE h.CODIGO_ASIGNACION = ?''', (codigo,))
+        registro = cursor.fetchone()
+        print(registro)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la Tabla de Tiempos_Vehiculos y de Vehiculos: {e}")
+        registro = None
+
+    finally:
+        conn.close()    # Cierra la conexión
+    
+    return registro
+
 def leer_ids_proceso_modelo(bbdd, proc_modelo):
     try:
         conn = sqlite3.connect(bbdd)
@@ -512,6 +721,79 @@ def leer_ids_proceso_modelo(bbdd, proc_modelo):
     finally:
         conn.close()
         return datos
+
+def leer_modelo(bbdd, id_modelo):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()          
+        id = id_modelo
+        cursor.execute("SELECT * FROM MODELOS WHERE ID_MODELO=?", (id,))
+        datos = cursor.fetchone()
+        print(datos)
+    except sqlite3.Error as e:
+        print(f"Error al leer el registro: {e}")
+
+    finally:
+        conn.close()
+        return datos
+
+def leer_modelos(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()          
+        cursor.execute("SELECT * FROM MODELOS")
+        datos = cursor.fetchall()
+        conn.commit()
+        
+    except sqlite3.Error as e:
+        print(f"Error al leer el registro: {e}")
+        datos = None
+
+    finally:
+        conn.close()
+        return datos
+
+def leer_modelos_marcas(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()          
+        cursor.execute("SELECT MARCA, MODELO FROM MODELOS")
+        datos = cursor.fetchall()
+        print(datos)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer el registro: {e}")
+
+    finally:
+        conn.close()
+        return datos
+
+def leer_modelos_marcas_df(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        query = "SELECT ID_MODELO, MARCA, MODELO FROM MODELOS"
+        dataframe = pd.read_sql_query(query, conn)
+        print(dataframe)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la tabla de marcas y modelos: {e}")
+        dataframe = None
+    finally:
+        conn.close()
+        return dataframe
+
+def leer_modelos_id_modelos(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        df_datos = pd.read_sql_query("SELECT MODELO, ID_MODELO FROM MODELOS", conn)
+        print(df_datos)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer el registro: {e}")
+
+    finally:
+        conn.close()
+    return df_datos
 
 def leer_procesos(bbdd):
     try:
@@ -581,79 +863,6 @@ def leer_procesos_df(bbdd):
         conn.close()
         return dataframe
 
-def leer_modelos(bbdd):
-    try:
-        conn = sqlite3.connect(bbdd)
-        cursor = conn.cursor()          
-        cursor.execute("SELECT * FROM MODELOS")
-        datos = cursor.fetchall()
-        conn.commit()
-        
-    except sqlite3.Error as e:
-        print(f"Error al leer el registro: {e}")
-        datos = None
-
-    finally:
-        conn.close()
-        return datos
-
-def leer_modelo(bbdd, id_modelo):
-    try:
-        conn = sqlite3.connect(bbdd)
-        cursor = conn.cursor()          
-        id = id_modelo
-        cursor.execute("SELECT * FROM MODELOS WHERE ID_MODELO=?", (id,))
-        datos = cursor.fetchone()
-        print(datos)
-    except sqlite3.Error as e:
-        print(f"Error al leer el registro: {e}")
-
-    finally:
-        conn.close()
-        return datos
-
-def leer_modelos_marcas(bbdd):
-    try:
-        conn = sqlite3.connect(bbdd)
-        cursor = conn.cursor()          
-        cursor.execute("SELECT MARCA, MODELO FROM MODELOS")
-        datos = cursor.fetchall()
-        print(datos)
-
-    except sqlite3.Error as e:
-        print(f"Error al leer el registro: {e}")
-
-    finally:
-        conn.close()
-        return datos
-
-def leer_modelos_marcas_df(bbdd):
-    try:
-        conn = sqlite3.connect(bbdd)
-        query = "SELECT ID_MODELO, MARCA, MODELO FROM MODELOS"
-        dataframe = pd.read_sql_query(query, conn)
-        print(dataframe)
-
-    except sqlite3.Error as e:
-        print(f"Error al leer la tabla de marcas y modelos: {e}")
-        dataframe = None
-    finally:
-        conn.close()
-        return dataframe
-
-def leer_modelos_id_modelos(bbdd):
-    try:
-        conn = sqlite3.connect(bbdd)
-        df_datos = pd.read_sql_query("SELECT MODELO, ID_MODELO FROM MODELOS", conn)
-        print(df_datos)
-
-    except sqlite3.Error as e:
-        print(f"Error al leer el registro: {e}")
-
-    finally:
-        conn.close()
-    return df_datos
-
 def leer_tecnicos(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
@@ -705,6 +914,60 @@ def leer_tecnicos_modificado(bbdd):
     
     return datos_modificados
 
+def leer_tecnicos_procesos_df(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        query = "SELECT * FROM TECNICOS_PROCESOS"
+        dataframe = pd.read_sql_query(query, conn)
+        print(dataframe)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la tabla de especialidades de tecnicos: {e}")
+        dataframe = None
+
+    except Exception as e:
+        print(f"Error al leer la base de datos: {e}")
+        datos_modificados = None
+    finally:
+        conn.close()
+        return dataframe
+
+def leer_tecnicos_por_proceso(bbdd, id_proceso):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()          
+        cursor.execute("""
+                    SELECT
+                       *
+                    FROM
+                       TECNICOS
+                    LEFT JOIN
+                       TECNICOS_PROCESOS
+                    ON
+                       TECNICOS_PROCESOS.ID_TECNICO = TECNICOS.ID_TECNICO
+                    WHERE
+                       TECNICOS_PROCESOS.ID_PROCESO = ?
+                       """,
+                    (id_proceso))
+        datos = cursor.fetchall()
+        
+        # Modificar los datos según lo solicitado
+        datos_modificados = [
+            (tecnico[0],
+             f"{tecnico[1]} {tecnico[2]}",
+             tecnico[4])
+            for tecnico in datos
+        ]
+        
+    except sqlite3.Error as e:
+        print(f"Error al leer el registro de especialidades de técnicos: {e}")
+        datos_modificados = []  # Inicializar como lista vacía en caso de error
+
+    finally:
+        conn.close()
+    
+    return datos_modificados
+
 def leer_vehiculo(bbdd, chasis):
     try:
         conn = sqlite3.connect(bbdd)
@@ -715,8 +978,7 @@ def leer_vehiculo(bbdd, chasis):
                             CHASIS,
                             FECHA_INGRESO,
                             ID_MODELO,
-                            COLOR, 
-                            ESTADO,
+                            COLOR,
                             NOVEDADES,
                             SUBCONTRATAR,
                             ID_PEDIDO
@@ -728,6 +990,7 @@ def leer_vehiculo(bbdd, chasis):
 
     except sqlite3.Error as e:
         print(f"Error al leer el vehiculo: {e}")
+        registro = False
 
     finally:
         conn.close()
@@ -780,10 +1043,18 @@ def leer_vehiculo_completo(bbdd, chasis):
 
         vehiculo = chasis
         cursor.execute('''
-                        SELECT VEHICULOS.*, TIEMPOS_VEHICULOS.ID_PROCESO, TIEMPOS_VEHICULOS.TIEMPO
-                        FROM VEHICULOS LEFT JOIN TIEMPOS_VEHICULOS
-                        ON VEHICULOS.CHASIS = TIEMPOS_VEHICULOS.CHASIS
-                        WHERE VEHICULOS.CHASIS = ?
+                    SELECT
+                        VEHICULOS.*,
+                        TIEMPOS_VEHICULOS.ID_PROCESO,
+                        TIEMPOS_VEHICULOS.TIEMPO
+                    FROM
+                        VEHICULOS
+                    LEFT JOIN
+                        TIEMPOS_VEHICULOS
+                    ON
+                        VEHICULOS.CHASIS = TIEMPOS_VEHICULOS.CHASIS
+                    WHERE
+                        VEHICULOS.CHASIS = ?
                         ''', (vehiculo,))
         
         registros = cursor.fetchall()  # Esto puede ser None si no hay resultados
@@ -1143,158 +1414,6 @@ def calcula_procesos(bbdd):
     conn.close()
     return numero_registros
 
-def leer_historicos(bbdd):
-    try:
-        conn = sqlite3.connect(bbdd)
-        cursor = conn.cursor()
-
-        cursor.execute('SELECT * FROM HISTORICOS')
-        registros = cursor.fetchall()
-        print(registros)
-
-    except sqlite3.Error as e:
-        print(f"Error al leer la Tabla de Históricoss: {e}")
-
-    finally:
-        conn.close()
-
-    return registros
-
-def leer_historicos_completo(bbdd):
-    try:
-        conn = sqlite3.connect(bbdd)
-        cursor = conn.cursor()
-
-        cursor.execute('''SELECT DISTINCT
-                            h.CODIGO_ASIGNACION,
-                            h.CHASIS,
-                            t.NOMBRE AS NOMBRE_TECNICO,
-                            p.NOMBRE AS NOMBRE_PROCESO,
-                            v.ID_MODELO,
-                            v.COLOR,
-                            h.INICIO,
-                            h.FIN,
-                            h.DURACION,
-                            h.ESTADO,
-                            v.NOVEDADES,
-                            h.OBSERVACIONES,
-                            v.SUBCONTRATAR,
-                            v.ID_PEDIDO
-                        FROM 
-                            HISTORICOS AS h
-                        JOIN 
-                            PROCESOS AS p ON h.ID_PROCESO = p.ID_PROCESO
-                        JOIN 
-                            TECNICOS AS t ON h.ID_TECNICO = t.ID_TECNICO
-                        JOIN 
-                            VEHICULOS AS v ON h.CHASIS = v.CHASIS''')
-        registros = cursor.fetchall()
-        print(registros)
-
-    except sqlite3.Error as e:
-        print(f"Error al leer la Tabla de Tiempos_Vehiculos y de Vehiculos: {e}")
-        registros = None
-
-    finally:
-        conn.close()    # Cierra la conexión
-    
-    return registros
-
-def leer_historico(bbdd, chasis):
-    try:
-        conn = sqlite3.connect(bbdd)
-        cursor = conn.cursor()
-
-        cursor.execute('SELECT * FROM HISTORICOS WHERE CHASIS = ?', (chasis,))
-        registros = cursor.fetchall()
-        print(registros)
-
-    except sqlite3.Error as e:
-        print(f"Error al leer la Tabla de Históricos: {e}")
-
-    finally:
-        conn.close()
-
-    return registros
-
-def leer_historico_completo(bbdd, chasis):
-    try:
-        conn = sqlite3.connect(bbdd)
-        cursor = conn.cursor()
-        vehiculo = chasis
-        cursor.execute('''SELECT 
-                            h.CODIGO_ASIGNACION,
-                            h.CHASIS,
-                            t.NOMBRE || ' ' || t.APELLIDO AS NOMBRE_COMPLETO,
-                            h.ID_PROCESO,
-                            v.ID_MODELO,
-                            v.COLOR,
-                            h.INICIO,
-                            h.FIN,
-                            h.DURACION,
-                            h.ESTADO,
-                            v.NOVEDADES,
-                            h.OBSERVACIONES,
-                            v.SUBCONTRATAR,
-                            v.ID_PEDIDO
-                        FROM 
-                            HISTORICOS AS h
-                        JOIN 
-                            TECNICOS AS t ON h.ID_TECNICO = t.ID_TECNICO
-                        JOIN 
-                            VEHICULOS AS v ON h.CHASIS = v.CHASIS
-                        WHERE h.CHASIS = ?''', (vehiculo,))
-        registros = cursor.fetchall()
-        print(registros)
-
-    except sqlite3.Error as e:
-        print(f"Error al leer la Tabla de Tiempos_Vehiculos y de Vehiculos: {e}")
-        registros = None
-
-    finally:
-        conn.close()    # Cierra la conexión
-    
-    return registros
-
-def leer_historico_completo_porId(bbdd, id):
-    try:
-        conn = sqlite3.connect(bbdd)
-        cursor = conn.cursor()
-        codigo = id
-        cursor.execute('''SELECT 
-                            h.CODIGO_ASIGNACION,
-                            h.CHASIS,
-                            t.NOMBRE || ' ' || t.APELLIDO AS NOMBRE_COMPLETO,
-                            h.ID_PROCESO,
-                            v.ID_MODELO,
-                            v.COLOR,
-                            h.INICIO,
-                            h.FIN,
-                            h.DURACION,
-                            h.ESTADO,
-                            v.NOVEDADES,
-                            h.OBSERVACIONES,
-                            v.SUBCONTRATAR,
-                            v.ID_PEDIDO
-                        FROM 
-                            HISTORICOS AS h
-                        JOIN 
-                            TECNICOS AS t ON h.ID_TECNICO = t.ID_TECNICO
-                        JOIN 
-                            VEHICULOS AS v ON h.CHASIS = v.CHASIS
-                        WHERE h.CODIGO_ASIGNACION = ?''', (codigo,))
-        registro = cursor.fetchone()
-        print(registro)
-
-    except sqlite3.Error as e:
-        print(f"Error al leer la Tabla de Tiempos_Vehiculos y de Vehiculos: {e}")
-        registro = None
-
-    finally:
-        conn.close()    # Cierra la conexión
-    
-    return registro
-
 def obtener_id_modelo(bbdd, modelo):
     try:
         conn = sqlite3.connect(bbdd)
@@ -1647,6 +1766,28 @@ def leer_ordenes_por_programa(bbdd, programa):
 
 #####################################################################
 ########################## MODIFICAR REGISTROS ######################
+def actualizar_historico_estado(bbdd, id, estado):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()          
+        insert_data_script = """
+                                UPDATE HISTORICOS
+                                    SET ESTADO = ?
+                                    WHERE CODIGO_ASIGNACION = ?
+                            """
+        cursor.execute(insert_data_script, (estado, id))
+        conn.commit()
+        print(f"El Registro histórico con {id} cambió su estado por {estado}")
+        
+    except sqlite3.Error as e:
+        print(f"Error al insertar el modelo: {e}")
+
+    except UnboundLocalError as e:
+        print(f"No se llenaron todos los campos: {e}") 
+
+    finally:
+        conn.close()
+
 def actualizar_modelo(bbdd, id_anterior, marca, modelo, id_nuevo):
     try:
         conn = sqlite3.connect(bbdd)
@@ -1669,6 +1810,29 @@ def actualizar_modelo(bbdd, id_anterior, marca, modelo, id_nuevo):
     finally:
         conn.close()
 
+def actualizar_orden(bbdd, id_programa_anterior, id_programa_nuevo):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+
+        # Asegurar que los valores clave no sean None
+        if all(item is not None for item in (id_programa_anterior, id_programa_nuevo)):
+            
+            update_data_script = """UPDATE ORDENES
+                                    SET ID_PROGRAMA = ?
+                                    WHERE ID_PROGRAMA = ?
+                                """
+            
+            cursor.execute(update_data_script, (id_programa_nuevo, id_programa_anterior))
+            conn.commit()
+            print("Registros de órdenes actualizados")
+
+    except sqlite3.Error as e:
+        print(f"Error al actualizar la orden: {e}")
+
+    finally:
+        conn.close()
+
 def actualizar_tiempo_modelo(bbdd, procmodel, id_proceso, id_modelo, tiempo, procmodelo_anterior):
     try:
         conn = sqlite3.connect(bbdd)
@@ -1687,36 +1851,6 @@ def actualizar_tiempo_modelo(bbdd, procmodel, id_proceso, id_modelo, tiempo, pro
 
     except UnboundLocalError as e:
         print(f"No se llenaron todos los campos: {e}") 
-
-    finally:
-        conn.close()
-
-def actualizar_vehiculo(bbdd, chasis, fecha_ingreso, id_modelo, color, estado, novedades, subcontratar, id_pedido, chasis_anterior):
-    try:
-        conn = sqlite3.connect(bbdd)
-        cursor = conn.cursor()
-
-        # Asegurar que los valores clave no sean None
-        if all(item is not None for item in (chasis, id_modelo, color, estado, id_pedido)):
-            
-            update_data_script = """UPDATE VEHICULOS 
-                                    SET CHASIS = ?,
-                                        FECHA_INGRESO = ?, 
-                                        ID_MODELO = ?, 
-                                        COLOR = ?, 
-                                        ESTADO = ?, 
-                                        NOVEDADES = ?, 
-                                        SUBCONTRATAR = ?, 
-                                        ID_PEDIDO = ?
-                                    WHERE CHASIS = ?
-                                """
-            
-            cursor.execute(update_data_script, (chasis, fecha_ingreso, id_modelo, color, estado, novedades, subcontratar, id_pedido, chasis_anterior))
-            conn.commit()
-            print("Registro actualizado")
-
-    except sqlite3.Error as e:
-        print(f"Error al actualizar el vehículo: {e}")
 
     finally:
         conn.close()
@@ -1750,32 +1884,54 @@ def actualizar_tiempo_vehiculo(bbdd, procvehi, id_proceso, chasis, tiempo, procv
     finally:
         conn.close()
 
-def actualizar_orden(bbdd, id_programa_anterior, id_programa_nuevo):
+def actualizar_vehiculo(bbdd, chasis, fecha_ingreso, id_modelo, color, estado, novedades, subcontratar, id_pedido, chasis_anterior):
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()
 
         # Asegurar que los valores clave no sean None
-        if all(item is not None for item in (id_programa_anterior, id_programa_nuevo)):
+        if all(item is not None for item in (chasis, id_modelo, color, estado, id_pedido)):
             
-            update_data_script = """UPDATE ORDENES
-                                    SET ID_PROGRAMA = ?
-                                    WHERE ID_PROGRAMA = ?
+            update_data_script = """UPDATE VEHICULOS 
+                                    SET CHASIS = ?,
+                                        FECHA_INGRESO = ?, 
+                                        ID_MODELO = ?, 
+                                        COLOR = ?, 
+                                        ESTADO = ?, 
+                                        NOVEDADES = ?, 
+                                        SUBCONTRATAR = ?, 
+                                        ID_PEDIDO = ?
+                                    WHERE CHASIS = ?
                                 """
             
-            cursor.execute(update_data_script, (id_programa_nuevo, id_programa_anterior))
+            cursor.execute(update_data_script, (chasis, fecha_ingreso, id_modelo, color, estado, novedades, subcontratar, id_pedido, chasis_anterior))
             conn.commit()
-            print("Registros de órdenes actualizados")
+            print("Registro actualizado")
 
     except sqlite3.Error as e:
-        print(f"Error al actualizar la orden: {e}")
+        print(f"Error al actualizar el vehículo: {e}")
 
     finally:
         conn.close()
 
-actualizar_orden(bbdd='planta_tulcan.db', id_programa_anterior='procesosTELGUAYAQUIL_3_6', id_programa_nuevo='procesosTELGUAYAQUIL_3_6')
+
 ####################################################################
 ########################## ELIMINAR REGISTROS ######################
+
+def eliminar_historico(bbdd, id_historico):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM HISTORICOS WHERE CODIGO_ASIGNACION=?", (id_historico,))
+        conn.commit()
+        print(f"El registro de histórico con{id_historico} se eliminó correctamente de la tabla HISTÓRICOS")
+
+    except sqlite3.Error as e:
+        print(f"Error al eliminar el histórico  con id {id_historico}: {e}")
+
+    finally:
+        conn.close()  # Cerrar la conexión después de usarla
 
 def eliminar_modelo(bbdd, modelo):
     try:
@@ -1901,6 +2057,19 @@ def eliminar_pedido(bbdd, id):
         elif lectura_prueba != None:
             print(f"No se eliminó el pedido {id}")
 
+def eliminar_todos_registros(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM TECNICOS_PROCESOS_PRUEBA")
+        conn.commit()
+
+    except sqlite3.Error as e:
+        print(f"Error al eliminar ")
+
+    finally:
+        conn.close()
 
 ###### FUNCIONES DE APOYO PARA LAS BBDD ######
 def next_consecutivoPedido(bbdd):
@@ -1946,8 +2115,51 @@ def next_consecutivoPrograma(bbdd):
 
 
 
+"""
+df_especialidades = leer_tecnicos_procesos_df('planta_tulcan.db')
+df_ids_procesos = leer_procesos_df('planta_tulcan.db')
+df_combinado = pd.merge(left=df_especialidades,
+                        right=df_ids_procesos,
+                        how="left",
+                        left_on="ID_PROCESO",
+                        right_on="NOMBRE")
+df_reducido = df_combinado[["ID_TECNICO", "ID_PROCESO_y"]]
+df_reducido.rename(columns={'ID_PROCESO_y': 'ID_PROCESO'}, inplace=True)
+print(df_reducido)
+df_reducido['TEC_PROC'] = df_reducido['ID_TECNICO'].astype(str) + df_reducido['ID_PROCESO'].astype(str)
+df_reducido = df_reducido[['TEC_PROC', 'ID_TECNICO', 'ID_PROCESO']]
+print(df_reducido)
+"""
 
 
+"""
+# Crear el DataFrame
+data = {
+    "TEC_PROC": [
+        "JuanYane400009LAV", "JoséPére898391PDI", "MiguSánc284815PIN", "DiegPedr756093LAV",
+        "JesuFern703446PDI", "RaúlSuar805850PDI", "JorgMora673796LAV", "LuisGarc739041LAV",
+        "DaniPeña224970PIN", "JeanPere096862LAV", "GabrLópe764514PDI", "AndrCast889408PIN",
+        "RicaHern380721LAV", "JohaAgui862120PDI", "LeniMont601067PIN", "LuisGarz511185TEL",
+        "AlexUrib809574TEL", "DannPlin609447TEL"
+    ],
+    "ID_TECNICO": [
+        "JuanYane400009", "JoséPére898391", "MiguSánc284815", "DiegPedr756093",
+        "JesuFern703446", "RaúlSuar805850", "JorgMora673796", "LuisGarc739041",
+        "DaniPeña224970", "JeanPere096862", "GabrLópe764514", "AndrCast889408",
+        "RicaHern380721", "JohaAgui862120", "LeniMont601067", "LuisGarz511185",
+        "AlexUrib809574", "DannPlin609447"
+    ],
+    "ID_PROCESO": [
+        "LAV", "PDI", "PIN", "LAV", "PDI", "PDI", "LAV", "LAV", "PIN", "LAV", "PDI",
+        "PIN", "LAV", "PDI", "PIN", "TEL", "TEL", "TEL"
+    ]
+}
+
+df = pd.DataFrame(data)
+print(df)
+
+insertar_tecnicos_procesos_df('planta_tulcan.db', df)
+"""
 
 
 

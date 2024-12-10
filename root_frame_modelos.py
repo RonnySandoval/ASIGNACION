@@ -30,8 +30,6 @@ class ContenidoModelos():
         self.frameVehiculosInterior = ctk.CTkFrame(self.canvasVehiculos, bg_color=grisAzuladoClaro)
         self.canvasVehiculos.create_window((0, 0), window=self.frameVehiculosInterior, anchor="nw")
 
-
-
         self.llenar_contenido(bbdd)
 
     def llenar_contenido(self, bbdd):
@@ -111,7 +109,7 @@ class ContenidoModelos():
         nombresProcesos = BBDD.leer_procesos(bbdd)                                               #lee los noombres de los procesos
         infoProcesos = BBDD.leer_procesos_completo(bbdd)                                         #lee toda la información de los procesos
         idsProcesos = [proceso[0] for proceso in infoProcesos if proceso[0] in titlesDf]         #crea unalista con ids de acuerdo al primer elemento de la lista infoProcesos
-        nombresProcesos = [proceso[1] for proceso in infoProcesos if proceso[0] in titlesDf]  #crea una lista solo con los nombres de los procesos cuyos ids aparecen en el dataframe
+        nombresProcesos = [proceso[1] for proceso in infoProcesos if proceso[0] in titlesDf]     #crea una lista solo con los nombres de los procesos cuyos ids aparecen en el dataframe
         nombresProcesos.sort()
         cantidadProcesos = len(nombresProcesos)
 

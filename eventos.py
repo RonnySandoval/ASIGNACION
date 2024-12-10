@@ -213,11 +213,14 @@ def recoger_datos_modelo(filaBoton, bbdd):
     modelo = re.search(r'^(.*?)\s*-\s*(.*?)$', marca_modelo).group(2).strip()   #expresion regular para truncar solo el modelo
     print(f"marca={marca} modelo={modelo}")         
     
-    
     tiempos={}
-    procesos = BBDD.leer_procesos(bbdd)
+    nombresProcesos = BBDD.leer_procesos(bbdd)                                               #lee los noombres de los procesos
+    infoProcesos = BBDD.leer_procesos_completo(bbdd)                                         #lee toda la información de los procesos
+    idsProcesos = [proceso[0] for proceso in infoProcesos]         #crea unalista con ids de acuerdo al primer elemento de la lista infoProcesos
+    nombresProcesos = [proceso[1] for proceso in infoProcesos]  #crea una lista solo con los nombres de los procesos cuyos ids aparecen en el dataframe
+    nombresProcesos.sort()
     columna = 1
-    for proceso in procesos:
+    for proceso in nombresProcesos:
         try:
             tiempos[proceso] = glo.ent_Tiempos[f"ExtryTime{fila}_{columna}_{proceso}"].get() #obtiene el tiempo de proceso y lo agrega al diccionario
             columna += 1
@@ -233,7 +236,7 @@ def recoger_datos_modelo(filaBoton, bbdd):
 def editar_modelo(botonPulsado, bbdd):
     print(recoger_datos_modelo(botonPulsado, bbdd))
     datos = recoger_datos_modelo(botonPulsado, bbdd)                         # llamar a la función que recoge los datos de los entry en el panel de modelos
-    ventana = ventanas_topLevel.VentanaCreaEditaModelo("EDITAR", bbdd)     # Llamar al constructor del objeto ventana para editar el modelo
+    ventana = ventanas_topLevel.VentanaCreaEditaModelo("EDITAR", bbdd)       # Llamar al constructor del objeto ventana para editar el modelo
     ventana.set_values(datos)                                                # llamar al metodo del objeto ventana creada, que llena los campos de modelo y tiempos
     ventana.asignafuncion(lambda:guardar_modelo_actualizado(ventana, datos, bbdd), lambda:cancelar(ventana))    #asignar los botones de guardar y cancelar en la ventana
 
@@ -299,11 +302,10 @@ def guardar_modelo_actualizado(ventana, datos_iniciales, bbdd):
     ventana.rootAux.destroy()
     glo.stateFrame.contenidoDeModelos.actualizar_contenido(bbdd)    #actualizamos el frame de modelos en la ventana
 
-
 def agregar_vehiculo(botonPulsado, bbdd):
     datos = recoger_datos_modelo(botonPulsado, bbdd)
     print(datos)
-    ventana = ventanas_topLevel.VentanaGestionaVehiculos("AGREGAR", bbdd)
+    ventana = ventanas_topLevel.VentanaGestionaVehiculos("AGREGAR", None, bbdd)
     ventana.set_values(datos, None, "AGREGAR")
     ventana.asignafuncion(lambda:aceptar_agregar_vehiculo(ventana, bbdd), lambda:cancelar(ventana))
 
@@ -378,16 +380,20 @@ def guardar_tecnico_nuevo(ventana, bbdd):
              ventana.varApellido.get(),
              ventana.varDocumento.get(),
              ventana.varEspecialidad.get())
-    
-    ParteEsp = datos[3][:3].lower() if len(datos[2]) >= 3 else datos[2].lower()     # Extraer primeras 3 letras dela especialidad
-    ParteDoc = datos[2][-4:] if len(datos[3]) >= 4 else datos[3]                    # extraer las ultimos 4 numeros del documento
-
-    idTecnico = ParteEsp + ParteDoc + datos[0]                                      # construir un id con la especialidad, documento y nombre
-
-    print(datos)
-    BBDD.insertar_tecnico(bbdd, idTecnico, *datos)                                  # insertar el registro del técnico en BD
-
     ventana.rootAux.destroy()
+
+    ids_procesos = BBDD.leer_procesos_completo(bbdd)
+    ids_procesos = {nombre:id for id, nombre, desc, secue in ids_procesos}
+    ParteDoc = datos[2][-6:] if len(datos[3]) >= 6 else datos[2]                    # extraer las ultimos 4 numeros del documento
+    id_proc = ids_procesos[datos[3]]                                              # extramos el id del proceso
+    idTecnico = datos[0][:4] + datos[1][:4] + ParteDoc                              # construir un id com el nombre, elapellido y el documento
+    proc_espec = idTecnico + id_proc                                               # construimos el id del tecnico_proceso
+    print(datos)
+    print(proc_espec, idTecnico, id_proc)
+
+    BBDD.insertar_tecnico(bbdd, idTecnico, *datos)                                  # insertar el registro del técnico en BD
+    BBDD.insertar_tecnico_proceso(bbdd, proc_espec, idTecnico, id_proc)             # insertar el registro del técnico_proceso en BD
+
 
 def eliminar_tecnico_BD(ventana, bbdd):
     nombreTecnico = ventana.varTecnico.get()        # obtener el técnico seleccionado
@@ -418,7 +424,7 @@ def leeVehiculosBBDD(bbdd):
 def recoger_datos_vehiculo(chasis, bbdd):
     return BBDD.leer_vehiculo(bbdd, chasis)
 
-def modificar_vehiculo_pedido(chasis_anterior, bbdd):
+def modificar_datos_vehiculo(chasis_anterior, bbdd):
 
     datos = list(recoger_datos_vehiculo(chasis_anterior, bbdd))                     #LEER DE LA BASE DATOS EL VEHICULO
     print(datos)
@@ -427,10 +433,10 @@ def modificar_vehiculo_pedido(chasis_anterior, bbdd):
     datos.insert(2, marcamodelo[1])
     datos.insert(2, marcamodelo[2])
     tiempos = BBDD.leer_tiempos_vehiculo(bbdd, chasis_anterior)                     #LEER LOS TIEMPOS DEL VEHICULO
-
+    historicos = BBDD.leer_historico_chasis(bbdd, chasis_anterior)
     print("Los datos en el modulo eventos son: ", datos)
     print("Los tiempos en el modulo eventos son: ", tiempos)
-    ventana = ventanas_topLevel.VentanaGestionaVehiculos("MODIFICAR", bbdd)       #CREAR LA VENTANA EMERGENTE PARA EDITAR EL VEHICULO
+    ventana = ventanas_topLevel.VentanaGestionaVehiculos("MODIFICAR", historicos, bbdd)       #CREAR LA VENTANA EMERGENTE PARA EDITAR EL VEHICULO
     ventana.set_values(datos, tiempos, "MODIFICAR")                                        #AGREGAR LOS DATOS DE LA BBDD A LA VENTANA
     ventana.asignafuncion(lambda:modificarVH_en_BBDD(ventana, chasis_anterior, bbdd), lambda:cancelar(ventana))  #ASIGNAR BOTONES
 
@@ -483,7 +489,7 @@ def eliminar_VH_pedido(chasis):
         CRUD.eliminar_vehiculo(chasis)
 
 def ventana_infoVehiculo(chasisVh, bbdd):
-    lecturaRegistros = BBDD.leer_historico(bbdd, chasisVh)
+    lecturaRegistros = BBDD.leer_historico_chasis(bbdd, chasisVh)
     datosVehiculo = BBDD.leer_vehiculo(bbdd, chasisVh)
 
     nombresTecnicos = {}
@@ -589,22 +595,29 @@ def ventanaResumenHistorico(id, bbdd):
     ventana = ventanas_topLevel.VentanaMuestraInfoHis(id, bbdd)
     ventana.asignafuncionBoton(funcionCerrar = ventana.rootAux.destroy)
 
-def ventanaCambiarEstado(id, bbdd):
+def ventanaCambiarEstado(id, est_anterior, bbdd):
     ventana = ventanas_topLevel.VentanaCambiarEstadoHist(id, bbdd)
-    ventana.asignafuncion(funcionAgregar  = lambda: aceptarCambiarEstado(),
+    ventana.asignafuncion(funcionAceptar  = lambda: aceptarCambiarEstado(ventana, id, est_anterior, bbdd),
                           funcionCancelar = ventana.rootAux.destroy)
 
-def aceptarCambiarEstado():
-    pass
+def aceptarCambiarEstado(ventana, id, est_anterior, bbdd):
+    nuevo_estado = ventana.varEstado.get()
+    BBDD.actualizar_historico_estado(bbdd, id, nuevo_estado)
+    ventana.rootAux.destroy()
+    ventanas_emergentes.messagebox.showinfo("Registro Actualizado",
+                                            f"El histórico con código {id} cambió su estado de {est_anterior} a {nuevo_estado}")
 
 def ventana_modificarHistorico(id_anterior, bbdd):
-    pass
+    ventana = ventanas_topLevel.VentanaModificarHistorico("600x600", "MODIFICAR HISTÓRICO", id_anterior, bbdd)
+    ventana.botones.asignarfunciones(funcionOk     = lambda : print("pulsó en aceptar"),
+                                     funcionCancel = ventana.rootAux.destroy)
 
 def ventana_ObserNoved(valores):
     pass
             
-def ventana_eliminarHistorico(id_historico):
-    pass
+def ventana_eliminarHistorico(id_historico, bbdd):
+    if BBDD.ventEmerg.msg_eliminar_his(id_historico) == "Aceptar":
+        BBDD.eliminar_historico(bbdd, id_historico)
 
 
 ###########################################################################
@@ -937,7 +950,6 @@ def aceptarFechayHoraProg(ventana, tipoPrograma, bbdd):
                               df_to_BD  = df_programa,
                               df_previo = df_previo,
                               bbdd      = bbdd)
-
 
 def abrirVistaPrevia_programa(pedido, programa, df_to_BD, df_previo, bbdd):
     titulo =f"Programa de producción\nPedido: {pedido.id_pedido}\nId Programa : {programa}"

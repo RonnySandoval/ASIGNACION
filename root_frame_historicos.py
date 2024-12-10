@@ -74,9 +74,13 @@ class FiltrosHistoricos():
                                            font=numerosPequeños, hover_color=grisVerdeClaro, fg_color=grisVerdeMedio, corner_radius=15)
         self.boton_filtrar.grid(row=0, column=0, pady=5)
     
-        self.boton_actualizar = ctk.CTkButton(master=self.frame_filtros, text="Actualizar", command=lambda:historicos.actualizar_tabla(bbdd), width=20,
+        self.boton_actualizar = ctk.CTkButton(master=self.frame_filtros, text="Actualizar", command=lambda : historicos.actualizar_tabla(bbdd), width=20,
                                               font=numerosPequeños, hover_color=amarilloMedio, fg_color=amarilloOscuro, corner_radius=15)
         self.boton_actualizar.grid(row=0, column=1, pady=5)
+
+        self.boton_importar = ctk.CTkButton(master=self.frame_filtros, text="Actualizar", command=lambda:historicos.cargar_historicos(bbdd), width=20,
+                                              font=numerosPequeños, hover_color=verdeMedio, fg_color=verdeOscuro, corner_radius=15)
+        self.boton_importar.grid(row=0, column=2, pady=5)
 
     def filtrar_datos(self, historicos):
         # Obtener los criterios de filtro de las entradas
@@ -193,6 +197,7 @@ class TablaHistoricos():        #Tabla para historicos
                 print(valores)
                 modificar_hist(valores, bbdd)
 
+        #click derecho en añadir observacion, novedadeso subcontratar
         def seleccionar_anadir_fila():
             fila = self.tablaHistoricos.selection()     #obtener el item seleccionado
             print("Añadir novedad/observación seleccionada")
@@ -227,8 +232,9 @@ class TablaHistoricos():        #Tabla para historicos
 
         def cambiar_hist(valores, bbdd):
             id_historico = valores[0]
+            estado_anterior = valores[9]
             print(f"cambiará el estado del histórico {valores}")
-            eventos.ventanaCambiarEstado(id_historico, bbdd)
+            eventos.ventanaCambiarEstado(id_historico, estado_anterior, bbdd)
 
         def modificar_hist(valores, bbdd):
             id_anterior = valores[0]
@@ -243,8 +249,7 @@ class TablaHistoricos():        #Tabla para historicos
         def eliminar_hist(valores, bbdd):
             id_historico = valores[0]
             print(f"Se eliminará el histórico {valores}")
-            eventos.ventana_eliminarHistorico(id_historico)
-
+            eventos.ventana_eliminarHistorico(id_historico, bbdd)
 
         # Manejar el evento del clic derecho
         def mostrar_menu(evento):
@@ -256,8 +261,7 @@ class TablaHistoricos():        #Tabla para historicos
                 self.menu.post(evento.x_root, evento.y_root)
             except:
                 pass
-        
-        
+                
         # Asociar el click derecho al evento
         self.tablaHistoricos.bind("<Button-3>", mostrar_menu)
 

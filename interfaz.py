@@ -327,7 +327,7 @@ class TablaPedido():
         def modificar_vh(valores, item):
             chasis_anterior = valores[0]
             print(f"el primer valor es {chasis_anterior}")
-            ventana_auxiliar = eventos.modificar_vehiculo_pedido(chasis_anterior)
+            ventana_auxiliar = eventos.modificar_datos_vehiculo(chasis_anterior)
 
 
         # Manejar el evento del clic derecho

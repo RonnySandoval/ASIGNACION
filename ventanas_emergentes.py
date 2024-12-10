@@ -25,6 +25,20 @@ def desea_exportar(nombreExcel, nombreVentana, df):
     else:
         print("Click en Cancelar")
 
+def msg_eliminar_his(id_historico):
+    respuesta = messagebox.askokcancel(
+        title="Eliminar Histórico",
+        message=f"¡Está a punto de eliminar el registro Histórico {id_historico}!\n"
+        "Este cambio afectará la tabla HISTÓRICOS, y es irreversible.\n"
+        "¿Seguro desea eliminarlo?"
+    )
+    if respuesta:
+        print("Click en Aceptar")
+        return "Aceptar"
+    else:
+        print("Click en Cancelar")
+        return "Cancelar"
+    
 def msg_eliminar_tec(id_tecnico, nombre):
     respuesta = messagebox.askokcancel(
         title="Eliminar Técnico",

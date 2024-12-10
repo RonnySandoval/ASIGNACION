@@ -23,6 +23,15 @@ def calcular_hora_finalDT(date_time, duracion):
     tiempo_final = inicio + timedelta(minutes=duracion)   # Sumar los minutos a la hora de inicio
     return tiempo_final                           # Retornar ambos objetos datetime
 
+def separar_fecha_hora(cadena):
+    # Convertir la cadena en un objeto datetime
+    dt_obj = datetime.strptime(cadena, "%Y-%m-%d %H:%M:%S")
+    
+    # Extraer la fecha y la hora
+    fecha = dt_obj.date()
+    hora = dt_obj.time()
+    
+    return fecha, hora
 
 #inicio, fin = calcular_hora_final("2024-10-7","15:22", 230)
 #print(inicio)
