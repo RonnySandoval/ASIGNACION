@@ -4,6 +4,21 @@ import numpy as np
 
 #######GANTT DE VEHICULOS#########
 def generar_gantt_vehiculos(pedido, fechaStart, horaStart, horizonte_calculado):
+    """
+    args
+        pedido: Objeto Pedido, con propiedades id_pedido, vehiculos(objetos Vehiculo), fecha_recepcion, plazo_entrega"
+            att de Vehiculo:modelo, marca, tiempos_proceso, estado_inicial, color,
+                            fecha_entrega, id_chasis, pedido, estado, novedades,
+                            inicio, fin, tecnico_actual (Objeto Tecnico), libre, plazo, vueltas, historico_estados (tuplas con objetos Tecnico)
+                                        att de Tecnico :  id_tecnico , nombre, especializacion, comienza,
+                                                          termina , libre , vehiculo_actual , historico_asignacion (tuplas con lista de objetos Vehiculo)
+        fechaStart: str con el formato de fecha
+        fechhaHora: str con el formato de hora
+        horizonte_calculado: datetime con formato fecha hora
+
+    return
+        None
+    """
 
     inicio = fechahora.parseDT(fechaStart, horaStart)
     lista_vehiculos =[]
@@ -39,16 +54,29 @@ def generar_gantt_vehiculos(pedido, fechaStart, horaStart, horizonte_calculado):
                 print(f"Se agregó {nombre_proceso} en {tarea.id_chasis}")
 
     configurar_zoom(fig = diagrama["fig"],
-                    ax  = diagrama["ejes"],
+                    ax  = diagrama["ax"],
                     etiquetas_y =lista_vehiculos_modelos,
                     etiquetas_barras = diagrama["etiq_barras"],
                     hbar =diagrama["hbar"])
 
-    modelo_mostrarGantt.mostrar_grafico_vehiculos("GRAFICO_DE_VEHICULOS_01")
-
+    #modelo_mostrarGantt.mostrar_grafico_vehiculos("GRAFICO_DE_VEHICULOS_01")
+    return diagrama
 #######GANTT DE TECNICOS#########
 def generar_gantt_tecnicos(personal, fechaStart, horaStart, horizonte_calculado):
+    """"
+    args
+        personal: lista de objetos tecnico 
+            att de Tecnico :  id_tecnico , nombre, especializacion, comienza , termina , libre , vehiculo_actual (Objeto Vehiculo) , historico_asignacion (tuplas con lista de objetos Vehiculo)
+                att Vehiculo : modelo, marca, tiempos_proceso, estado_inicial, color,
+                                fecha_entrega, id_chasis, pedido, estado, novedades,
+                                inicio, fin, tecnico_actual, libre, plazo, historico_estados, vueltas
+        fechaStart: str con el formato de fecha
+        fechhaHora: str con el formato de hora
+        horizonte_calculado: datetime con formato fecha hora
 
+    return
+        None
+    """
     inicio = fechahora.parseDT(fechaStart, horaStart)
     lista_nombre_personas =[]
     lista_personas =[]
@@ -82,12 +110,12 @@ def generar_gantt_tecnicos(personal, fechaStart, horaStart, horizonte_calculado)
                 print(f"Se agregó {id_vehiculo} en {tarea.id_tecnico} inicio: {init} y duracion {duracion}")
     
     configurar_zoom(fig = diagrama["fig"],
-                ax  = diagrama["ejes"],
+                ax  = diagrama["ax"],
                 etiquetas_y =lista_nombre_personas,
                 etiquetas_barras = diagrama["etiq_barras"],
                 hbar =diagrama["hbar"])
-    modelo_mostrarGantt.mostrar_grafico_tecnicos("GRAFICO_DE_TECNICOS_02")
-
+    #modelo_mostrarGantt.mostrar_grafico_tecnicos("GRAFICO_DE_TECNICOS_02")
+    return diagrama
 #MANEJO DEL EVENTO ZOOM DEL MOUSE
 def configurar_zoom(fig, ax, etiquetas_y, etiquetas_barras, hbar):
     """Configura la interacción del zoom en el gráfico."""

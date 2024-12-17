@@ -6,10 +6,11 @@ from    estilos import *
 import  ventanas_emergentes
 import glo
 import BBDD
+import re
 
 
 # Configuración global del estilo de customtkinter
-ctk.set_appearance_mode("dark")  # Modo oscuro por defecto
+ctk.set_appearance_mode("dark")           # Modo oscuro por defecto
 ctk.set_default_color_theme("dark-blue")  # Colores por defecto con tonos azulados
 
 
@@ -18,7 +19,7 @@ class ContenidoDetallePedido():
     def __init__(self, contenedor):
 
         self.frameTablaDetallePedi = ctk.CTkFrame(contenedor, bg_color=moradoMedio)
-        self.frameTablaDetallePedi.pack(fill="both", expand=True, side="right", padx=5)
+        self.frameTablaDetallePedi.pack(fill="both", expand=True, side="top", padx=5)
 
         # Estilo personalizado para Treeview
         self.styletreeviewDetallePedi = ttk.Style()
@@ -110,8 +111,6 @@ class TablaDetallePedido():     #Tabla para pedido
             self.tablaDetallePedi.column(col, anchor=tk.CENTER, width=80)
             self.tablaDetallePedi.heading(col, text=col, anchor=tk.CENTER)
 
-        # Crear un Scrollbar y conectarlo con el Canvas
-
         #Crear una barra de desplazamiento para la tabla y configurarla
         self.scrollbarTablaDetallePedi = ttk.Scrollbar(contenido.frameTablaDetallePedi, orient=tk.VERTICAL, command=self.tablaDetallePedi.yview)
         self.tablaDetallePedi.configure(yscrollcommand=self.scrollbarTablaDetallePedi.set)
@@ -119,6 +118,57 @@ class TablaDetallePedido():     #Tabla para pedido
         self.scrollbarTablaDetallePedi.pack(side='right', fill='y')
         
         self.llenarTabla(bbdd)
+        self.construyeCamposHorarios(contenedor, start1="08:00", end1="12:00", start2="14:00", end2="18:00", start3=" ", end3=" ")
+
+    def construyeCamposHorarios(self, contenedor, start1, end1, start2, end2, start3, end3):
+
+        self.frameTurnos = ctk.CTkFrame(contenedor, bg_color=moradoMedio)
+        self.frameTurnos.pack(fill="both", side="bottom")
+
+        self.labelTurno1 = ctk.CTkLabel(self.frameTurnos, text="TURNO 1", anchor="center")
+        self.labelTurno1.grid(row=0, column=0, columnspan = 4, padx=5, pady=5)
+
+        self.labelTurno2 = ctk.CTkLabel(self.frameTurnos, text="TURNO 2", anchor="center")
+        self.labelTurno2.grid(row=0, column=4, columnspan = 4, padx=5, pady=5)
+
+        self.labelTurno3 = ctk.CTkLabel(self.frameTurnos, text="TURNO 3", anchor="center")
+        self.labelTurno3.grid(row=0, column=8, columnspan = 4, padx=5, pady=5)
+
+        # Configurar columnas: 
+        for columna in range(0,12):
+            # Las columnas 0 y 5 son las de los extremos (espacio vacío).
+            self.frameTurnos.grid_columnconfigure(columna, weight=1)  # Espacio izquierdo
+
+
+        self.intVarTurnoInicia1 = tk.StringVar(value=start1)
+        self.entryTurnoInicia1 = ctk.CTkEntry(self.frameTurnos, textvariable = self.intVarTurnoInicia1, width=60)
+        self.entryTurnoInicia1.grid(row=1, column=1, padx=5, pady=5)
+        self.entryTurnoInicia1.bind("<FocusOut>", self.validar_hora)
+
+        self.intVarTurnoTermina1 = tk.StringVar(value=end1)
+        self.entryTurnoTermina1 = ctk.CTkEntry(self.frameTurnos, textvariable = self.intVarTurnoTermina1, width=60)
+        self.entryTurnoTermina1.grid(row=1, column=2, padx=5, pady=5)
+        self.entryTurnoTermina1.bind("<FocusOut>", self.validar_hora)
+
+        self.intVarTurnoInicia2 = tk.StringVar(value=start2)
+        self.entryTurnoInicia2 = ctk.CTkEntry(self.frameTurnos, textvariable = self.intVarTurnoInicia2, width=60)
+        self.entryTurnoInicia2.grid(row=1, column=5, padx=5, pady=5)
+        self.entryTurnoInicia2.bind("<FocusOut>", self.validar_hora)
+
+        self.intVarTurnoTermina2 = tk.StringVar(value=end2)
+        self.entryTurnoTermina2 = ctk.CTkEntry(self.frameTurnos, textvariable = self.intVarTurnoTermina2, width=60)
+        self.entryTurnoTermina2.grid(row=1, column=6, padx=5, pady=5)
+        self.entryTurnoTermina2.bind("<FocusOut>", self.validar_hora)
+
+        self.intVarTurnoInicia3 = tk.StringVar(value=start3)
+        self.entryTurnoInicia3 = ctk.CTkEntry(self.frameTurnos, textvariable = self.intVarTurnoInicia3, width=60)
+        self.entryTurnoInicia3.grid(row=1, column=9, padx=5, pady=5)
+        self.entryTurnoInicia3.bind("<FocusOut>", self.validar_hora)
+
+        self.intVarTurnoTermina3 = tk.StringVar(value=end3)
+        self.entryTurnoTermina3 = ctk.CTkEntry(self.frameTurnos, textvariable = self.intVarTurnoTermina3, width=60)
+        self.entryTurnoTermina3.grid(row=1, column=10, padx=5, pady=5)
+        self.entryTurnoTermina3.bind("<FocusOut>", self.validar_hora)
 
     def llenarTabla(self, bbdd, pedido=None):    # Agregar datos a la tabla
 
@@ -221,3 +271,14 @@ class TablaDetallePedido():     #Tabla para pedido
             self.tablaDetallePedi.delete(item)
         
         self.llenarTabla(bbdd)
+    
+    def validar_hora(self, event):
+        """Valida que el formato sea HH:MM en los Entry al perder el foco"""
+        entry = event.widget
+        texto = entry.get()
+
+        if texto:  # Solo validar si no está vacío
+            if not re.match(r'^\d{2}:\d{2}$', texto):  # Valida el formato HH:MM
+                ventanas_emergentes.messagebox.showerror("Formato de Hora Inválido", f"'{texto}' no es un formato válido.\nUtilice 'HH:MM'.")
+                entry.focus_set()  # Vuelve a enfocar el Entry
+                entry.delete(0, tk.END)  # Borra el contenido inválido

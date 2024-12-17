@@ -14,7 +14,7 @@ def desplegar_importar(subMenu, root):
     subMenu.add_command(label="Importar Vehiculos (No funciona)", command ="")
 
     subMenu.add_separator()
-    subMenu.add_command(label="Importar Pedido (No funciona)", command=lambda : vent_importar("PEDIDO", glo.base_datos))
+    subMenu.add_command(label="Importar Pedido", command=lambda : vent_importar("PEDIDO", glo.base_datos))
     subMenu.add_command(label="Importar Programa (No funciona)", command="")
     subMenu.add_command(label="Importar Historicos (No funciona)", command="")
     return

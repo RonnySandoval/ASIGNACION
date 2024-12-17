@@ -68,17 +68,16 @@ plt.rcParams['axes.grid'] = False
 ########################################  GRÁFICOS PARA TÉCNICOS  ################################################
 ##################################################################################################################
 
-
 # Función para crear el gráfico
 def crear_gantt_tecnicos(nombre_grafico, tecnicos, inicio, horizonte):
     plt.style.use('dark_background')    # Activar modo oscuro en Matplotlib
     hbar = 10
     num_tecnicos = len(tecnicos)
     iniciarEje = fechahora.define_franja(str(inicio.date()))[8]
-    fig, gantt = plt.subplots()                           # Objetos del plot
+    fig, ax = plt.subplots()                           # Objetos del plot
     diagrama = {
         "fig": fig,
-        "ejes": gantt,
+        "ax": ax,
         "hbar": hbar,
         "tecnicos": tecnicos,
         "inicio": iniciarEje,
@@ -86,27 +85,27 @@ def crear_gantt_tecnicos(nombre_grafico, tecnicos, inicio, horizonte):
     }
 
     # Configuración de ejes
-    gantt.set_xlabel('Fecha/hora')             # Etiqueta de eje X
-    gantt.set_ylabel('Técnicos')               # Etiqueta de eje Y
+    ax.set_xlabel('Fecha/hora')             # Etiqueta de eje X
+    ax.set_ylabel('Técnicos')               # Etiqueta de eje Y
 
-    gantt.set_xlim(iniciarEje, horizonte)      # Límites eje X
-    gantt.xaxis_date()
-    gantt.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M'))  # Formato de fecha
+    ax.set_xlim(iniciarEje, horizonte)      # Límites eje X
+    ax.xaxis_date()
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M'))  # Formato de fecha
 
     # Configuración de límites y ticks en el eje Y
-    gantt.set_ylim(0, num_tecnicos * hbar)                                 # Límites de eje Y
-    gantt.set_yticks(np.arange(hbar / 2, num_tecnicos * hbar, hbar))       # Ubica etiquetas en el centro de cada barra
-    gantt.set_yticklabels(tecnicos)                                        # Etiquetas de técnicos
+    ax.set_ylim(0, num_tecnicos * hbar)                                 # Límites de eje Y
+    ax.set_yticks(np.arange(hbar / 2, num_tecnicos * hbar, hbar))       # Ubica etiquetas en el centro de cada barra
+    ax.set_yticklabels(tecnicos)                                        # Etiquetas de técnicos
 
     # Configuración de la grilla secundaria (para divisiones entre las barras)
-    gantt.set_yticks(range(hbar, num_tecnicos * hbar, hbar), minor=True)    # Divisiones menores en eje Y (grilla menor)
-    gantt.grid(True, axis='y', which='minor', color='white', linewidth=1)  # Mostrar solo la grilla menor
+    ax.set_yticks(range(hbar, num_tecnicos * hbar, hbar), minor=True)    # Divisiones menores en eje Y (grilla menor)
+    ax.grid(True, axis='y', which='minor', color='white', linewidth=1)  # Mostrar solo la grilla menor
 
     # Deshabilitar la grilla principal en el eje Y para evitar el solapamiento con las etiquetas
-    gantt.grid(True, axis='y', which='major', color='black', linestyle='', linewidth=0.1)  # Grilla principal de color negro (si es necesario)
+    ax.grid(True, axis='y', which='major', color='black', linestyle='', linewidth=0.1)  # Grilla principal de color negro (si es necesario)
 
     # Configurar los ticks principales (ocultar las marcas de los ticks del eje Y)
-    gantt.tick_params(axis='y', which='major', length=0)  # Eliminar marcas en el eje Y, pero las etiquetas permanecen
+    ax.tick_params(axis='y', which='major', length=0)  # Eliminar marcas en el eje Y, pero las etiquetas permanecen
 
     
     plt.xticks(rotation=90)                                                 # Rotar fechas en el eje X a 90 grados
@@ -123,7 +122,7 @@ def agregar_vehiculo(nombre_grafico, t0, duracion, tecnico, nombre, color=None):
         return
 
     tecnicos = diagrama["tecnicos"]
-    gantt = diagrama["ejes"]
+    ax = diagrama["ax"]
     hbar = diagrama["hbar"]
 
     if nombre in colores_vehiculos:
@@ -142,19 +141,19 @@ def agregar_vehiculo(nombre_grafico, t0, duracion, tecnico, nombre, color=None):
     duracion_num = duracion.total_seconds() / (24 * 3600)  # Duración en días
 
 
-    rect_border = gantt.broken_barh([(inicio_tarea_num, duracion_num)],
+    rect_border = ax.broken_barh([(inicio_tarea_num, duracion_num)],
                                     (hbar * ind_tec, hbar),
                                     facecolors='white',  # Color del borde
                                     edgecolor='white',   # Borde negro
                                     linewidth=3)         # Ancho del borde
 
     # Barra principal
-    rect_bar = gantt.broken_barh([(inicio_tarea_num, duracion_num)],
+    rect_bar = ax.broken_barh([(inicio_tarea_num, duracion_num)],
                                 (hbar * ind_tec, hbar),
                                 facecolors=color)  # Color de la barra
 
 
-    label = gantt.text(x=inicio_tarea_num + duracion_num / 2,
+    label = ax.text(x=inicio_tarea_num + duracion_num / 2,
                y=hbar * ind_tec + hbar / 2,
                s=f'{nombre}\n({duracion})',
                va="center", ha="center",
@@ -190,39 +189,39 @@ def crear_gantt_vehiculos(nombre_grafico, vehiculos, inicio , horizonte):
     hbar = 10
     num_vehiculos = len(vehiculos)
     iniciarEje = fechahora.define_franja(str(inicio.date()))[8]
-    fig, gantt = plt.subplots()  # Objetos del plot
+    fig, ax = plt.subplots()  # Objetos del plot
     print("iniciar eje en:", iniciarEje)
 
     diagrama = {
         "fig": fig,
-        "ejes": gantt,
+        "ax": ax,
         "hbar": hbar,
         "vehiculos": vehiculos,
         "inicio": iniciarEje,
         "horizonte": horizonte,
     }
 
-    gantt.set_xlabel('Fecha/hora')                     # Etiqueta de eje X
-    gantt.set_ylabel('Vehículos')                      # Etiqueta de eje Y
+    ax.set_xlabel('Fecha/hora')                     # Etiqueta de eje X
+    ax.set_ylabel('Vehículos')                      # Etiqueta de eje Y
 
-    gantt.set_xlim(iniciarEje, horizonte)               # Límites eje X
-    gantt.xaxis_date()
-    gantt.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M'))  # Formato de fecha
+    ax.set_xlim(iniciarEje, horizonte)               # Límites eje X
+    ax.xaxis_date()
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M'))  # Formato de fecha
 
     # Configuración de límites y ticks en el eje Y
-    gantt.set_ylim(0, num_vehiculos * hbar)                                 # Límites de eje Y
-    gantt.set_yticks(np.arange(hbar / 2, num_vehiculos * hbar, hbar))       # Ubica etiquetas en el centro de cada barra
-    gantt.set_yticklabels(vehiculos)                                        # Etiquetas de técnicos
+    ax.set_ylim(0, num_vehiculos * hbar)                                 # Límites de eje Y
+    ax.set_yticks(np.arange(hbar / 2, num_vehiculos * hbar, hbar))       # Ubica etiquetas en el centro de cada barra
+    ax.set_yticklabels(vehiculos)                                        # Etiquetas de técnicos
 
     # Configuración de la grilla secundaria (para divisiones entre las barras)
-    gantt.set_yticks(range(hbar, num_vehiculos * hbar, hbar), minor=True)    # Divisiones menores en eje Y (grilla menor)
-    gantt.grid(True, axis='y', which='minor', color='white', linewidth=1)  # Mostrar solo la grilla menor
+    ax.set_yticks(range(hbar, num_vehiculos * hbar, hbar), minor=True)    # Divisiones menores en eje Y (grilla menor)
+    ax.grid(True, axis='y', which='minor', color='white', linewidth=1)  # Mostrar solo la grilla menor
 
     # Deshabilitar la grilla principal en el eje Y para evitar el solapamiento con las etiquetas
-    gantt.grid(True, axis='y', which='major', color='black', linestyle='', linewidth=0.1)  # Grilla principal de color negro (si es necesario)
+    ax.grid(True, axis='y', which='major', color='black', linestyle='', linewidth=0.1)  # Grilla principal de color negro (si es necesario)
 
     # Configurar los ticks principales (ocultar las marcas de los ticks del eje Y)
-    gantt.tick_params(axis='y', which='major', length=0)  # Eliminar marcas en el eje Y, pero las etiquetas permanecen
+    ax.tick_params(axis='y', which='major', length=0)  # Eliminar marcas en el eje Y, pero las etiquetas permanecen
 
     plt.xticks(rotation=90)                  # Rotar las fechas del eje X a 90 grados para que queden verticales
 
@@ -239,7 +238,7 @@ def agregar_proceso(nombre_grafico, t0, duracion, vehiculo, nombre, tecnico, col
         return
 
     vehiculos = diagrama["vehiculos"]
-    gantt = diagrama["ejes"]
+    ax = diagrama["ax"]
     hbar = diagrama["hbar"]
 
     if tecnico in colores_tecnicos:
@@ -258,19 +257,19 @@ def agregar_proceso(nombre_grafico, t0, duracion, vehiculo, nombre, tecnico, col
     duracion_num = duracion.total_seconds() / (24 * 3600)  # Duración en días
 
 
-    rect_border = gantt.broken_barh([(inicio_tarea_num, duracion_num)],
+    rect_border = ax.broken_barh([(inicio_tarea_num, duracion_num)],
                                     (hbar * ind_veh, hbar),
                                     facecolors='white',  # Color del borde
                                     edgecolor='white',   # Borde negro
                                     linewidth=3)         # Ancho del borde
 
     # Barra principal
-    rect_bar = gantt.broken_barh([(inicio_tarea_num, duracion_num)],
+    rect_bar = ax.broken_barh([(inicio_tarea_num, duracion_num)],
                                 (hbar * ind_veh, hbar),
                                 facecolors=color)  # Color de la barra
 
 
-    label = gantt.text(x=inicio_tarea_num + duracion_num / 2,
+    label = ax.text(x=inicio_tarea_num + duracion_num / 2,
                y=hbar * ind_veh + hbar / 2, 
                s=f'{nombre}\n{duracion}\n({tecnico})', 
                va="center", ha="center", color="white", fontsize=6)  

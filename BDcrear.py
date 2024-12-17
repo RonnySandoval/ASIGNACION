@@ -95,6 +95,7 @@ class HISTORICOS(Base):
 class PROGRAMAS(Base):
     __tablename__   = 'PROGRAMAS'
     ID_PROGRAMA     = Column(String, primary_key=True)
+    ID_PEDIDO       = Column(String) 
     DESCRIPCION     = Column(String)
     CONSECUTIVO     = Column(Integer)
 
@@ -119,7 +120,7 @@ def crea_BBDD(nombre):
     # Verificar si el archivo de la base de datos ya existe
     if os.path.exists(nombreBD):
         print(f"La base de datos '{nombreBD}' ya existe.")
-        ventanas_emergentes.messagebox.showinfo("Base de Datos existente", f"La base de datos '{nombreBD}' ya existe.")
+        ventanas_emergentes.messagebox.showinfo("Base de datos existente", f"La base de datos '{nombreBD}' ya existe.")
         return "existe"
 
     motor = f"sqlite:///{nombreBD}"
@@ -127,6 +128,7 @@ def crea_BBDD(nombre):
     Base.metadata.create_all(engine)
     mensaje= f"""
     Base de datos creada con éxito.
+
     Motor: {motor}
     Nombre: {nombreBD}"""
     

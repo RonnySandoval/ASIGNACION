@@ -880,4 +880,5 @@ def calcular_horizonte(pedido):
 def reemplazar_caracteres(cadena):
     # Usamos expresiones regulares para reemplazar los caracteres no deseados
     cadena_modificada = re.sub(r'''[\[\]{}\'",.]''', '', cadena)
+    cadena_final = re.sub(r' ', '', cadena)
     return cadena_modificada

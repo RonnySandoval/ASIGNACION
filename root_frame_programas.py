@@ -61,7 +61,7 @@ class FiltrosProgramas():
         self.boton_actualizar.grid(row=0, column=1, pady=5)
 
     def filtrar_datos(self, treeProgramas):
-        treeProgramas.tablaPedidos.unbind("<<TreeviewSelect>>")
+        treeProgramas.tablaProgramas.unbind("<<TreeviewSelect>>")
         # Obtener los criterios de filtro de las entradas
         self.datos             = treeProgramas.datos
         filtro_id_programa       = self.entry_id_programa.get()
@@ -84,7 +84,7 @@ class FiltrosProgramas():
 
 
 class TablaProgramas():     #Tabla para pedido
-    def __init__(self, contenido, contenedor, laRaiz,bbdd): #Crea latabla y un diccionario con los nombres de los campos
+    def __init__(self, contenido, contenedor, laRaiz, bbdd): #Crea latabla y un diccionario con los nombres de los campos
 
         self.raiz = laRaiz
          #Crear estilo personalizado para las cabeceras
@@ -94,11 +94,11 @@ class TablaProgramas():     #Tabla para pedido
         #Crear Tabla
         self.styletreeviewProg.layout("TreeviewProgramas", [('Treeview.treearea', {'sticky': 'nswe'})])
         self.tablaProgramas = ttk.Treeview(contenido.canvas, show="headings", style="TreeviewProgramas")
-        self.tablaProgramas["columns"] = ("Id Programa", "Descripción")
+        self.tablaProgramas["columns"] = ("Id Programa", "Pedido")
 
         # Formatear las columnas
         for col in self.tablaProgramas["columns"]:
-            self.tablaProgramas.column(col, anchor=tk.CENTER, width=80)
+            self.tablaProgramas.column(col, anchor="w", width=80)
             self.tablaProgramas.heading(col, text=col, anchor=tk.CENTER)
 
         # Crear un Scrollbar y conectarlo con el Canvas
@@ -131,7 +131,7 @@ class TablaProgramas():     #Tabla para pedido
 
     def llenarTabla(self, bbdd):    # Agregar datos a la tabla    
         self.lectura = list(BBDD.leer_programas(bbdd))
-        self.datos = [(id, desc) for id, desc, consec  in self.lectura]
+        self.datos = [(id, id_pedido) for id, desc, consec, id_pedido  in self.lectura]
         print(self.datos)
         for record in self.datos:
             self.tablaProgramas.insert(parent='', index='end', iid=record[0], text='', values=record)
@@ -151,64 +151,51 @@ class TablaProgramas():     #Tabla para pedido
         #click derecho en información de vehículo       
         def seleccionar_informacion_fila():
             fila = self.tablaProgramas.selection()     #obtener el item seleccionado
-            print("Asignar seleccionada")
+            print("Información de programa seleccionada")
             if fila:
                 valores = self.tablaProgramas.item(fila, 'values')     #obtener los valores de la fila
                 print(valores)
-                informacion_vh(valores, bbdd)
-
-        #click derecho en asignar vehiculo
-        def seleccionar_asignar_fila():
-            fila = self.tablaProgramas.selection()     #obtener el item seleccionado
-            print("Asignar seleccionada")
-            if fila:
-                valores = self.tablaProgramas.item(fila, 'values')     #obtener los valores de la fila
-                id_pedido = valores[0]
-                print(f"asignará el vehiculo  {valores}")
-                print(id_pedido, bbdd)
-                eventos.ventana_AsignarUnVehiculo(id_pedido, bbdd)
+                informacion_programa(valores, bbdd)
 
         #click derecho en modificar fila
-        def seleccionar_modificar_fila():
+        def seleccionar_gantt_fila():
             fila = self.tablaProgramas.selection()     #obtener el item seleccionado
-            print("Modificar seleccionada")
+            print("Gantt de programa seleccionada")
             if fila:
                 valores = self.tablaProgramas.item(fila, 'values')     #obtener los valores de la fila
                 print(valores)
-                modificar_vh(valores, bbdd)
+                gantt_programa(valores, bbdd)
 
         #click derecho en eliminar fila
         def seleccionar_eliminar_fila():
             fila = self.tablaProgramas.selection()     #obtener el item seleccionado
-            print("Eliminar seleccionada")
+            print("Eliminar programa seleccionada")
             if fila:
                 valores = self.tablaProgramas.item(fila, 'values')     #obtener los valores de la fila
                 print(valores)
-                eliminar_pedido(valores, bbdd)       
+                eliminar_programa(valores, bbdd)       
         
         #CREAR MENU CONTEXTUAL
         self.menu = tk.Menu(self.raiz, tearoff=0)
         self.menu.add_command(label="Información", command = seleccionar_informacion_fila)
-        self.menu.add_command(label="Asignar", command = seleccionar_asignar_fila)
-        self.menu.add_command(label="Modificar", command = seleccionar_modificar_fila)
+        self.menu.add_command(label="Gantt", command = seleccionar_gantt_fila)
         self.menu.add_command(label="Eliminar", command = seleccionar_eliminar_fila)
         
-        
         #Opciones del menú del click derecho
-        def eliminar_pedido(valores, bbdd):
-            id_programa = valores[0]
-            print(f"Se eliminará {id_programa}")
-            eventos.eliminar_pedido_BD(id_programa, bbdd)
-
-        def modificar_vh(valores, bbdd):
-            id_anterior = valores[0]
-            print(f"modificará el chasis {id_anterior}")
-            eventos.modificar_datos_vehiculo(id_anterior, bbdd)
-
-        def informacion_vh(valores, bbdd):
+        def informacion_programa(valores, bbdd):
             id_programa = valores[0]
             print(f"solicitó información de {id_programa}")
             eventos.ventana_infoVehiculo(id_programa, bbdd)
+        
+        def gantt_programa(valores, bbdd):
+            id_programa = valores[0]
+            print(f"modificará el chasis {id_programa}")
+            eventos.mostrar_gantt_programa(id_programa, bbdd)
+
+        def eliminar_programa(valores, bbdd):
+            id_programa = valores[0]
+            print(f"Se eliminará {id_programa}")
+            eventos.eliminar_programa_BD(id_programa, bbdd)
 
         def mostrar_menu(evento):        # Manejar el evento del clic derecho
             try:
@@ -220,7 +207,7 @@ class TablaProgramas():     #Tabla para pedido
             except:
                 pass
         
-        
+
         # Asociar el click derecho al evento
         self.tablaProgramas.bind("<Button-3>", mostrar_menu)
         self.tablaProgramas.bind("<<TreeviewSelect>>", click_fila)

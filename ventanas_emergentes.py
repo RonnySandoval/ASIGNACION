@@ -57,7 +57,21 @@ def msg_eliminar_ped(id):
     respuesta = messagebox.askokcancel(
         title="Eliminar Pedido",
         message=f"¡Está a punto de eliminar el pedido {id}!\n"
-        "Este cambio afectará las tablas de PEDIDOS, y es irreversible.\n"
+        "Este cambio afectará las tablas de PEDIDOS, VEHICULO, TIEMPOS_VEHICULO, PROGRAMAS Y ÓRDENES y es irreversible.\n"
+        "¿Seguro desea eliminar todos los registros implicados?"
+    )
+    if respuesta:
+        print("Click en Aceptar")
+        return "Aceptar"
+    else:
+        print("Click en Cancelar")
+        return "Cancelar"
+
+def msg_eliminar_prog(id):
+    respuesta = messagebox.askokcancel(
+        title="Eliminar Programa",
+        message=f"¡Está a punto de eliminar el programa {id} y todas las órdenes de este!\n"
+        "Este cambio afectará las tablas de PROGRAMAS y de ÓRDENES, y es irreversible.\n"
         "¿Seguro desea eliminarlo?"
     )
     if respuesta:

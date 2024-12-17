@@ -2,7 +2,7 @@ import re
 import pandas as pd
 from tkinter.filedialog import askopenfilename
 import CRUD
-import creadorBD
+import BDcrear
 import BBDD
 import glo
 import menu.stepsNuevaPlanta as steps_nueva_planta
@@ -12,6 +12,7 @@ import ventanas_emergentes
 import modelo_clases, modelo_instancias
 import modelo_llamarGantt
 import fechahora
+import gantt
 
 
 #################################################################################
@@ -76,7 +77,7 @@ def crear_plantaBD(dataframes, name, description, ventana):
     print(df_modelos)
     print(df_referencias)
     print(df_tiempos_modelos)
-    base_datos = creadorBD.crea_BBDD(nombre = name)
+    base_datos = BDcrear.crea_BBDD(nombre = name)
     if base_datos == "existe":
         return
     
@@ -164,7 +165,6 @@ def genera_tiempos_modelos_default(df_modelos, df_procesos):
     df_combinaciones['TIEMPO'] = 0                            # Añadir tiempos por defecto
     print(df_combinaciones)                                   # Mostrar el resultado
     return df_combinaciones
-
 
 #####################################################################
 ################EVENTOS PARA SECCION DE MODELOS######################
@@ -353,12 +353,66 @@ def eliminar_modelo_BD(ventana, bbdd):
     modeloDelete = ventana.varModelo.get()
     datosModelo = ventana.dfModelos[ventana.dfModelos['MODELO']== modeloDelete] 
     listaDatos = datosModelo.values.flatten().tolist()
-    vehiCoinciden = BBDD.buscar_vehiculo_por_modelo(bbdd, modeloDelete)
+    vehiCoinciden = BBDD.leer_vehiculo_por_modelo(bbdd, modeloDelete)
     if ventanas_emergentes.msg_eliminar_mod(modelo = modeloDelete, vehiculos = vehiCoinciden) == "Aceptar":
         BBDD.eliminar_modelo_completo(bbdd, modelo = modeloDelete)          # usar el método de la BD para eliminar
         for vehiculo in vehiCoinciden:
             BBDD.eliminar_vehiculo_completo(bbdd, chasis = vehiculo[0])
         ventana.rootAux.destroy()                                         # cerrar la ventana toplevel
+
+
+###################################################################
+################## EVENTOS PARA SECCION REFERENCIAS #################
+#####################################################################
+
+def crear_referencia(bbdd):
+    print("pusó el botón crear referencia")
+    ventana = ventanas_topLevel.VentanaCreaEditaReferencia("CREAR", bbdd)              #Llamar al constructor del objeto ventana
+    ventana.asignafuncion(funcionGuardar  = lambda:guardar_referencia_nueva(ventana, bbdd),
+                               funcionCancelar = lambda:cancelar(ventana))            # asignar los botones de guardar y cancelar en la ventana
+
+def guardar_referencia_nueva(ventana, bbdd):
+    print(ventana)
+    datos = (ventana.varReferencia.get(),       #recogemos los datos de la ventana
+             ventana.varMarcaModelo.get())
+    
+    BBDD.insertar_referencia(bbdd, *datos)
+    ventana.rootAux.destroy()   #cerramos la ventana auxiliar
+    
+    #actualizamos el frame de modelos en la ventana
+    glo.stateFrame.contenidoDeReferencias.actualizar_contenido(bbdd)
+
+def recoger_datos_referencia(filaBoton, bbdd):
+    print(filaBoton)
+    fila = re.search(r'(\d+)$', filaBoton).group(1)                           #extraer el numero de la fila
+    marca_modelo = glo.lbl_IdModelos[f"labelIdModelo{fila}"].cget("text")       #obtener la marca y el modelo apartir del numero de la fila
+    referencia = glo.lbl_Referencias[f"labelReferencia{fila}"].cget("text")       #obtener la marca y el modelo apartir del numero de la fila
+     
+    diccDatos = {"marca_modelo": marca_modelo, "referencia": referencia}
+    print(diccDatos)
+    return diccDatos
+
+def editar_referencia(botonPulsado, bbdd):
+    datos = recoger_datos_referencia(botonPulsado, bbdd)                     # llamar a la función que recoge los datos de los entry en el panel de modelos
+    ref_anterior = datos["referencia"]
+    print(datos)
+    ventana = ventanas_topLevel.VentanaCreaEditaReferencia("EDITAR", bbdd)       # Llamar al constructor del objeto ventana para editar el modelo
+    ventana.set_values(datos)                                                # llamar al metodo del objeto ventana creada, que llena los campos de modelo y tiempos
+    ventana.asignafuncion(lambda:guardar_referencia_actualizada(ventana, ref_anterior, bbdd), lambda:cancelar(ventana))    #asignar los botones de guardar y cancelar en la ventana
+
+def guardar_referencia_actualizada(ventana, ref_inicial, bbdd):
+
+    print(ref_inicial)
+    datos = (ventana.varReferencia.get(),       #recogemos los datos de la ventana
+             ventana.varMarcaModelo.get())
+    print(datos, ref_inicial)
+
+    BBDD.actualizar_referencia(bbdd, *datos, ref_inicial)
+    ventana.rootAux.destroy()   #cerramos la ventana auxiliar
+    
+    #actualizamos el frame de modelos en la ventana
+    glo.stateFrame.contenidoDeReferencias.actualizar_contenido(bbdd)
+
 
 #####################################################################
 ################### EVENTOS PARA SECCION TÉCNICOS ###################
@@ -393,7 +447,6 @@ def guardar_tecnico_nuevo(ventana, bbdd):
 
     BBDD.insertar_tecnico(bbdd, idTecnico, *datos)                                  # insertar el registro del técnico en BD
     BBDD.insertar_tecnico_proceso(bbdd, proc_espec, idTecnico, id_proc)             # insertar el registro del técnico_proceso en BD
-
 
 def eliminar_tecnico_BD(ventana, bbdd):
     nombreTecnico = ventana.varTecnico.get()        # obtener el técnico seleccionado
@@ -440,7 +493,6 @@ def modificar_datos_vehiculo(chasis_anterior, bbdd):
     ventana.set_values(datos, tiempos, "MODIFICAR")                                        #AGREGAR LOS DATOS DE LA BBDD A LA VENTANA
     ventana.asignafuncion(lambda:modificarVH_en_BBDD(ventana, chasis_anterior, bbdd), lambda:cancelar(ventana))  #ASIGNAR BOTONES
 
-
 def modificarVH_en_BBDD(ventana, chasis_anterior, bbdd):
     #Se recogen los datos de la fila
     tiempos = []
@@ -481,8 +533,6 @@ def modificarVH_en_BBDD(ventana, chasis_anterior, bbdd):
                                         proc_chasis_anterior)
 
     ventana.rootAux.destroy()   #cerramos la ventana auxiliar
-
-    #ventana.rootAux.destroy()
 
 def eliminar_VH_pedido(chasis):
     if ventanas_emergentes.msg_eliminar_veh(chasis) == "Aceptar":
@@ -563,7 +613,6 @@ def aceptar_AsignarUnVehiculo(ventana, chasisVh, bbdd):
     ventana.rootAux.destroy()
     ventanas_emergentes.messagebox.showinfo("Vehículo asignado", f"Se asignó el vehículo {chasisVh} al técnico {id_tec} en el proceso {id_proc}")
 
-
 #####################################################################
 ################## EVENTOS PARA SECCION DE PEDIDOS ##################
 #####################################################################
@@ -584,15 +633,101 @@ def guardar_pedido_nuevo(ventana, bbdd):
     print(datos_completos)
     BBDD.insertar_pedido(bbdd, *datos_completos)
 
-def eliminar_pedido_BD(id, bbdd):
+def ventana_infoPedido(id_pedido, bbdd):
+    datosPedido = BBDD.leer_pedido(bbdd, id_pedido)
+    datosProgramas = BBDD.leer_programas_por_pedido(bbdd, id_pedido)
+    df_vehiculos = BBDD.leer_historicos_estados_pedido_df(bbdd, id_pedido)
+    ventana = ventanas_topLevel.VentanaMuestraInfoPedi(bbdd, datosPedido, datosProgramas, df_vehiculos)
+    ventana.asignafuncionBoton(funcionCerrar=ventana.rootAux.destroy)
+
+def modificar_datos_pedido(id_anterior, bbdd):
+
+    ventana = ventanas_topLevel.VentanaModificarPedido(geometry      = "450x500",       #CREAR LA VENTANA EMERGENTE PARA EDITAR EL PEDIDO
+                                                       nombreVentana = "MODIFICAR PEDIDO",
+                                                       id_pedido     = id_anterior,
+                                                       bbdd          = bbdd)
+    ventana.botones.asignarfunciones(funcionOk      = lambda : modificarPedido_en_BBDD(ventana, id_anterior, bbdd),
+                                     funcionCancel  = lambda : cancelar(ventana))
+
+def modificarPedido_en_BBDD(ventana, id_anterior, bbdd):
+
+    datos = (
+        ventana.varCliente.get(),
+        ventana.labelEntryFechaRecepcion.varFecha.get(),
+        ventana.labelEntryFechaIngreso.varFecha.get(),
+        ventana.labelEntryFechaEstimada.varFecha.get(),
+        ventana.labelEntryFechaEntrega.varFecha.get(),
+    )
+    print(datos)
+    ventana.rootAux.destroy()   #cerramos la ventana auxiliar
+
+    consecutivo = BBDD.next_consecutivoPedido(bbdd)
+    id_bruto = re.sub(r'_[^_]*$', '', id_anterior)
+    id_pedido = id_bruto + "_" + str(consecutivo) 
+    datos_completos = (id_pedido,) + tuple(map(str, datos)) + (consecutivo,)
+    print(datos_completos)
+    BBDD.actualizar_pedido(bbdd, *datos_completos, id_anterior)    # Actualizamos pedido
+    BBDD.actualizar_vehiculos_pedido(bbdd, id_anterior, id_pedido)     # Actualizamos vehiculos de pedido
+    BBDD.actualizar_programas_pedido(bbdd, id_anterior, id_pedido)     # Actualizamos programas de pedido
+
+    ventanas_emergentes.messagebox.showinfo("Registros actualizados", f"Se actualizaron los registros de programas y vehículos del pedido {id_anterior}")
+
+def eliminar_pedido_BD(id_pedido, bbdd):
+    if ventanas_emergentes.msg_eliminar_ped(id_pedido) == "Aceptar":
+        request, incorrecta = BBDD.eliminar_pedido_cascada(bbdd, id_pedido)
+        if  incorrecta == None:
+            ventanas_emergentes.messagebox.showerror("ERROR EN LA ELIMINACIÓN DE REGISTROS", f"No se eliminó ningún registros:\nError: {request}")
+        elif incorrecta ==True:
+            ventanas_emergentes.messagebox.showerror("TRANSACCIÓN NO EXISTOSA", f"No se eliminó ningún registros.\nDetalles de eliminación:\n\n{request}")
+        elif incorrecta ==False:
+            ventanas_emergentes.messagebox.showinfo("TRANSACCIÓN EXISTOSA", f"Se afectaron los siguientes registros en base de datos:\n{request}")
+        
+#####################################################################
+################## EVENTOS PARA SECCION DE PROGRAMAS##################
+#####################################################################
+def mostrar_gantt_programa(id_programa, bbdd):
+    df = BBDD.leer_ordenes_graficar_programa(bbdd, id_programa)
+
+    # Convertir las columnas de fechas de string a datetime
+    df["INICIO"] = pd.to_datetime(df["INICIO"])
+    df["FIN"]    = pd.to_datetime(df["FIN"])
+
+    # Encontrar el valor máximo y mínimo de cada columna
+    inicio_horizonte = df["INICIO"].min()
+    fin_horizonte    = df["FIN"].max()
+    gantt_tecnicos, gantt_vehiculos = gantt.generar_gantt(df, inicio_horizonte, fin_horizonte)
+
+    diagramas = {"diagramaTecnicos" : gantt_tecnicos,
+                 "diagramaVehiculos": gantt_vehiculos}
+    
+    ventanas_topLevel.ventanaGraficos("1000x700", id_programa, diagramas, df)
+
+
+
+def ventana_infoOrdenes(id_orden, bbdd):
+    ventana = ventanas_topLevel.VentanaMuestraInfoOrde(id_orden, bbdd)
+    ventana.asignafuncionBoton(funcionCerrar = ventana.rootAux.destroy)
+
+def eliminar_programa_BD(id_programa, bbdd):
     if ventanas_emergentes.msg_eliminar_ped(id) == "Aceptar":
-        BBDD.eliminar_pedido(bbdd, id)
+        delPrograma = BBDD.eliminar_programa(bbdd, id_programa)
+        delOrdenes  = BBDD.eliminar_ordenes_por_programa(bbdd, id_programa)
+        if delPrograma is False:
+            if delOrdenes is False:
+                ventanas_emergentes.messagebox.showerror("Programa No eliminado", f"Hubo un error al eliminar el programa {id_programa} y sus registros de órdenes")
+            ventanas_emergentes.messagebox.showerror("Órdenes No eliminadas", f"Se eliminó el programa {id_programa}, pero no las órdenes del mismo") 
+        
+        ventanas_emergentes.messagebox.showinfo("Programa Eliminado",
+                                                f"""Registros de programa {id_programa} eliminados correctamente:
+                                                {delPrograma} programas eliminados
+                                                {delOrdenes} órdenes eliminadas""")
+
 #####################################################################
 ################ EVENTOS PARA SECCION DE HISTÓRICOS #################
 #####################################################################
 
-def ventanaResumenHistorico(id, bbdd):
-    ventana = ventanas_topLevel.VentanaMuestraInfoHis(id, bbdd)
+def ventanaResumenHistorico(id_historico, bbdd):
+    ventana = ventanas_topLevel.VentanaMuestraInfoHis(id_historico, bbdd)
     ventana.asignafuncionBoton(funcionCerrar = ventana.rootAux.destroy)
 
 def ventanaCambiarEstado(id, est_anterior, bbdd):
@@ -720,28 +855,28 @@ def aceptar_cargar_excel(ventana, nombreVentana, bbdd):
     dataframe = pd.read_excel(ruta, usecols=columns, header=int(encabezados)-1).dropna(how="all")
     dataframe = dataframe.map(lambda x: x.strip() if isinstance(x, str) else x)
     print("XLSX-->datosExcel: \n", dataframe)
-    
+    dataframe_limpio = limpiar_espacios_df(df = dataframe)
 
     if nombreVentana == "PROCESOS":
-        funcion = lambda : guardar_ProcesosExcel_BBDD(ventVistaPrevia, dataframe, bbdd)
+        funcion = lambda : guardar_ProcesosExcel_BBDD(ventVistaPrevia, dataframe_limpio, bbdd)
 
     if nombreVentana == "TECNICOS":
-        funcion = lambda : guardar_TecnicosExcel_BBDD(ventVistaPrevia, dataframe, bbdd)
+        funcion = lambda : guardar_TecnicosExcel_BBDD(ventVistaPrevia, dataframe_limpio, bbdd)
 
     if nombreVentana == "MODELOS":
-        funcion = lambda : guardar_ModelosExcel_BBDD(ventVistaPrevia, dataframe, bbdd)
+        funcion = lambda : guardar_ModelosExcel_BBDD(ventVistaPrevia, dataframe_limpio, bbdd)
 
     if nombreVentana == "REFERENCIAS":
-        funcion = lambda : guardar_ReferenciasExcel_BBDD(ventVistaPrevia, dataframe, bbdd)
+        funcion = lambda : guardar_ReferenciasExcel_BBDD(ventVistaPrevia, dataframe_limpio, bbdd)
 
     if nombreVentana == "TIEMPOS_MODELOS":
-        funcion = lambda : guardar_TiemposModelosExcel_BBDD(ventVistaPrevia, dataframe, bbdd)
+        funcion = lambda : guardar_TiemposModelosExcel_BBDD(ventVistaPrevia, dataframe_limpio, bbdd)
 
     if nombreVentana == "PEDIDO":
         ventana.rootAux.destroy()
-        funcion = lambda : guardar_PedidoExcel_BBDD(ventVistaPrevia, dataframe, bbdd)
-        ventVistaPrevia = ventanas_topLevel.VentanaVistaPreviaPedido(dataframe, bbdd)
-        ventVistaPrevia.asignafuncion(funcionAceptar  = lambda : guardar_PedidoExcel_BBDD(ventVistaPrevia, dataframe, bbdd), 
+        funcion = lambda : guardar_PedidoExcel_BBDD(ventVistaPrevia, dataframe_limpio, bbdd)
+        ventVistaPrevia = ventanas_topLevel.VentanaVistaPreviaPedido(dataframe_limpio, bbdd)
+        ventVistaPrevia.asignafuncion(funcionAceptar  = lambda : guardar_PedidoExcel_BBDD(ventVistaPrevia, dataframe_limpio, bbdd), 
                                       funcionCancelar = ventVistaPrevia.rootAux.destroy)
         return
     
@@ -856,6 +991,18 @@ def nombraArchivoExcel(nombre):
 def cancelar(ventana):
     ventana.rootAux.destroy()
 
+def limpiar_espacios_df(df):
+    """
+    Limpia los espacios en blanco al final de las cadenas y reduce múltiples espacios
+    a uno solo en todas las columnas de un DataFrame.
+
+    :param df: DataFrame de pandas.
+    :return: DataFrame con todas las columnas limpiadas.
+    """
+    for columna in df.columns:
+        df[columna] = df[columna].astype(str).apply(lambda x: ' '.join(x.split()))
+    return df
+
 ###############################################################################
 ######################### EVENTOS PARA EL SCHEDULING ##########################
 ###############################################################################
@@ -926,15 +1073,22 @@ def aceptarFechayHoraProg(ventana, tipoPrograma, bbdd):
         print(f"el horizonte es {horizonte_calculado}")
 
     ########## GRAFICAR PROGRAMACIÓN EN GANTT ##########
-    modelo_llamarGantt.generar_gantt_tecnicos(personal    = tecnicos_a_programar,
+    diagramaTecnicos = modelo_llamarGantt.generar_gantt_tecnicos(personal    = tecnicos_a_programar,
                                               fechaStart  = fecha,
                                               horaStart   = hora,
                                               horizonte_calculado = horizonte_calculado)
-    modelo_llamarGantt.generar_gantt_vehiculos(pedido     =  pedido_a_programar,
+    diagramaVehiculos = modelo_llamarGantt.generar_gantt_vehiculos(pedido     =  pedido_a_programar,
                                               fechaStart  = fecha,
                                               horaStart   = hora,
                                               horizonte_calculado = horizonte_calculado)
     
+    for diccionario, clave in zip((diagramaTecnicos, diagramaVehiculos), ('tecnicos', 'vehiculos')):
+        diccionario['items'] = diccionario.pop(clave)
+
+    diagramas = {"diagramaTecnicos" : diagramaTecnicos,
+                 "diagramaVehiculos": diagramaVehiculos}
+    
+
     ########## PREPARAR INFORMACIÓN PARA BASE DE DATOS ############
     id_programa = diccPrograma["id"]
     id_programa_new = id_programa + "_" + str(BBDD.next_consecutivoPrograma(bbdd))
@@ -946,29 +1100,28 @@ def aceptarFechayHoraProg(ventana, tipoPrograma, bbdd):
     print(df_programa)
 
     abrirVistaPrevia_programa(pedido    = pedido_a_programar,
+                              diagramas = diagramas,
                               programa  = id_programa,
                               df_to_BD  = df_programa,
                               df_previo = df_previo,
                               bbdd      = bbdd)
 
-def abrirVistaPrevia_programa(pedido, programa, df_to_BD, df_previo, bbdd):
-    titulo =f"Programa de producción\nPedido: {pedido.id_pedido}\nId Programa : {programa}"
-    ventana = ventanas_topLevel.VentanaVistaPrevia(nombreVentana = titulo,
-                                                   df            = df_previo,
-                                                   bbdd          = bbdd)
-    ventana.asignafuncion(funcionAceptar  = lambda : aceptar_guardar_programa(ventana, programa, df_to_BD, bbdd),
-                          funcionCancelar = ventana.rootAux.destroy)
+def abrirVistaPrevia_programa(pedido, diagramas, programa, df_to_BD, df_previo, bbdd):
+    ventana = ventanas_topLevel.ventanaGraficos("1000x700", programa, diagramas, df_previo)
+    ventana.botones.asignarfunciones(funcionOk     = lambda : aceptar_guardar_programa(ventana, programa, pedido.id_pedido, df_to_BD, bbdd),
+                                     funcionCancel = ventana.rootAux.destroy)
 
-def aceptar_guardar_programa(ventana, programa, df_programa, bbdd):
+def aceptar_guardar_programa(ventana, programa, pedido, df_programa, bbdd):
     id_inicial  = programa
     consecutivo = BBDD.next_consecutivoPrograma(bbdd)
     id_programa = id_inicial + "_" + str(consecutivo)
     ventana.rootAux.destroy()
     print(programa)
     print(df_programa)
+    print(pedido)
 
     cargaOrdenes  = BBDD.insertar_ordenes_df(bbdd, df_programa)
-    cargaPrograma = BBDD.insertar_programa(bbdd, id_programa, None, consecutivo)
+    cargaPrograma = BBDD.insertar_programa(bbdd, id_programa, None, consecutivo, pedido)
 
     if cargaOrdenes is False:
         if cargaPrograma is False:

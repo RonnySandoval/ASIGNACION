@@ -17,7 +17,6 @@ class ContenidoVehiculos():
 
     def __init__(self, contenedor):
 
-
         self.frameTablaVehiculos = ctk.CTkFrame(contenedor, bg_color=moradoMedio)
         self.frameTablaVehiculos.pack(fill="both", expand=True, padx=5,)
 
@@ -248,7 +247,6 @@ class TablaVehiculos():     #Tabla para pedido
                 self.menu.post(evento.x_root, evento.y_root)
             except:
                 pass
-        
         
         # Asociar el click derecho al evento
         self.tablaVehiculos.bind("<Button-3>", mostrar_menu)

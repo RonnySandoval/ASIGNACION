@@ -68,7 +68,6 @@ class FiltrosHistoricos():
         for i in range(10): 
             self.frame_filtros.grid_columnconfigure(i, weight=1)
 
-
         # Crear un botón para aplicar los filtros
         self.boton_filtrar = ctk.CTkButton(master=self.frame_filtros, text="Filtro", command=lambda:self.filtrar_datos(historicos), width=20,
                                            font=numerosPequeños, hover_color=grisVerdeClaro, fg_color=grisVerdeMedio, corner_radius=15)
@@ -78,7 +77,7 @@ class FiltrosHistoricos():
                                               font=numerosPequeños, hover_color=amarilloMedio, fg_color=amarilloOscuro, corner_radius=15)
         self.boton_actualizar.grid(row=0, column=1, pady=5)
 
-        self.boton_importar = ctk.CTkButton(master=self.frame_filtros, text="Actualizar", command=lambda:historicos.cargar_historicos(bbdd), width=20,
+        self.boton_importar = ctk.CTkButton(master=self.frame_filtros, text="Importar", command=lambda:historicos.cargar_historicos(bbdd), width=20,
                                               font=numerosPequeños, hover_color=verdeMedio, fg_color=verdeOscuro, corner_radius=15)
         self.boton_importar.grid(row=0, column=2, pady=5)
 

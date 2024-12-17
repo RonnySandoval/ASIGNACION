@@ -2,7 +2,7 @@ import re
 import os
 import pandas as pd
 from tkinter.filedialog import askopenfilename
-import creadorBD
+import BDcrear
 import BBDD
 import glo
 import menu.stepsNuevaPlanta as steps_nueva_planta
@@ -85,7 +85,7 @@ def crear_plantaBD(dataframes, name, description, ventana):
     print(df_modelos)
     print(df_referencias)
     print(df_tiempos_modelos)
-    base_datos = creadorBD.crea_BBDD(nombre = name)
+    base_datos = BDcrear.crea_BBDD(nombre = name)
     if base_datos == "existe":
         return
     

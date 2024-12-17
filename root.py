@@ -24,7 +24,6 @@ def construye_root(root):
     glo.stateFrame.contenidoDeTecnicos  = frameTecn.ContenidoTecnicos(root.creaframeTecnicos(), bbdd=glo.base_datos)
     glo.stateFrame.contenidoDeProcesos  = frameProc.ContenidoProcesos(root.creaframeProcesos(), bbdd=glo.base_datos)   
 
-
     ################################################################################################################################################
     ################################################### Añadir contenidos al frame de VEHÍCULOS ####################################################
     ################################################################################################################################################
@@ -32,18 +31,17 @@ def construye_root(root):
     glo.stateFrame.tablaVehiculos       = frameVehi.TablaVehiculos(glo.stateFrame.contenidoDeVehiculos,  root.frameVehiculos, root, bbdd=glo.base_datos)
     glo.stateFrame.filtroVehiculos      = frameVehi.FiltrosVehiculos(glo.stateFrame.tablaVehiculos, glo.stateFrame.contenidoDeVehiculos,  bbdd=glo.base_datos)
 
-
     ################################################################################################################################################
     ################################################### Añadir contenidos al frame de PEDIDOS ######################################################
     ################################################################################################################################################
-    glo.stateFrame.contenidoDePedidos = framePedi.ContenidoPedidos(root.framePedidos)
-    glo.stateFrame.tablaPedidos       = framePedi.TablaPedidos(glo.stateFrame.contenidoDePedidos, root.framePedidos, root, bbdd=glo.base_datos)
+    glo.stateFrame.framePedidos = root.creaframePedidos()
+    glo.stateFrame.contenidoDePedidos = framePedi.ContenidoPedidos(glo.stateFrame.framePedidos[0])
+    glo.stateFrame.tablaPedidos       = framePedi.TablaPedidos(glo.stateFrame.contenidoDePedidos, glo.stateFrame.framePedidos[0], root, bbdd=glo.base_datos)
     glo.stateFrame.filtroPedidos      = framePedi.FiltrosPedidos(glo.stateFrame.tablaPedidos, glo.stateFrame.contenidoDePedidos, bbdd=glo.base_datos)
 
-    glo.stateFrame.contenidoDeDetalles = frameDeta.ContenidoDetallePedido(root.framePedidos)
-    glo.stateFrame.tablaDetalles       = frameDeta.TablaDetallePedido(glo.stateFrame.contenidoDeDetalles, root.framePedidos, root, bbdd=glo.base_datos)
+    glo.stateFrame.contenidoDeDetalles = frameDeta.ContenidoDetallePedido(glo.stateFrame.framePedidos[1])
+    glo.stateFrame.tablaDetalles       = frameDeta.TablaDetallePedido(glo.stateFrame.contenidoDeDetalles, glo.stateFrame.framePedidos[1], root, bbdd=glo.base_datos)
     glo.stateFrame.filtroDetalles     = frameDeta.FiltrosDetallePedido(glo.stateFrame.tablaDetalles, glo.stateFrame.contenidoDeDetalles, bbdd=glo.base_datos)
-
 
     ################################################################################################################################################
     ################################################### Añadir contenidos al frame de PROGRAMAS ######################################################
@@ -56,14 +54,12 @@ def construye_root(root):
     glo.stateFrame.tablaOrdenes       = frameOrde.TablaOrdenes(glo.stateFrame.contenidoDeOrdenes, root.frameProgramas, root, bbdd=glo.base_datos)
     glo.stateFrame.filtroOrdenes     = frameOrde.FiltrosOrdenes(glo.stateFrame.tablaOrdenes, glo.stateFrame.contenidoDeOrdenes, bbdd=glo.base_datos)
 
-
     ################################################################################################################################################
     ################################################### Añadir contenidos al frame de HISTÓRICOS ###################################################
     ################################################################################################################################################
     glo.stateFrame.contenidoDeHistoricos= frameHist.ContenidoHistoricos(root.frameHistoricos)
     glo.stateFrame.tablaHistoricos      = frameHist.TablaHistoricos( glo.stateFrame.contenidoDeHistoricos, root.frameHistoricos, root, bbdd=glo.base_datos)
     glo.stateFrame.filtroHistoricos     = frameHist.FiltrosHistoricos(glo.stateFrame.tablaHistoricos, glo.stateFrame.contenidoDeHistoricos, bbdd=glo.base_datos)
-
 
     ################################################################################################################################################
     ################################################### Añadir contenidos al frame de REFERENCIAS ##################################################

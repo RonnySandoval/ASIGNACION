@@ -84,3 +84,10 @@ class ContenidoTecnicos:
         self.frameTecnicosInterior.grid_columnconfigure(3, weight=0)
         self.frameTecnicosInterior.configure()
 
+        # Vincular la rueda del mouse al desplazamiento del Canvas
+        self.canvasTecnicos.bind_all("<MouseWheel>", self.on_mouse_wheel)  # Para Windows y Linux
+        self.canvasTecnicos.bind_all("<Button-4>", self.on_mouse_wheel)    # Para sistemas basados en X11
+        self.canvasTecnicos.bind_all("<Button-5>", self.on_mouse_wheel)
+
+    def on_mouse_wheel(self, event):
+        self.canvasTecnicos.yview_scroll(-1 * (event.delta // 120), "units")

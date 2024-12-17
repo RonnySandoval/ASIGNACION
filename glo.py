@@ -35,6 +35,7 @@ strVar_newPedido = {}
 cons_newPedido = {}
 
 base_datos = None
+huerfanos = None
 raiz_principal = None
 ################################################
 ###### FRAMES DE CONTENIDOS PRINCIPALES ########

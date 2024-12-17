@@ -18,7 +18,7 @@ class ContenidoPedidos():
     def __init__(self, contenedor):
 
         self.frameTablaPedidos = ctk.CTkFrame(contenedor, bg_color=moradoMedio)
-        self.frameTablaPedidos.pack(fill="both", expand=True, side="left", padx=5,)
+        self.frameTablaPedidos.pack(fill="both", expand=True, side="top", padx=5,)
 
         # Estilo personalizado para Treeview
         self.styletreeviewPedi = ttk.Style()
@@ -92,11 +92,10 @@ class FiltrosPedidos():
 class TablaPedidos():     #Tabla para pedido
     def __init__(self, contenido, contenedor, laRaiz, bbdd): #Crea latabla y un diccionario con los nombres de los campos
 
-        self.raiz = laRaiz
          #Crear estilo personalizado para las cabeceras
         self.styletreeviewPedi = ttk.Style()
         self.styletreeviewPedi.configure("TreeviewPedidos.Heading", foreground=moradoMedio, font=texto1Minimo)
-        
+        self.raiz = laRaiz
         #Crear Tabla
         self.styletreeviewPedi.layout("TreeviewPedidos", [('Treeview.treearea', {'sticky': 'nswe'})])
         self.tablaPedidos = ttk.Treeview(contenido.canvas, show="headings", style="TreeviewPedidos")
@@ -106,8 +105,6 @@ class TablaPedidos():     #Tabla para pedido
         for col in self.tablaPedidos["columns"]:
             self.tablaPedidos.column(col, anchor=tk.CENTER, width=80)
             self.tablaPedidos.heading(col, text=col, anchor=tk.CENTER)
-
-        # Crear un Scrollbar y conectarlo con el Canvas
 
         #Crear una barra de desplazamiento para la tabla y configurarla
         self.scrollbarTablaPedidos = ttk.Scrollbar(contenido.frameTablaPedidos, orient=tk.VERTICAL, command=self.tablaPedidos.yview)
@@ -120,20 +117,20 @@ class TablaPedidos():     #Tabla para pedido
 
         self.frameBotonesPedidos = ctk.CTkFrame(contenedor, bg_color=moradoMedio)
         self.frameBotonesPedidos.pack(fill="both", side="bottom")
-
+        
         #Botones de programar pedido
         self.botonProgramarTodo = ctk.CTkButton(master=self.frameBotonesPedidos ,text="Programar TODO",
-                                                font=textoGrande, hover_color=amarilloOscuro, fg_color=azulOscuro, border_color = blancoFrio,
+                                                font=textoMedio, hover_color=amarilloOscuro, fg_color=azulOscuro, border_color = blancoFrio,
                                                 corner_radius=20, command=lambda:self.programar("completo", bbdd), width=60)
         self.botonProgramarTodo.pack(fill=tk.X, side="left", padx=15, pady=5)
 
         self.botonProgramarInmediato = ctk.CTkButton(master=self.frameBotonesPedidos, text="Programar INMEDIATO",
-                                                     font=textoGrande, hover_color=amarilloOscuro, fg_color=azulOscuro, border_color = blancoFrio,
+                                                     font=textoMedio, hover_color=amarilloOscuro, fg_color=azulOscuro, border_color = blancoFrio,
                                                      corner_radius=20, command=lambda:self.programar("inmediato", bbdd), width=60)
         self.botonProgramarInmediato.pack(fill=tk.X, side="left", padx=15, pady=5)
 
         self.botonProgramarPorProcesos= ctk.CTkButton(master=self.frameBotonesPedidos, text="Programar POR PROCESOS",
-                                                      font=textoGrande, hover_color=amarilloOscuro, fg_color=azulOscuro, border_color = blancoFrio,
+                                                      font=textoMedio, hover_color=amarilloOscuro, fg_color=azulOscuro, border_color = blancoFrio,
                                                      corner_radius=20, command=lambda:self.programar("por procesos", bbdd), width=60)
         self.botonProgramarPorProcesos.pack(fill=tk.X, side="left", padx=15, pady=5)
 
@@ -180,18 +177,7 @@ class TablaPedidos():     #Tabla para pedido
             if fila:
                 valores = self.tablaPedidos.item(fila, 'values')     #obtener los valores de la fila
                 print(valores)
-                informacion_vh(valores, bbdd)
-
-        #click derecho en asignar vehiculo
-        def seleccionar_asignar_fila():
-            fila = self.tablaPedidos.selection()     #obtener el item seleccionado
-            print("Asignar seleccionada")
-            if fila:
-                valores = self.tablaPedidos.item(fila, 'values')     #obtener los valores de la fila
-                id_pedido = valores[0]
-                print(f"asignará el vehiculo  {valores}")
-                print(id_pedido, bbdd)
-                eventos.ventana_AsignarUnVehiculo(id_pedido, bbdd)
+                informacion_pedi(valores, bbdd)
 
         #click derecho en modificar fila
         def seleccionar_modificar_fila():
@@ -200,7 +186,7 @@ class TablaPedidos():     #Tabla para pedido
             if fila:
                 valores = self.tablaPedidos.item(fila, 'values')     #obtener los valores de la fila
                 print(valores)
-                modificar_vh(valores, bbdd)
+                modificar_pedi(valores, bbdd)
 
         #click derecho en eliminar fila
         def seleccionar_eliminar_fila():
@@ -209,31 +195,30 @@ class TablaPedidos():     #Tabla para pedido
             if fila:
                 valores = self.tablaPedidos.item(fila, 'values')     #obtener los valores de la fila
                 print(valores)
-                eliminar_pedido(valores, bbdd)       
+                eliminar_pedi(valores, bbdd)       
         
         #CREAR MENU CONTEXTUAL
         self.menu = tk.Menu(self.raiz, tearoff=0)
         self.menu.add_command(label="Información", command = seleccionar_informacion_fila)
-        self.menu.add_command(label="Asignar", command = seleccionar_asignar_fila)
         self.menu.add_command(label="Modificar", command = seleccionar_modificar_fila)
         self.menu.add_command(label="Eliminar", command = seleccionar_eliminar_fila)
         
-        
         #Opciones del menú del click derecho
-        def eliminar_pedido(valores, bbdd):
+
+        def informacion_pedi(valores, bbdd):
+            id_pedido = valores[0]
+            print(f"solicitó información de {id_pedido}")
+            eventos.ventana_infoPedido(id_pedido, bbdd)
+
+        def modificar_pedi(valores, bbdd):
+            id_anterior = valores[0]
+            print(f"modificará el chasis {id_anterior}")
+            eventos.modificar_datos_pedido(id_anterior, bbdd)
+
+        def eliminar_pedi(valores, bbdd):
             id_pedido = valores[0]
             print(f"Se eliminará {id_pedido}")
             eventos.eliminar_pedido_BD(id_pedido, bbdd)
-
-        def modificar_vh(valores, bbdd):
-            id_anterior = valores[0]
-            print(f"modificará el chasis {id_anterior}")
-            eventos.modificar_datos_vehiculo(id_anterior, bbdd)
-
-        def informacion_vh(valores, bbdd):
-            id_pedido = valores[0]
-            print(f"solicitó información de {id_pedido}")
-            eventos.ventana_infoVehiculo(id_pedido, bbdd)
 
         def mostrar_menu(evento):        # Manejar el evento del clic derecho
             try:

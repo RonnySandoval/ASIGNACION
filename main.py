@@ -33,7 +33,6 @@ class ventanaRoot(ctk.CTk):
         #Label con el nombre de la planta 
         ctk.CTkLabel(self.nav_frame, text=bbdd, font=textoBajo, width=100).pack(side=ctk.RIGHT, padx=5, pady=5)
         
-        
         # Crear frames sin empaquetarlos
         self.framePlanta      = ctk.CTkFrame(self, fg_color=moradoMedio)
         self.frameVehiculos   = ctk.CTkFrame(self, fg_color=grisAzuladoMedio)
@@ -99,7 +98,6 @@ class ventanaRoot(ctk.CTk):
         self.frameTecMod.grid_rowconfigure(1, weight=1)  # Segunda fila expandible (frameProcesos)
         self.frameTecMod.grid_columnconfigure(0, weight=1)  # Expande la columna para los frames
 
-
         return self.frameModelos
     
     def creaframeTecnicos(self):
@@ -111,7 +109,14 @@ class ventanaRoot(ctk.CTk):
         self.frameProcesos = ctk.CTkFrame (self.frameTecMod, fg_color=grisAzuladoMedio, corner_radius=15)
         self.frameProcesos.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
         return self.frameProcesos
-
+        
+    def creaframePedidos(self):
+        self.framePedidosLeft = ctk.CTkFrame (self.framePedidos, fg_color=azulMedio, corner_radius=15)
+        self.framePedidosLeft.pack(expand=True, side="left", fill="both")
+        self.framePedidosRight = ctk.CTkFrame (self.framePedidos, fg_color=azulMedio, corner_radius=15)
+        self.framePedidosRight.pack(expand=True, side="right", fill="both")
+        return self.framePedidosLeft, self.framePedidosRight 
+    
     def ocultar_hasta_datos(self):
         # Ocultar todos los frames
         for fr in ( self.nav_frame,
@@ -151,9 +156,9 @@ class ventanaRoot(ctk.CTk):
         # Volver a configurar el contenido de cada frame si es necesario
         self.mostrar_frame(self.framePedidos)  # O cualquier otro frame que quieras mostrar al final
 
-
 #CREAR VENTANA PRINCIPAL CON SU MENÚ
-root = ventanaRoot()
-mainMenu.crearMenuPrincipal(root)
-glo.raiz_principal = root
-root.mainloop()
+if __name__ == "__main__":
+    root = ventanaRoot()
+    mainMenu.crearMenuPrincipal(root)
+    glo.raiz_principal = root
+    root.mainloop()

@@ -30,6 +30,19 @@ class ContenidoReferencias():
         self.frameReferenciasInterior = ctk.CTkFrame(self.canvasReferencias, bg_color=grisAzuladoClaro)
         self.canvasReferencias.create_window((0, 0), window=self.frameReferenciasInterior, anchor="nw")
 
+
+        self.llenar_contenido(bbdd)
+
+        # Vincular la rueda del mouse al desplazamiento del Canvas
+        self.canvasReferencias.bind_all("<MouseWheel>", self.on_mouse_wheel)  # Para Windows y Linux
+        self.canvasReferencias.bind_all("<Button-4>", self.on_mouse_wheel)    # Para sistemas basados en X11
+        self.canvasReferencias.bind_all("<Button-5>", self.on_mouse_wheel)
+
+    def on_mouse_wheel(self, event):
+        self.canvasReferencias.yview_scroll(-1 * (event.delta // 120), "units")
+
+    def llenar_contenido(self, bbdd):
+
         #Titulo de marcas modelos
         self.labelIdModelos = ctk.CTkLabel(self.frameReferenciasInterior, text="MARCAS - Modelos", font=textoBajo, fg_color=grisOscuro, anchor="w")
         self.labelIdModelos.grid(row=0, column=1, sticky="ew")
@@ -38,18 +51,14 @@ class ContenidoReferencias():
         self.labelReferencias = ctk.CTkLabel(self.frameReferenciasInterior, text="REFERENCIAS", font=textoBajo, fg_color=grisOscuro)
         self.labelReferencias.grid(row=0, column=2, sticky="ew")
         self.frameReferenciasInterior.grid_columnconfigure(1, weight=1)
-
-        self.llenar_contenido(bbdd)
-
-    def llenar_contenido(self, bbdd):
-
+        
         #############################################################################################
         ################################ Botón de IMPORTAR referencia ################################
         #############################################################################################
         self.button_AnadirReferencia = ctk.CTkButton(master=self.frameReferenciasInterior,text="Importar\nReferencias", font=textoBajo,
                                                 hover_color=grisOscuro, fg_color=naranjaOscuro, border_color=blancoFrio,
                                                 border_width=1,width=40, corner_radius=10,
-                                                command= lambda:eventos.crear_modelo(bbdd))
+                                                command= lambda:eventos.importar_referencias(bbdd))
         self.button_AnadirReferencia.grid(row=0, column=0, padx=3, pady=5)
         ############################################################################################
         ############################################################################################
@@ -61,7 +70,7 @@ class ContenidoReferencias():
         self.button_AnadirReferencia = ctk.CTkButton(master=self.frameReferenciasInterior,text="Añadir\nReferencia", font=textoBajo,
                                                 hover_color=grisOscuro, fg_color=amarilloOscuro, border_color=blancoFrio,
                                                 border_width=1,width=40, corner_radius=10,
-                                                command= lambda:eventos.crear_modelo(bbdd))
+                                                command= lambda:eventos.crear_referencia(bbdd))
         self.button_AnadirReferencia.grid(row=0, column=7, padx=3, pady=5)
         ############################################################################################
         ############################################################################################
@@ -83,7 +92,7 @@ class ContenidoReferencias():
             button_name = f"ButtonAgregar{filasCambiarMod}"
             glo.btt_editModelos[button_name] = ctk.CTkButton(master=self.frameReferenciasInterior,text="Editar", font=textoBajo,
                                                              fg_color=azulOscuro, width=40, corner_radius=15,
-                                                            command=lambda varBoton=button_name:eventos.editar_modelo(varBoton, bbdd))
+                                                            command=lambda varBoton=button_name:eventos.editar_referencia(varBoton, bbdd))
             glo.btt_editModelos[button_name].grid(row=1+filasCambiarMod, column=0, padx=2, sticky = "ew")
         ############################################################################################
         ############################################################################################
@@ -112,14 +121,14 @@ class ContenidoReferencias():
 
              
         ###########################################################################################
-        ############################## Botones de INGRESAR un vehiculo ############################
+        ############################## Botones de ELIMINAR UNA REFERENCIA##########################
         ###########################################################################################
         self.button_variables_Eliminar= {}
         for filasEliminar in range (1, len(self.df_Modelos_referencias)+1):
             button_name = f"ButtonAgregar{filasEliminar}"
             self.button_variables_Eliminar[button_name] = ctk.CTkButton(master=self.frameReferenciasInterior,text="Eliminar",
                                                                         font=textoBajo, fg_color=rojoMuyOscuro, hover_color = naranjaMedio,width=40, corner_radius=20,
-                                                                        command=lambda varBoton=button_name:eventos.agregar_vehiculo(varBoton, bbdd))
+                                                                        command=lambda varBoton=button_name:eventos.borrar_referencia(varBoton, bbdd))
             self.button_variables_Eliminar[button_name].grid(row=1+filasEliminar, column= 7, padx=3, pady=2)
         ############################################################################################
         ############################################################################################

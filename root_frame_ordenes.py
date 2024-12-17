@@ -130,13 +130,11 @@ class TablaOrdenes():     #Tabla para pedido
     def llenarTabla(self, bbdd, programa=None):    # Agregar datos a la tabla
 
         if programa is None:
-            #self.programaMostrado = list(BBDD.leer_vehiculos_completos(bbdd))
             self.programaMostrado = list(BBDD.leer_ordenes_completo(bbdd))
             self.datos = [(codigo, chasis, tecnico, proceso, inicio, fin, modelo)
                             for codigo, chasis, inicio, fin, duracion, tiempo_productivo, proceso,
                                 observaciones, modelo, color, tecnico
                             in self.programaMostrado]
-
 
         if programa is not None:
             self.programaMostrado = list(BBDD.leer_ordenes_por_programa(bbdd, programa))
@@ -155,64 +153,53 @@ class TablaOrdenes():     #Tabla para pedido
         #click derecho en información de vehículo       
         def seleccionar_informacion_fila():
             fila = self.tablaOrdenes.selection()     #obtener el item seleccionado
-            print("Asignar seleccionada")
+            print("Resumen de orden seleccionada")
             if fila:
                 valores = self.tablaOrdenes.item(fila, 'values')     #obtener los valores de la fila
                 print(valores)
-                informacion_vh(valores, bbdd)
+                informacion_ord(valores, bbdd)
 
         #click derecho en asignar vehiculo
-        def seleccionar_asignar_fila():
+        def seleccionar_incluir_fila():
             fila = self.tablaOrdenes.selection()     #obtener el item seleccionado
-            print("Asignar seleccionada")
+            print("Incluir orden seleccionada")
             if fila:
                 valores = self.tablaOrdenes.item(fila, 'values')     #obtener los valores de la fila
                 id_pedido = valores[0]
                 print(f"asignará el vehiculo  {valores}")
                 print(id_pedido, bbdd)
-                eventos.ventana_AsignarUnVehiculo(id_pedido, bbdd)
-
-        #click derecho en modificar fila
-        def seleccionar_modificar_fila():
-            fila = self.tablaOrdenes.selection()     #obtener el item seleccionado
-            print("Modificar seleccionada")
-            if fila:
-                valores = self.tablaOrdenes.item(fila, 'values')     #obtener los valores de la fila
-                print(valores)
-                modificar_vh(valores, bbdd)
+                incluir_ord(valores, bbdd)
 
         #click derecho en eliminar fila
         def seleccionar_eliminar_fila():
             fila = self.tablaOrdenes.selection()     #obtener el item seleccionado
-            print("Eliminar seleccionada")
+            print("Eliminar orden seleccionada")
             if fila:
                 valores = self.tablaOrdenes.item(fila, 'values')     #obtener los valores de la fila
                 print(valores)
-                eliminar_vh(valores, bbdd)       
+                eliminar_ord(valores, bbdd)       
         
         #CREAR MENU CONTEXTUAL
         self.menu = tk.Menu(self.raiz, tearoff=0)
-        self.menu.add_command(label="Información", command = seleccionar_informacion_fila)
-        self.menu.add_command(label="Asignar", command = seleccionar_asignar_fila)
-        self.menu.add_command(label="Modificar", command = seleccionar_modificar_fila)
+        self.menu.add_command(label="Resumen", command = seleccionar_informacion_fila)
+        self.menu.add_command(label="Incluir en histórico", command = seleccionar_incluir_fila)
         self.menu.add_command(label="Eliminar", command = seleccionar_eliminar_fila)
         
-        
         #Opciones del menú del click derecho
-        def eliminar_vh(valores, bbdd):
+        def informacion_ord(valores, bbdd):
             id_programa = valores[0]
-            print(f"Se eliminará {id_programa}")
-            eventos.eliminar_VH_pedido(id_programa)
+            print(f"solicitó información de {id_programa}")
+            eventos.ventana_infoOrdenes(id_programa, bbdd)
 
-        def modificar_vh(valores, bbdd):
+        def incluir_ord(valores, bbdd):
             id_anterior = valores[0]
             print(f"modificará el chasis {id_anterior}")
             eventos.modificar_datos_vehiculo(id_anterior, bbdd)
 
-        def informacion_vh(valores, bbdd):
+        def eliminar_ord(valores, bbdd):
             id_programa = valores[0]
-            print(f"solicitó información de {id_programa}")
-            eventos.ventana_infoVehiculo(id_programa, bbdd)
+            print(f"Se eliminará {id_programa}")
+            eventos.eliminar_VH_pedido(id_programa)
 
         def mostrar_menu(evento):        # Manejar el evento del clic derecho
             try:

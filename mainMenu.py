@@ -7,7 +7,6 @@ def crearMenuPrincipal(raiz):
     barraMenu = tk.Menu(raiz, bg=grisOscuro, fg=blancoCalido)
     raiz.config(menu=barraMenu)
 
-
     ###################### submenu de Nuevo######################################
     menuNuevo=tk.Menu(barraMenu, tearoff=0)
     barraMenu.add_cascade(label="Nuevo", menu=menuNuevo)
