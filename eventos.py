@@ -413,7 +413,6 @@ def guardar_referencia_actualizada(ventana, ref_inicial, bbdd):
     #actualizamos el frame de modelos en la ventana
     glo.stateFrame.contenidoDeReferencias.actualizar_contenido(bbdd)
 
-
 #####################################################################
 ################### EVENTOS PARA SECCION TÉCNICOS ###################
 #####################################################################
@@ -702,8 +701,6 @@ def mostrar_gantt_programa(id_programa, bbdd):
     
     ventanas_topLevel.ventanaGraficos("1000x700", id_programa, diagramas, df)
 
-
-
 def ventana_infoOrdenes(id_orden, bbdd):
     ventana = ventanas_topLevel.VentanaMuestraInfoOrde(id_orden, bbdd)
     ventana.asignafuncionBoton(funcionCerrar = ventana.rootAux.destroy)
@@ -754,6 +751,26 @@ def ventana_eliminarHistorico(id_historico, bbdd):
     if BBDD.ventEmerg.msg_eliminar_his(id_historico) == "Aceptar":
         BBDD.eliminar_historico(bbdd, id_historico)
 
+
+#####################################################################
+############ EVENTOS PARA SECCION DE GANTT HITORICOS ################
+#####################################################################
+def generar_df_gantt(bbdd):
+    df = BBDD.leer_historicos_graficar(bbdd)
+
+    # Convertir las columnas de fechas de string a datetime
+    df["INICIO"] = pd.to_datetime(df["INICIO"])
+    df["FIN"]    = pd.to_datetime(df["FIN"])
+
+    # Encontrar el valor máximo y mínimo de cada columna
+    inicio_horizonte = df["INICIO"].min()
+    fin_horizonte    = df["FIN"].max()
+    gantt_tecnicos, gantt_vehiculos = gantt.generar_gantt(df, inicio_horizonte, fin_horizonte)
+
+    diagramas = {"diagramaTecnicos" : gantt_tecnicos,
+                 "diagramaVehiculos": gantt_vehiculos}
+    
+    return df, diagramas
 
 ###########################################################################
 #################### MANEJO DE ARCHIVOS DE EXCEL ##########################

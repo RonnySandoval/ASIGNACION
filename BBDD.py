@@ -870,6 +870,60 @@ def leer_historico_completo_porId(bbdd, id):
         conn.close()
     return registro
 
+def leer_historicos_graficar(bbdd):
+    try:
+        # Establecer la conexión con la base de datos
+        conn = sqlite3.connect(bbdd)
+        
+        # Crear la consulta SQL
+        query = '''
+                SELECT
+                    HISTORICOS.CODIGO_ASIGNACION,
+                    HISTORICOS.CHASIS,
+                    VEHICULOS.ID_MODELO,
+                    VEHICULOS.REFERENCIA,
+                    VEHICULOS.COLOR,
+                    HISTORICOS.ID_TECNICO,
+                    TECNICOS.NOMBRE || TECNICOS.APELLIDO AS TECNICO,
+                    HISTORICOS.ID_PROCESO,
+                    PROCESOS.NOMBRE AS PROCESO,
+                    HISTORICOS.INICIO,
+                    HISTORICOS.FIN,
+                    HISTORICOS.DURACION,
+                    HISTORICOS.OBSERVACIONES,
+                    VEHICULOS.NOVEDADES,
+                    VEHICULOS.SUBCONTRATAR,
+                    VEHICULOS.ID_PEDIDO,
+                    PEDIDOS.CLIENTE,
+                    PEDIDOS.FECHA_RECEPCION,
+                    PEDIDOS.FECHA_INGRESO,
+                    PEDIDOS.ENTREGA_ESTIMADA,
+                    PEDIDOS.FECHA_ENTREGA
+                FROM
+                    HISTORICOS
+                LEFT JOIN 
+                    VEHICULOS ON VEHICULOS.CHASIS = HISTORICOS.CHASIS
+                LEFT JOIN
+                    TECNICOS ON TECNICOS.ID_TECNICO = HISTORICOS.ID_TECNICO
+                LEFT JOIN
+                    PROCESOS ON PROCESOS.ID_PROCESO = HISTORICOS.ID_PROCESO
+                LEFT JOIN
+                    PEDIDOS ON PEDIDOS.ID_PEDIDO = VEHICULOS.ID_PEDIDO
+                '''
+        
+        # Ejecutar la consulta y cargar el resultado en un DataFrame
+        df = pd.read_sql_query(query, conn)
+        print(df.to_string())
+        
+    except sqlite3.Error as e:
+        print(f"Error al leer alguna de las tablas: {e}")
+        df = None
+
+    finally:
+        conn.close()  # Cerrar la conexión
+    
+    return df
+
 def leer_ids_proceso_modelo(bbdd, proc_modelo):
     try:
         conn = sqlite3.connect(bbdd)

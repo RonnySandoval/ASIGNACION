@@ -37,6 +37,7 @@ cons_newPedido = {}
 base_datos = None
 huerfanos = None
 raiz_principal = None
+gantt = False
 ################################################
 ###### FRAMES DE CONTENIDOS PRINCIPALES ########
 class Contenidos:
@@ -71,6 +72,8 @@ class Contenidos:
         self.filtroHistoricos = None
 
         self.contenidoDeReferencias = None
+
+        self.contenidoGraficos = None
 
     def __repr__(self):
         return [self.contenidoDeModelos,

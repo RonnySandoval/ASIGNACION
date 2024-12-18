@@ -1,15 +1,16 @@
 import customtkinter as ctk  # Usar customtkinter en lugar de tkinter
 from   estilos import *
+import root_frame_detallePedido as frameDeta
+import root_frame_gantt         as frameGraf
+import root_frame_historicos    as frameHist
 import root_frame_modelos       as frameMode
+import root_frame_ordenes       as frameOrde
+import root_frame_pedidos       as framePedi
+import root_frame_procesos      as frameProc
+import root_frame_programas     as frameProg
+import root_frame_referencias   as frameRefe
 import root_frame_tecnicos      as frameTecn
 import root_frame_vehiculos     as frameVehi
-import root_frame_procesos      as frameProc
-import root_frame_pedidos       as framePedi
-import root_frame_detallePedido as frameDeta
-import root_frame_historicos    as frameHist
-import root_frame_referencias   as frameRefe
-import root_frame_programas     as frameProg
-import root_frame_ordenes       as frameOrde
 import glo
 
 # Configuración global del estilo de customtkinter
@@ -58,20 +59,17 @@ def construye_root(root):
     ################################################### Añadir contenidos al frame de HISTÓRICOS ###################################################
     ################################################################################################################################################
     glo.stateFrame.contenidoDeHistoricos= frameHist.ContenidoHistoricos(root.frameHistoricos)
-    glo.stateFrame.tablaHistoricos      = frameHist.TablaHistoricos( glo.stateFrame.contenidoDeHistoricos, root.frameHistoricos, root, bbdd=glo.base_datos)
+    glo.stateFrame.tablaHistoricos      = frameHist.TablaHistoricos(glo.stateFrame.contenidoDeHistoricos, root.frameHistoricos, root, bbdd=glo.base_datos)
     glo.stateFrame.filtroHistoricos     = frameHist.FiltrosHistoricos(glo.stateFrame.tablaHistoricos, glo.stateFrame.contenidoDeHistoricos, bbdd=glo.base_datos)
+
+    ################################################################################################################################################
+    ################################################### Añadir contenidos al frame de GANTT ########################################################
+    ################################################################################################################################################
+    glo.stateFrame.contenidoGraficos = frameGraf.FrameGraficos(root.frameGantt)
 
     ################################################################################################################################################
     ################################################### Añadir contenidos al frame de REFERENCIAS ##################################################
     ################################################################################################################################################
     glo.stateFrame.contenidoDeReferencias   = frameRefe.ContenidoReferencias(root.frameReferencias, bbdd=glo.base_datos)
 
-
     root.mainloop()
-
-"""
-#CREAR VENTANA PRINCIPAL CON SU MENÚ
-root = ventanaRoot(bbdd=glo.base_datos)
-menu_principal.crearMenuPrincipal(root)
-construye_root(root)
-"""

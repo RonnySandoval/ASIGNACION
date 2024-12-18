@@ -10,7 +10,7 @@ import fechahora
 import re
 import glo
 import BBDD
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import numpy as np
 
 
@@ -33,7 +33,6 @@ class RaizTopLevel:
 
         self.labelTitulo = ctk.CTkLabel(self.frameTitulo,  text = "", font = textoGrande, text_color = blancoFrio, bg_color = grisAzuladoMedio)
         self.labelTitulo.pack (expand=True, side="top", fill="x", padx=20, pady=20)
-
 
 class ButtonsOkCancel:
 
@@ -1417,8 +1416,8 @@ class ventanaGraficos(RaizTopLevel) :
         ctk.CTkButton(self.frameBotones, text="Vehículos", command=lambda: self.mostrar_frame(self.frameVehiculos), anchor="center").pack(side=ctk.LEFT, padx=5, pady=5)
         ctk.CTkButton(self.frameBotones, text="Tabla"    , command=lambda: self.mostrar_frame(self.frameTabla),   anchor="center").pack(side=ctk.LEFT, padx=5, pady=5)
 
-        self.frameTecnicos = ctk.CTkFrame(self.frameEntradas)
-        self.frameVehiculos = ctk.CTkFrame(self.frameEntradas)
+        self.frameTecnicos = ctk.CTkFrame(self.frameEntradas, fg_color=negro)
+        self.frameVehiculos = ctk.CTkFrame(self.frameEntradas, fg_color=negro)
         self.frameTabla = ctk.CTkFrame(self.frameEntradas)
 
         self.ganttTecnicos  = GraficoGantt(self.frameTecnicos, diagramas["diagramaTecnicos"])
@@ -1436,8 +1435,7 @@ class ventanaGraficos(RaizTopLevel) :
         for fr in (self.frameTecnicos, self.frameVehiculos, self.frameTabla):
             fr.pack_forget()               # Ocultar todos los frames
 
-        # Asegurar la carga completa antes de mostrar
-        frame.update_idletasks()  
+        frame.update_idletasks()          # Asegurar la carga completa antes de mostrar
         frame.pack(expand=True, side="top", fill="both", padx=20, pady=20)
 
 class GraficoGantt:
@@ -1456,6 +1454,17 @@ class GraficoGantt:
         self.canvas.get_tk_widget().pack(fill="both", expand=True)
         self.canvas.figure = self.fig
         self.canvas.draw()
+
+        # Crear la toolbar de Matplotlib y asociarla al canvas
+        self.toolbar = NavigationToolbar2Tk(self.canvas, master)
+        self.toolbar.update()  # Actualiza la barra de herramientas
+        self.toolbar.pack(side="bottom", fill="x")  # Empaquetar la toolbar en el contenedor
+
+    def destroy(self):
+        """Destruir el canvas y liberar recursos."""
+        if hasattr(self, 'canvas'):
+            self.canvas.get_tk_widget().destroy()  # Destruir el widget Tkinter asociado al canvas
+            del self.canvas  # Eliminar referencia al canvas para liberar memoria
 
 
 class FrameTablaGenerica:
@@ -1491,3 +1500,10 @@ class FrameTablaGenerica:
             self.tree.insert("", "end", values=list(registro))
 
         self.tree.pack(expand=True, side = "top", fill="both")            # Agregar el Treeview a la ventana
+
+    def destroy(self):
+        """Destruir el Treeview y liberar los recursos."""
+        if hasattr(self, 'tree'):
+            self.tree.destroy()  # Eliminar el Treeview
+        if hasattr(self, 'frameTreeview'):
+            self.frameTreeview.destroy()  # Eliminar el frame que contiene el Treeview

@@ -23,6 +23,7 @@ numerosMuyPequeños = ("Arial Narrow", 10)
 
 
 # Colores
+negro = "#000000"
 grisOscuro = "#272727"
 grisAzuladoMedio="#445879"
 grisAzuladoClaro="#566f9A"

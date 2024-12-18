@@ -114,10 +114,11 @@ class Gantt():
             "inicio": iniciarEje,
             "horizonte": horizonte
         }
-
+        fig.subplots_adjust(top=1.0)            # Elimina el espacio superior
+        fig.subplots_adjust(bottom=0.25)        # Configurar diseño de margen predeterminado
         # Configuración de ejes
         ax.set_xlabel('Fecha/hora')             # Etiqueta de eje X
-        ax.set_ylabel(tipo.upper())               # Etiqueta de eje Y
+        ax.set_ylabel(tipo.upper())             # Etiqueta de eje Y
 
         ax.set_xlim(iniciarEje, horizonte)      # Límites eje X
         ax.xaxis_date()
