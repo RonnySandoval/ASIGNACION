@@ -18,8 +18,7 @@ def desea_exportar(nombreExcel, nombreVentana, df):
         )
 
         if archivo:
-            #df = CRUD.leer_ordenes_todas()            #leer tabla en BBDD
-            df.to_excel(archivo, index=False)         # Guardar los datos en un archivo de Excel           
+            df.to_excel(archivo, index=False)           # Guardar los datos en un archivo de Excel           
             print(f"Archivo se guardó en: {archivo}")   
 
     else:

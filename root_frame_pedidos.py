@@ -180,6 +180,15 @@ class TablaPedidos():     #Tabla para pedido
                 informacion_pedi(valores, bbdd)
 
         #click derecho en modificar fila
+        def seleccionar_exportar_fila():
+            fila = self.tablaPedidos.selection()     #obtener el item seleccionado
+            print("Modificar seleccionada")
+            if fila:
+                valores = self.tablaPedidos.item(fila, 'values')     #obtener los valores de la fila
+                print(valores)
+                exportar_pedi(valores, bbdd)
+
+        #click derecho en modificar fila
         def seleccionar_modificar_fila():
             fila = self.tablaPedidos.selection()     #obtener el item seleccionado
             print("Modificar seleccionada")
@@ -214,6 +223,11 @@ class TablaPedidos():     #Tabla para pedido
             id_anterior = valores[0]
             print(f"modificará el chasis {id_anterior}")
             eventos.modificar_datos_pedido(id_anterior, bbdd)
+
+        def exportar_pedi(valores, bbdd):
+            id_pedido = valores[0]
+            print(f"modificará el chasis {id_pedido}")
+            eventos.exportar_tabla(id_pedido, "pedido", bbdd)
 
         def eliminar_pedi(valores, bbdd):
             id_pedido = valores[0]

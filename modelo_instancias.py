@@ -3,17 +3,16 @@ import BBDD
 import modelo_clases
 import glo
 
-    
-pedido = None
-procesos = {}         # INSTANCIAS DE PROCESOS
-objeModelos = {}      # INSTANCIAS DE MODELOS
-objeVehiculos = {}    # INSTANCIAS DE VEHICULOS
-objeTecnicos = {}     # INSTANCIAS DE TECNICOS
-objePedidos = {}      # INSTANCIAS DE PEDIDOS
-tiempos = {}
 
 def obtiene_datos_iniciales():
-    global pedido, procesos, objeModelos, objeVehiculos, objeTecnicos, objePedidos, tiempos
+    modelo_clases.personal = []
+    pedido = None
+    procesos = {}         # INSTANCIAS DE PROCESOS
+    objeModelos = {}      # INSTANCIAS DE MODELOS
+    objeVehiculos = {}    # INSTANCIAS DE VEHICULOS
+    objeTecnicos = {}     # INSTANCIAS DE TECNICOS
+    objePedidos = {}      # INSTANCIAS DE PEDIDOS
+    tiempos = {}
 
     print(pedido, procesos, objeModelos, objeVehiculos, objeTecnicos, objePedidos)
     for ids, nombres in zip(BBDD.obtener_id_procesos_secuencia(glo.base_datos), BBDD.leer_procesos_secuencia(glo.base_datos)):

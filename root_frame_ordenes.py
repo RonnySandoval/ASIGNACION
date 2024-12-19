@@ -199,7 +199,7 @@ class TablaOrdenes():     #Tabla para pedido
         def eliminar_ord(valores, bbdd):
             id_programa = valores[0]
             print(f"Se eliminará {id_programa}")
-            eventos.eliminar_VH_pedido(id_programa)
+            eventos.eliminar_orden(id_programa)
 
         def mostrar_menu(evento):        # Manejar el evento del clic derecho
             try:

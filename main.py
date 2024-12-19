@@ -3,6 +3,8 @@ from   estilos import *
 import mainMenu
 import glo
 import builtins
+import ventanas_emergentes
+import matplotlib.pyplot as plt
 # Configuración global del estilo de customtkinter
 ctk.set_appearance_mode("dark")  # Modo oscuro por defecto
 ctk.set_default_color_theme("dark-blue")  # Colores por defecto con tonos azulados
@@ -177,6 +179,21 @@ class ventanaRoot(ctk.CTk):
         else:
             self.boton_print.configure(text="OFFprint")
 
+    def on_closing(self):
+        if ventanas_emergentes.messagebox.askokcancel("Salir", "¿Seguro desea salir?"):
+            # Cancelar eventos pendientes
+            try:
+                self.after_cancel(self.after(1000, lambda: print("Actualizando...")))
+            except NameError:
+                pass
+            try:
+                self.after_cancel(self.after(1000, lambda: print("Comprobando DPI...")))
+            except NameError:
+                pass
+            
+            # Destruir la ventana principal
+            root.destroy()
+
 if __name__ == "__main__":
 
     print_original = builtins.print # Guardar el print original
@@ -195,6 +212,8 @@ if __name__ == "__main__":
         root = ventanaRoot()
         mainMenu.crearMenuPrincipal(root)
         glo.raiz_principal = root
+
+        root.protocol("WM_DELETE_WINDOW", root.on_closing)        # Configurar el protocolo de cierre de la ventana principal
         root.mainloop()
     finally:                # Restaurar el print original al final del programa
         builtins.print = print_original

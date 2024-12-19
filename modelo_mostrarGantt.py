@@ -5,7 +5,7 @@ import matplotlib.dates as mdates
 import matplotlib.patches as patches
 import fechahora
 import estilos
-
+import glo
 # Diccionarios globales para almacenar las figuras
 graficos_vehiculos = {}
 graficos_tecnicos = {}
@@ -55,8 +55,6 @@ colores = {
     "azul_grisáceo_2": "#6B7F89",
 }
 
-
-
 colores_tecnicos = {}                               # Diccionario para almacenar los colores de cada técnico
 colores_tec_disponibles = list(colores.values())  # Lista de valores (colores) del diccionario
 
@@ -73,7 +71,7 @@ def crear_gantt_tecnicos(nombre_grafico, tecnicos, inicio, horizonte):
     plt.style.use('dark_background')    # Activar modo oscuro en Matplotlib
     hbar = 10
     num_tecnicos = len(tecnicos)
-    iniciarEje = fechahora.define_franja(str(inicio.date()))[8]
+    iniciarEje = fechahora.define_franja(str(inicio.date()))[glo.turnos.startAM]
     fig, ax = plt.subplots()                           # Objetos del plot
     diagrama = {
         "fig": fig,
@@ -167,7 +165,7 @@ def agregar_vehiculo(nombre_grafico, t0, duracion, tecnico, nombre, color=None):
                                "label": label,
                                "tecnico": tecnico,
                                "nombre": nombre})
-
+"""
 # Función para mostrar un gráfico específico
 def mostrar_grafico_tecnicos(nombre_grafico):
     diagrama = graficos_tecnicos.get(nombre_grafico)
@@ -178,7 +176,7 @@ def mostrar_grafico_tecnicos(nombre_grafico):
     plt.figure(diagrama["fig"].number)  # Seleccionar la figura por número
     plt.grid(color=estilos.grisOscuro)  # Ajusta el color de la grilla
     plt.show()
-
+"""
 
 ###################################################################################################################
 ########################################  GRÁFICOS PARA VEHÍCULOS  ################################################
@@ -188,7 +186,7 @@ def mostrar_grafico_tecnicos(nombre_grafico):
 def crear_gantt_vehiculos(nombre_grafico, vehiculos, inicio , horizonte):
     hbar = 10
     num_vehiculos = len(vehiculos)
-    iniciarEje = fechahora.define_franja(str(inicio.date()))[8]
+    iniciarEje = fechahora.define_franja(str(inicio.date()))[glo.turnos.startAM]
     fig, ax = plt.subplots()  # Objetos del plot
     print("iniciar eje en:", iniciarEje)
 
@@ -282,6 +280,7 @@ def agregar_proceso(nombre_grafico, t0, duracion, vehiculo, nombre, tecnico, col
                                     "vehiculo": vehiculo,
                                     "nombre": nombre})
 
+"""
 # Función para mostrar un gráfico específico
 def mostrar_grafico_vehiculos(nombre_grafico):
     diagrama = graficos_vehiculos.get(nombre_grafico)
@@ -292,4 +291,4 @@ def mostrar_grafico_vehiculos(nombre_grafico):
     plt.figure(diagrama["fig"].number)  # Seleccionar la figura por número
     plt.grid(color=estilos.grisOscuro)  # Ajusta el color de la grilla
     plt.show()
-
+"""

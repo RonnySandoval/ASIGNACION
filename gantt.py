@@ -5,7 +5,7 @@ import matplotlib.dates as mdates
 import matplotlib.patches as patches
 import random as rdm
 import datetime
-
+import glo
 class Gantt():
     """
     Clase para la creación y gestión de diagramas de Gantt personalizados para técnicos y vehículos.
@@ -104,15 +104,22 @@ class Gantt():
         """
         hbar = 10
         num_items = len(items)
-        iniciarEje = fechahora.define_franja(str(inicio.date()))[8]
+        iniciarEje = fechahora.define_franja(str(inicio.date()))[glo.turnos.startAM.get()]
         fig, ax = plt.subplots()                           # Objetos del plot
+        # Verificar que num_items sea mayor que 0 antes de establecer los límites del eje Y
+        if num_items > 0:
+            ax.set_ylim(0, num_items * hbar)  # Límites de eje Y
+        else:
+            ax.set_ylim(0, 1)  # Establecer un valor mínimo para evitar la advertencia
+
         diagrama = {
             "fig": fig,
             "ax": ax,
             "hbar": hbar,
             "items": items,
             "inicio": iniciarEje,
-            "horizonte": horizonte
+            "horizonte": horizonte,
+            "etiq_barras": []
         }
         fig.subplots_adjust(top=1.0)            # Elimina el espacio superior
         fig.subplots_adjust(bottom=0.25)        # Configurar diseño de margen predeterminado
@@ -124,10 +131,21 @@ class Gantt():
         ax.xaxis_date()
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M'))  # Formato de fecha
 
+        # Verificar que num_items sea mayor que 0 antes de establecer los límites del eje Y
+        if num_items > 0:
+            ax.set_ylim(0, num_items * hbar)  # Límites de eje Y
+        else:
+            ax.set_ylim(0, 1)  # Establecer un valor mínimo para evitar la advertencia
+
+
         # Configuración de límites y ticks en el eje Y
-        ax.set_ylim(0, num_items * hbar)                                 # Límites de eje Y
-        ax.set_yticks(np.arange(hbar / 2, num_items * hbar, hbar))       # Ubica etiquetas en el centro de cada barra
-        ax.set_yticklabels(items)                                        # Etiquetas de técnicos
+        if num_items > 0:                     # Verificar que num_items sea mayor que 0 antes de establecer los límites del eje Y
+            ax.set_ylim(0, num_items * hbar)  # Límites de eje Y
+            ax.set_yticks(np.arange(hbar / 2, num_items * hbar, hbar))       # Ubica etiquetas en el centro de cada barra
+            ax.set_yticklabels(items)         # Etiquetas de técnicos
+        else:
+            ax.set_ylim(0, 1)  # Establecer un valor mínimo para evitar la advertencia                               # Límites de eje Y
+
 
         # Configuración de la grilla secundaria (para divisiones entre las barras)
         ax.set_yticks(range(hbar, num_items * hbar, hbar), minor=True)    # Divisiones menores en eje Y (grilla menor)

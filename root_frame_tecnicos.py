@@ -89,5 +89,12 @@ class ContenidoTecnicos:
         self.canvasTecnicos.bind_all("<Button-4>", self.on_mouse_wheel)    # Para sistemas basados en X11
         self.canvasTecnicos.bind_all("<Button-5>", self.on_mouse_wheel)
 
+
+    def actualizar_contenido(self, bbdd):
+        for widget in self.frameTecnicosInterior.winfo_children():
+            widget.destroy()
+
+        self.llenar_contenido(bbdd)
+        
     def on_mouse_wheel(self, event):
         self.canvasTecnicos.yview_scroll(-1 * (event.delta // 120), "units")

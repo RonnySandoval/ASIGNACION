@@ -16,16 +16,20 @@ def abrir_planta():
     ruta = askopenfilename(title="Seleccionar la Planta",
                             filetypes=[("Archivos Base de datos sqlite", "*.db")])
     print(ruta)
-    glo.base_datos = os.path.basename(ruta)
+    if ruta == "":
+        return
+    try:
+        glo.base_datos = os.path.basename(ruta)
+        print(glo.base_datos)
+        raiz = glo.raiz_principal
+        raiz.base_root(glo.base_datos)
+        menu_principal.crearMenuPrincipal(raiz)
+        root.construye_root(raiz)
 
-    print(glo.base_datos)
-    #modelo_clases.obtiene_datos_iniciales()
-    #modelo_instancias.obtiene_datos_iniciales()
-
-    raiz = glo.raiz_principal
-    raiz.base_root(glo.base_datos)
-    menu_principal.crearMenuPrincipal(raiz)
-    root.construye_root(raiz)
+    except Exception as e:
+        print(e)
+        ventanas_emergentes.messagebox.showerror("Error de archivo",
+                                                 "Archivo de Planta inválido. Verifique que el archivo seleccionado sea una base de datos válida, con extensión .db")
     
 def step_crearNuevaPlanta():
     ventana = ventanaNuevaPlanta.VentanaNuevaPlanta()
@@ -62,23 +66,29 @@ def step_CargarTodo(ventana):
 def crear_plantaBD(dataframes, name, description, ventana):
     df_procesos     = dataframes["PROCESOS"]
     df_tecnicos     = dataframes["TECNICOS"]
-    df_modelos      = dataframes["MARCAS_MODELOS"]
+    #df_modelos      = dataframes["MARCAS_MODELOS"]
     df_referencias  = dataframes["MODELOS_REFERENCIAS"]
+    df_tiempos_modelos = dataframes["TIEMPOS_MODELOS"]
     ventana.rootAux.destroy()
 
+    #df_tiempos_modelos = genera_tiempos_modelos_default(df_modelos, df_procesos)
+
     df_tecnicos["ID_TECNICO"] = df_tecnicos.apply(lambda row:genera_idTecnico(row["NOMBRE"], row["APELLIDO"], row["DOCUMENTO"]), axis=1)
-    df_modelos["ID_MODELO"] = df_modelos.apply(lambda row:genera_idModelo(row["MARCA"], row["MODELO"]), axis=1)
-    
+    df_tiempos_modelos["ID_MODELO"] = df_tiempos_modelos.apply(lambda row:genera_idModelo(row["MARCA"], row["MODELO"]), axis=1)
+    df_modelos = df_tiempos_modelos[["ID_MODELO", "MARCA", "MODELO"]]
+
     df_procesos = elimina_Duplicados_df(df_procesos, "ID_PROCESO")[0]
     df_tecnicos = elimina_Duplicados_df(df_tecnicos, "ID_TECNICO")[0]
     df_modelos = elimina_Duplicados_df(df_modelos, "ID_MODELO")[0]
     df_referencias = elimina_Duplicados_df(df_referencias, "REFERENCIA")[0]
 
-    df_merged = pd.merge(df_referencias, df_modelos, on='MODELO', how='left')       # Realiza el merge entre df_referencias y df_modelos
+    df_merged = pd.merge(df_referencias, df_tiempos_modelos, on='MODELO', how='left')       # Realiza el merge entre df_referencias y df_modelos
     df_referencias = df_merged [['REFERENCIA', 'ID_MODELO']]                            # Reasigna el dataframe
 
-    df_tecnicos, df_tecnicos_procesos = genera_df_tecnicos_proceso(df_tec = df_tecnicos, df_proc = df_procesos)
-    df_tiempos_modelos = genera_tiempos_modelos_default(df_modelos, df_procesos)
+    df_tecnicos, df_tecnicos_procesos = genera_df_tecnicos_proceso(df_tec = df_tecnicos, df_proc=df_procesos)
+    df_tiempos_modelos = transformar_dataframe_tiempos(df_tiempos_modelos, "MODELO")
+    df_tiempos_modelos = elimina_Duplicados_df(df_tiempos_modelos, "ID_MODELO")[0]
+
     print(df_procesos)
     print(df_tecnicos)
     print(df_tecnicos_procesos)
@@ -160,8 +170,8 @@ def genera_df_tecnicos_proceso(df_tec, df_proc):
 def nueva_root(bbdd):
     #CREAR VENTANA PRINCIPAL CON SU MENÚ
     glo.base_datos = bbdd
-    modelo_clases.obtiene_datos_iniciales()
-    modelo_instancias.obtiene_datos_iniciales()
+    #modelo_clases.obtiene_datos_iniciales()
+    #modelo_instancias.obtiene_datos_iniciales()
 
     raiz = glo.raiz_principal
     raiz.base_root(glo.raiz_principal)
@@ -179,6 +189,39 @@ def genera_tiempos_modelos_default(df_modelos, df_procesos):
     df_combinaciones['TIEMPO'] = 0                            # Añadir tiempos por defecto
     print(df_combinaciones)                                   # Mostrar el resultado
     return df_combinaciones
+
+def transformar_dataframe_tiempos(df, ids):
+    # Nombre de la primera columna
+    if ids == "MODELO":
+        columna_principal ="ID_MODELO"
+    if ids == "CHASIS":
+        columna_principal = ids
+
+    # Inicializar listas para las nuevas columnas
+    combinacion_columna = []
+    valores_principal = []
+    encabezado = []
+    valor = []
+    combinacion_ids = 'PROCESO_'+ids
+
+    # Iterar sobre las columnas restantes (excluyendo la primera columna)
+    for col in df.columns:
+        if col not in ['ID_MODELO', 'MODELO', 'MARCA']:
+            for i in range(len(df)):
+                combinacion_columna.append(f"{col}-{df.at[i, columna_principal]}")  # Combinar valor de la primera columna con el encabezado
+                valores_principal.append(df.at[i, columna_principal])  # Valores de la primera columna
+                encabezado.append(col)  # Encabezado actual
+                valor.append(df.iloc[i][col])  # Valor del cuerpo del DataFrame
+        
+    # Crear el nuevo DataFrame con las 4 columnas
+    nuevo_df = pd.DataFrame({
+        combinacion_ids  : combinacion_columna,
+        "ID_PROCESO"     : encabezado,
+        columna_principal: valores_principal,
+        "TIEMPO"         : valor
+    })
+    
+    return nuevo_df
 
 def genera_idTecnico(nombre, apellido, documento):
     return nombre[:4] + apellido[:4] + str(documento)[-6:]

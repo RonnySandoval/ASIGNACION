@@ -78,3 +78,9 @@ class ContenidoProcesos:
         # Asegurarse que la columna de checkboxes también se ajusta
         self.frameProcesosInterior.grid_columnconfigure(3, weight=0)
         self.frameProcesosInterior.configure()
+
+    def actualizar_contenido(self, bbdd):
+        for widget in self.frameProcesosInterior.winfo_children():
+            widget.destroy()
+
+        self.llenar_contenido(bbdd)

@@ -256,10 +256,10 @@ def insertar_procesos_df(bbdd, dataframe):
         conn = sqlite3.connect(bbdd)
 
         dataframe.to_sql("PROCESOS", conn, if_exists="append", index=False)
-        resultado = pd.read_sql("SELECT * FROM PROCESOS", conn)
+        request = pd.read_sql("SELECT * FROM PROCESOS", conn)
         print("dataframe de procesos añadido a la BBDD")
-        print(resultado)
-        return resultado
+        print(request)
+        return request
     
     except sqlite3.Error as e:
         print(f"Error al insertar el dataframe con los procesos: {e}")
@@ -325,9 +325,9 @@ def insertar_referencias_df(bbdd, dataframe):
         conn = sqlite3.connect(bbdd)
 
         dataframe.to_sql("MODELOS_REFERENCIAS", conn, if_exists="append", index=False)     # Guardar en SQLite usando to_sql
-        resultado = pd.read_sql("SELECT * FROM MODELOS_REFERENCIAS", conn)                     # Leer los datos para verificar
+        request = pd.read_sql("SELECT * FROM MODELOS_REFERENCIAS", conn)                     # Leer los datos para verificar
         print("dataframe de referencias de modeslo añadido a la BBDD")
-        print(resultado)
+        print(request)
     except sqlite3.Error as e:
         print(f"Error al insertar el dataframe con las referencias de modelos: {e}")
         request = False
@@ -387,9 +387,9 @@ def insertar_tecnicos_df(bbdd, dataframe):
         conn = sqlite3.connect(bbdd)
 
         dataframe.to_sql("TECNICOS", conn, if_exists="append", index=False)
-        resultado = pd.read_sql("SELECT * TECNICOS", conn)
+        request = pd.read_sql("SELECT * FROM TECNICOS", conn)
         print("dataframe de tecnicos añadido a la BBDD")
-        print(resultado)
+        print(request)
 
     except sqlite3.Error as e:
         print(f"Error al insertar el dataframe con los tecnicos: {e}")
@@ -401,7 +401,6 @@ def insertar_tecnicos_df(bbdd, dataframe):
 
     finally:
         conn.close()
-        request = None
         return request
 
 def insertar_tecnicos_procesos_df(bbdd, dataframe):
@@ -409,9 +408,9 @@ def insertar_tecnicos_procesos_df(bbdd, dataframe):
         conn = sqlite3.connect(bbdd)
 
         dataframe.to_sql("TECNICOS_PROCESOS", conn, if_exists="append", index=False)
-        resultado = pd.read_sql("SELECT * TECNICOS_PROCESOS", conn)
+        request = pd.read_sql("SELECT * FROM TECNICOS_PROCESOS", conn)
         print("dataframe de especialidades de tecnicos añadidos a la BBDD")
-        print(resultado)
+        print(request)
 
     except sqlite3.Error as e:
         print(f"Error al insertar el dataframe con los tecnicos_procesos: {e}")
@@ -423,7 +422,6 @@ def insertar_tecnicos_procesos_df(bbdd, dataframe):
 
     finally:
         conn.close()
-        request = None
         return request
 
 def insertar_tiempo_modelo(bbdd, procmodel, id_proceso, id_modelo, tiempo):
@@ -473,10 +471,9 @@ def insertar_tiempos_modelos_df(bbdd, dataframe):
         conn = sqlite3.connect(bbdd)
 
         dataframe.to_sql("TIEMPOS_MODELOS", conn, if_exists="append", index=False)
-        resultado = pd.read_sql("SELECT * FROM TIEMPOS_MODELOS", conn)                     # Leer los datos para verificar
+        request = pd.read_sql("SELECT * FROM TIEMPOS_MODELOS", conn)                     # Leer los datos para verificar
         print("dataframe de tiempos de modelos añadido a la BBDD")
-        print(resultado)
-        request = resultado
+        print(request)
 
     except sqlite3.Error as e:
         print(f"Error al insertar el dataframe con los tiempos de modelos: {e}")
@@ -780,7 +777,19 @@ def leer_historico_chasis(bbdd, chasis):
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()
 
-        cursor.execute('SELECT * FROM HISTORICOS WHERE CHASIS = ?', (chasis,))
+        cursor.execute('''SELECT
+                            CODIGO_ASIGNACION,
+                            CHASIS,
+                            ID_TECNICO,
+                            ID_PROCESO,
+                            OBSERVACIONES,
+                            INICIO,
+                            FIN,
+                            DURACION,
+                            ESTADO
+                        FROM HISTORICOS
+                            WHERE CHASIS = ?''',
+                                     (chasis,))
         registros = cursor.fetchall()
         print(registros)
 
@@ -1599,7 +1608,14 @@ def leer_vehiculo_completo(bbdd, chasis):
         vehiculo = chasis
         cursor.execute('''
                     SELECT
-                        VEHICULOS.*,
+                        VEHICULOS.CHASIS,
+                        VEHICULOS.ID_MODELO,
+                        VEHICULOS.COLOR,
+                        VEHICULOS.REFERENCIA,
+                        VEHICULOS.FECHA_INGRESO,
+                        VEHICULOS.NOVEDADES,
+                        VEHICULOS.SUBCONTRATAR,
+                        VEHICULOS.ID_PEDIDO,
                         TIEMPOS_VEHICULOS.ID_PROCESO,
                         TIEMPOS_VEHICULOS.TIEMPO
                     FROM
@@ -1677,79 +1693,78 @@ def leer_vehiculos(bbdd):
 
     return registros
 
-def leer_vehiculos_completos(bbdd):
+def leer_vehiculos_completos_df(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
-        cursor = conn.cursor()
+                
+        query = ''' SELECT 
+                        VEHICULOS.CHASIS,
+                        VEHICULOS.FECHA_INGRESO,
+                        VEHICULOS.ID_MODELO,
+                        VEHICULOS.COLOR,
+                        
+                        -- Subconsulta para obtener el nombre del proceso o 'ninguno' si es NULL
+                        COALESCE(
+                            (SELECT PROCESOS.NOMBRE
+                            FROM HISTORICOS
+                            JOIN PROCESOS ON HISTORICOS.ID_PROCESO = PROCESOS.ID_PROCESO
+                            WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
+                            AND HISTORICOS.ESTADO = 'EN EJECUCION'
+                            LIMIT 1),
+                            (SELECT PROCESOS.NOMBRE
+                            FROM HISTORICOS
+                            JOIN PROCESOS ON HISTORICOS.ID_PROCESO = PROCESOS.ID_PROCESO
+                            WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
+                            AND HISTORICOS.ESTADO = 'TERMINADO'
+                            AND HISTORICOS.FIN = (
+                                SELECT MAX(FIN)
+                                FROM HISTORICOS AS HIST2
+                                WHERE HIST2.CHASIS = VEHICULOS.CHASIS AND HIST2.ESTADO = 'TERMINADO'
+                            )
+                            LIMIT 1),
+                            'ninguno'
+                        ) AS NOMBRE_PROCESO,
+                        
+                        -- Subconsulta para obtener el estado o 'ninguno' si es NULL
+                        COALESCE(
+                            (SELECT HISTORICOS.ESTADO
+                            FROM HISTORICOS
+                            WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
+                            AND HISTORICOS.ESTADO = 'EN EJECUCION'
+                            LIMIT 1),
+                            (SELECT HISTORICOS.ESTADO
+                            FROM HISTORICOS
+                            WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
+                            AND HISTORICOS.ESTADO = 'TERMINADO'
+                            AND HISTORICOS.FIN = (
+                                SELECT MAX(FIN)
+                                FROM HISTORICOS AS HIST2
+                                WHERE HIST2.CHASIS = VEHICULOS.CHASIS AND HIST2.ESTADO = 'TERMINADO'
+                            )
+                            LIMIT 1),
+                            'ninguno'
+                        ) AS ESTADO,
 
-        cursor.execute('''
-                        SELECT 
-                            VEHICULOS.CHASIS,
-                            VEHICULOS.FECHA_INGRESO,
-                            VEHICULOS.ID_MODELO,
-                            VEHICULOS.COLOR,
-                            
-                            -- Subconsulta para obtener el nombre del proceso o 'ninguno' si es NULL
-                            COALESCE(
-                                (SELECT PROCESOS.NOMBRE
-                                FROM HISTORICOS
-                                JOIN PROCESOS ON HISTORICOS.ID_PROCESO = PROCESOS.ID_PROCESO
-                                WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
-                                AND HISTORICOS.ESTADO = 'EN EJECUCION'
-                                LIMIT 1),
-                                (SELECT PROCESOS.NOMBRE
-                                FROM HISTORICOS
-                                JOIN PROCESOS ON HISTORICOS.ID_PROCESO = PROCESOS.ID_PROCESO
-                                WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
-                                AND HISTORICOS.ESTADO = 'TERMINADO'
-                                AND HISTORICOS.FIN = (
-                                    SELECT MAX(FIN)
-                                    FROM HISTORICOS AS HIST2
-                                    WHERE HIST2.CHASIS = VEHICULOS.CHASIS AND HIST2.ESTADO = 'TERMINADO'
-                                )
-                                LIMIT 1),
-                                'ninguno'
-                            ) AS NOMBRE_PROCESO,
-                            
-                            -- Subconsulta para obtener el estado o 'ninguno' si es NULL
-                            COALESCE(
-                                (SELECT HISTORICOS.ESTADO
-                                FROM HISTORICOS
-                                WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
-                                AND HISTORICOS.ESTADO = 'EN EJECUCION'
-                                LIMIT 1),
-                                (SELECT HISTORICOS.ESTADO
-                                FROM HISTORICOS
-                                WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
-                                AND HISTORICOS.ESTADO = 'TERMINADO'
-                                AND HISTORICOS.FIN = (
-                                    SELECT MAX(FIN)
-                                    FROM HISTORICOS AS HIST2
-                                    WHERE HIST2.CHASIS = VEHICULOS.CHASIS AND HIST2.ESTADO = 'TERMINADO'
-                                )
-                                LIMIT 1),
-                                'ninguno'
-                            ) AS ESTADO,
-
-                            VEHICULOS.NOVEDADES,
-                            VEHICULOS.SUBCONTRATAR,
-                            VEHICULOS.ID_PEDIDO
-                        FROM
-                            VEHICULOS
-                        GROUP BY
-                            VEHICULOS.CHASIS;
-                        ''')
-        registros = cursor.fetchall()
-        print(registros)
+                        VEHICULOS.NOVEDADES,
+                        VEHICULOS.SUBCONTRATAR,
+                        VEHICULOS.ID_PEDIDO
+                    FROM
+                        VEHICULOS
+                    GROUP BY
+                        VEHICULOS.CHASIS;
+                    '''
+        
+        df = pd.read_sql_query(query, conn)
+        print(df)
 
     except sqlite3.Error as e:
         print(f"Error al leer la Tabla de Tiempos_Vehiculos y de Vehiculos: {e}")
-        registros = None
+        df = None
 
     finally:
         conn.close()    # Cierra la conexión
     
-    return registros
+    return df
 
 def leer_vehiculos_df(bbdd):
     try:
@@ -1846,78 +1861,78 @@ def leer_vehiculos_completos_marcamodelo(bbdd):
     
     return registros
 
-def leer_vehiculos_por_pedido(bbdd, pedido):
+def leer_vehiculos_por_pedido_df(bbdd, pedido):
     try:
         conn = sqlite3.connect(bbdd)
-        cursor = conn.cursor()
-
-        cursor.execute('''
-                        SELECT 
-                            VEHICULOS.CHASIS,
-                            VEHICULOS.ID_MODELO,
-                            VEHICULOS.COLOR,
-                            
-                            -- Subconsulta para obtener el nombre del proceso o 'ninguno' si es NULL
-                            COALESCE(
-                                (SELECT PROCESOS.NOMBRE
-                                FROM HISTORICOS
-                                JOIN PROCESOS ON HISTORICOS.ID_PROCESO = PROCESOS.ID_PROCESO
-                                WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
-                                AND HISTORICOS.ESTADO = 'EN EJECUCION'
-                                LIMIT 1),
-                                (SELECT PROCESOS.NOMBRE
-                                FROM HISTORICOS
-                                JOIN PROCESOS ON HISTORICOS.ID_PROCESO = PROCESOS.ID_PROCESO
-                                WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
-                                AND HISTORICOS.ESTADO = 'TERMINADO'
-                                AND HISTORICOS.FIN = (
-                                    SELECT MAX(FIN)
-                                    FROM HISTORICOS AS HIST2
-                                    WHERE HIST2.CHASIS = VEHICULOS.CHASIS AND HIST2.ESTADO = 'TERMINADO'
-                                )
-                                LIMIT 1),
-                                'ninguno'
-                            ) AS NOMBRE_PROCESO,
-                            
-                            -- Subconsulta para obtener el estado o 'ninguno' si es NULL
-                            COALESCE(
-                                (SELECT HISTORICOS.ESTADO
-                                FROM HISTORICOS
-                                WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
-                                AND HISTORICOS.ESTADO = 'EN EJECUCION'
-                                LIMIT 1),
-                                (SELECT HISTORICOS.ESTADO
-                                FROM HISTORICOS
-                                WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
-                                AND HISTORICOS.ESTADO = 'TERMINADO'
-                                AND HISTORICOS.FIN = (
-                                    SELECT MAX(FIN)
-                                    FROM HISTORICOS AS HIST2
-                                    WHERE HIST2.CHASIS = VEHICULOS.CHASIS AND HIST2.ESTADO = 'TERMINADO'
-                                )
-                                LIMIT 1),
-                                'ninguno'
-                            ) AS ESTADO
-                        FROM
-                            VEHICULOS
-                        LEFT JOIN 
-                            PEDIDOS ON VEHICULOS.ID_PEDIDO = PEDIDOS.ID_PEDIDO
-                        WHERE
-                            PEDIDOS.ID_PEDIDO = ?
-                        GROUP BY
-                            VEHICULOS.CHASIS;
-                        ''', (pedido,))
-        registros = cursor.fetchall()
-        print(registros)
+        
+        query = '''
+                SELECT 
+                    VEHICULOS.CHASIS,
+                    VEHICULOS.ID_MODELO,
+                    VEHICULOS.COLOR,
+                    
+                    -- Subconsulta para obtener el nombre del proceso o 'ninguno' si es NULL
+                    COALESCE(
+                        (SELECT PROCESOS.NOMBRE
+                        FROM HISTORICOS
+                        JOIN PROCESOS ON HISTORICOS.ID_PROCESO = PROCESOS.ID_PROCESO
+                        WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
+                        AND HISTORICOS.ESTADO = 'EN EJECUCION'
+                        LIMIT 1),
+                        (SELECT PROCESOS.NOMBRE
+                        FROM HISTORICOS
+                        JOIN PROCESOS ON HISTORICOS.ID_PROCESO = PROCESOS.ID_PROCESO
+                        WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
+                        AND HISTORICOS.ESTADO = 'TERMINADO'
+                        AND HISTORICOS.FIN = (
+                            SELECT MAX(FIN)
+                            FROM HISTORICOS AS HIST2
+                            WHERE HIST2.CHASIS = VEHICULOS.CHASIS AND HIST2.ESTADO = 'TERMINADO'
+                        )
+                        LIMIT 1),
+                        'ninguno'
+                    ) AS NOMBRE_PROCESO,
+                    
+                    -- Subconsulta para obtener el estado o 'ninguno' si es NULL
+                    COALESCE(
+                        (SELECT HISTORICOS.ESTADO
+                        FROM HISTORICOS
+                        WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
+                        AND HISTORICOS.ESTADO = 'EN EJECUCION'
+                        LIMIT 1),
+                        (SELECT HISTORICOS.ESTADO
+                        FROM HISTORICOS
+                        WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
+                        AND HISTORICOS.ESTADO = 'TERMINADO'
+                        AND HISTORICOS.FIN = (
+                            SELECT MAX(FIN)
+                            FROM HISTORICOS AS HIST2
+                            WHERE HIST2.CHASIS = VEHICULOS.CHASIS AND HIST2.ESTADO = 'TERMINADO'
+                        )
+                        LIMIT 1),
+                        'ninguno'
+                    ) AS ESTADO
+                FROM
+                    VEHICULOS
+                LEFT JOIN 
+                    PEDIDOS ON VEHICULOS.ID_PEDIDO = PEDIDOS.ID_PEDIDO
+                WHERE
+                    PEDIDOS.ID_PEDIDO = ?
+                GROUP BY
+                    VEHICULOS.CHASIS;
+                '''
+        
+        df = pd.read_sql_query(query, conn, params=(pedido,))
+        print(df)
 
     except sqlite3.Error as e:
         print(f"Error al leer la Tabla de Tiempos_Vehiculos y de Vehiculos: {e}")
-        registros = None
+        df = None
 
     finally:
         conn.close()    # Cierra la conexión
     
-    return registros
+    return df
 
 def leer_tiempos_modelos_df(bbdd):
     try:
@@ -2387,6 +2402,21 @@ def eliminar_modelo_completo(bbdd, modelo):
     eliminar_tiempo_modelo(bbdd, modelo)   #eliminar primero el registro con clave foranea
     eliminar_modelo(bbdd, modelo)          #eliminar después el registro con clave primaria
 
+def eliminar_orden(bbdd, id_orden):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM ORDENES WHERE CODIGO_ORDEN=?", (id_orden,))
+        conn.commit()
+        print(f"El registro de histórico con{id_orden} se eliminó correctamente de la tabla de ÓRDENES")
+
+    except sqlite3.Error as e:
+        print(f"Error al eliminar la órden con id {id_orden}: {e}")
+
+    finally:
+        conn.close()  # Cerrar la conexión después de usarla
+
 def eliminar_ordenes_por_programa(bbdd, id_programa):
     try:
         conn = sqlite3.connect(bbdd)
@@ -2394,7 +2424,7 @@ def eliminar_ordenes_por_programa(bbdd, id_programa):
         
         cursor.execute("DELETE FROM ORDENES WHERE ID_PROGRAMA=?", (id_programa,))
         conn.commit()
-        request = None
+        request = cursor.rowcount
 
     except sqlite3.Error as e:
         print(f"Error al eliminar las órdenes del programa {id}: {e}")
@@ -2532,7 +2562,6 @@ def eliminar_pedido_cascada(bbdd, id_pedido):
     finally:
         conn.close()
 
-
 def eliminar_proceso(bbdd, id):
     try:
         conn = sqlite3.connect(bbdd)
@@ -2555,7 +2584,7 @@ def eliminar_programa(bbdd, id):
         
         cursor.execute("DELETE FROM PROGRAMAS WHERE ID_PROGRAMA=?", (id,))
         conn.commit()
-        request = None
+        request = cursor.rowcount
 
     except sqlite3.Error as e:
         print(f"Error al eliminar el programa {id}: {e}")

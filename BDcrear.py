@@ -54,13 +54,14 @@ class TIEMPOSMODELOS(Base):
     TIEMPO          = Column(Integer)
 
 class PEDIDOS(Base):
-    __tablename__   = 'PEDIDOS'
-    ID_PEDIDO       = Column(String, primary_key=True)
-    CLIENTE         = Column(String)
-    FECHA_RECEPCION = Column(Integer)
+    __tablename__    = 'PEDIDOS'
+    ID_PEDIDO        = Column(String, primary_key=True)
+    CLIENTE          = Column(String)
+    FECHA_RECEPCION  = Column(Integer)
+    FECHA_INGRESO    = Column(Integer)
     ENTREGA_ESTIMADA = Column(Integer)
-    FECHA_ENTREGA   = Column(Integer)
-    CONSECUTIVO     = Column(Integer)
+    FECHA_ENTREGA    = Column(Integer)
+    CONSECUTIVO      = Column(Integer)
 
 class VEHICULOS(Base):
     __tablename__   = 'VEHICULOS'

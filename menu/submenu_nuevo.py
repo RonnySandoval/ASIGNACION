@@ -6,6 +6,7 @@ import glo
 
 def desplegar_nuevo(subMenu, root):
     nuevaPlanta    = subMenu.add_command(label = "Nueva Planta"   , command = vent_nueva_planta)
+    abrirPlanta    = subMenu.add_command(label = "Abrir Planta"   , command = vent_abrir_planta)
     subMenu.add_separator()
     nuevoPedido    = subMenu.add_command(label = "Nuevo Pedido"   , command = vent_nuevo_pedido)
     nuevoModelo    = subMenu.add_command(label = "Nuevo Modelo"   , command = vent_nuevo_modelo)
@@ -18,7 +19,10 @@ def desplegar_nuevo(subMenu, root):
 
 def vent_nueva_planta():
     eventos.step_crearNuevaPlanta()
-  
+      
+def vent_abrir_planta():
+    eventos.abrir_planta()
+
 def vent_nuevo_pedido():
     ventana = ventanaNuevoPedido.VentanaNuevoPedido(bbdd=glo.base_datos)                                           # Llamar al constructor del objeto ventana
     ventana.asignafuncion(funcionGuardar  = lambda:eventos.guardar_pedido_nuevo(ventana = ventana, bbdd = glo.base_datos),

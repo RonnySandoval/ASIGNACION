@@ -116,6 +116,7 @@ def generar_gantt_tecnicos(personal, fechaStart, horaStart, horizonte_calculado)
                 hbar =diagrama["hbar"])
     #modelo_mostrarGantt.mostrar_grafico_tecnicos("GRAFICO_DE_TECNICOS_02")
     return diagrama
+
 #MANEJO DEL EVENTO ZOOM DEL MOUSE
 def configurar_zoom(fig, ax, etiquetas_y, etiquetas_barras, hbar):
     """Configura la interacción del zoom en el gráfico."""

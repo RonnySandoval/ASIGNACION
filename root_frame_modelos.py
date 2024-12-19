@@ -161,7 +161,7 @@ class ContenidoModelos():
             self.button_variables_agregMod[button_name].grid(row=1+filasAgregarVH, column= 7, padx=3)
 
     def actualizar_contenido(self, bbdd):
-        for widget in self.frameVehiculosInterior.winfo_children():
+        for widget in self.frameModelosInterior.winfo_children():
             widget.destroy()
 
         self.llenar_contenido(bbdd)

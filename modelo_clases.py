@@ -306,7 +306,6 @@ class Tecnico:                                  # Es cada técnico con nombre e 
             print(f"ultima asignación de vehiculo: {vehiculo.inicio, vehiculo.fin}, {vehiculo.estado}")          # ultima asignación de técnico
 
 
-
             #CASO VEHICULO DEBE ESPERAR AL TÉCNICO
             if  vehiculo.fin <= self.termina:       # Evalua si el momento en que el vehículo a asignar terminó el proceso anterior OCURRE ANTES que el momento en que el técnico terminó la última asignación
                 print("CASO VEHICULO DEBE ESPERAR AL TÉCNICO")
@@ -316,7 +315,8 @@ class Tecnico:                                  # Es cada técnico con nombre e 
                     str(self.comienza.date()),
                     str(self.comienza.time()),
                     tiempo_proceso,
-                    am=(8,12), pm=(14,18))
+                    am = (glo.turnos.startAM, glo.turnos.endAM),
+                    pm = (glo.turnos.startPM, glo.turnos.endPM))
                 self.comienza = bloques[0][0]               # Calcula el momento de inicio (del tecnico) del proceso actual
                 self.termina =bloques[-1][-1]               # Calcula el momento de fin (del tecnico) del proceso actual
                 self.libre = self.termina                  # Calcula el momento en que el técnico está disponible
@@ -336,7 +336,8 @@ class Tecnico:                                  # Es cada técnico con nombre e 
                     str(self.comienza.date()),
                     str(self.comienza.time()),
                     tiempo_proceso,
-                    am=(8,12),pm=(14,18))
+                    am = (glo.turnos.startAM, glo.turnos.endAM),
+                    pm = (glo.turnos.startPM, glo.turnos.endPM))
                 self.comienza = bloques[0][0]               # Calcula el momento de inicio (del tecnico) del proceso actual
                 self.termina = bloques[-1][-1]              # Calcula el momento de fin (del tecnico) del proceso actual
                 self.libre   = self.termina                 # Calcula el momento en que el técnico está disponible
@@ -503,13 +504,13 @@ def programa_inmediato(pedido, tecnicos, horizonte, fechaStart, horaStart):
             print(f"****El proceso {siguiente_estado} para el chasis {vehiculo_min_time} queda : {times} + {tiempo_neto}")
 
             asignado = False
-            maximaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(fechaStart, horaStart, horizonte ,am=(8,12), pm=(14,18)))
+            maximaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(fechaStart, horaStart, horizonte ,am=(glo.turnos.startAM, glo.turnos.endAM), pm=(glo.turnos.startPM, glo.turnos.endPM)))
             terminaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(
                                                                                 fecha_inicio = str(times.date()),
                                                                                 hora_inicio  = str(times.time()),
                                                                                 duracion     = tiempo_neto,
-                                                                                am           = (8,12),
-                                                                                pm           = (14,18)
+                                                                                am   = (glo.turnos.startAM, glo.turnos.endAM),
+                                                                                pm   = (glo.turnos.startPM, glo.turnos.endPM)
                                                                                 )
                                                     )
             print(f"****Se asignará : {times} + {tiempo_neto} = {terminaAsignacion}")
@@ -540,7 +541,6 @@ def programa_inmediato(pedido, tecnicos, horizonte, fechaStart, horaStart):
         print("#############################################################")
         print("#############################################################")
         print("#############################################################")
-
 
     scheduling = ProgramaDeProduccion(listaOrdenes)
     df_scheduling = scheduling.to_dataframe()
@@ -623,13 +623,13 @@ def programa_completo(pedido, tecnicos, horizonte, fechaStart, horaStart):
             print(f"****El proceso {siguiente_estado} para el chasis {vehiculo_min_time} queda : {times} + {tiempo_neto}*****")
 
             asignado = False
-            maximaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(fechaStart, horaStart, horizonte ,am=(8,12), pm=(14,18)))
+            maximaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(fechaStart, horaStart, horizonte ,am=(glo.turnos.startAM, glo.turnos.endAM), pm=(glo.turnos.startPM, glo.turnos.endPM)))
             terminaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(
                                                                                 str(times.date()),
                                                                                 str(times.time()),
                                                                                 vehiculo_min_time.obtener_tiempo_proceso(siguiente_estado),
-                                                                                am=(8,12),
-                                                                                pm=(14,18)
+                                                                                am = (glo.turnos.startAM, glo.turnos.endAM),
+                                                                                pm = (glo.turnos.startPM, glo.turnos.endPM)
                                                                                 )
                                                     )
             print(f"****Se asignará : {times}+{tiempo_neto}={terminaAsignacion}")
@@ -662,10 +662,8 @@ def programa_completo(pedido, tecnicos, horizonte, fechaStart, horaStart):
         vehiculo_min_time.vueltas.append(f"vuelta #{contador}")
 
         print (f"------------------Termina vuelta #{contador}---------------------")
-        print("#############################################################")
-        print("#############################################################")
-        print("#############################################################")
-        print("#############################################################")
+        print("##########################################################################################################################")
+        print("##########################################################################################################################")
 
     scheduling = ProgramaDeProduccion(listaOrdenes)
     df_scheduling = scheduling.to_dataframe()
@@ -809,13 +807,13 @@ def programar_procesos(pedido, tecnicos, procesos, horizonte, fechaStart, horaSt
                 print(f"****El proceso {proceso} para el chasis {vehiculo_min_time} queda : {times} + {tiempo_neto}")
 
                 asignado = False
-                maximaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(fechaStart, horaStart, horizonte ,am=(8,12), pm=(14,18)))
+                maximaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(fechaStart, horaStart, horizonte ,am=(glo.turnos.startAM, glo.turnos.endAM), pm=(glo.turnos.startPM, glo.turnos.endPM)))
                 terminaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(
                                                                                     str(times.date()),
                                                                                     str(times.time()),
                                                                                     vehiculo_min_time.obtener_tiempo_proceso(proceso),
-                                                                                    am=(8,12),
-                                                                                    pm=(14,18)
+                                                                                    am = (glo.turnos.startAM, glo.turnos.endAM),
+                                                                                    pm = (glo.turnos.startPM, glo.turnos.endPM)
                                                                                     )
                                                         )
                 print(f"****Se asignará : {times} + {tiempo_neto} = {terminaAsignacion}")
@@ -848,10 +846,8 @@ def programar_procesos(pedido, tecnicos, procesos, horizonte, fechaStart, horaSt
         vehiculos_por_programar.remove(vehiculo_min_time)        #REMOVEMOS DE LA LISTA EL VEHICULO QUE SE ACABA DE ASIGNAR        
         print(f"se removio {vehiculo_min_time} porque ya tiene asignado los procesos planificados")       
         print (f"------------------Termina vuelta #{contador}---------------------")
-        print("#############################################################")
-        print("#############################################################")
-        print("#############################################################")
-        print("#############################################################")
+        print("##########################################################################################################################")
+        print("##########################################################################################################################")
         
 
     scheduling = ProgramaDeProduccion(listaOrdenes)
@@ -880,5 +876,5 @@ def calcular_horizonte(pedido):
 def reemplazar_caracteres(cadena):
     # Usamos expresiones regulares para reemplazar los caracteres no deseados
     cadena_modificada = re.sub(r'''[\[\]{}\'",.]''', '', cadena)
-    cadena_final = re.sub(r' ', '', cadena)
-    return cadena_modificada
+    cadena_final = re.sub(r' ', '', cadena_modificada)
+    return cadena_final

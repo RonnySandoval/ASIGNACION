@@ -1,3 +1,5 @@
+import glo
+import pandas as pd
 from datetime import datetime, timedelta
 
 ###############################################################################
@@ -8,7 +10,6 @@ def parseDT(stringFecha, stringHora):
     fecha_hora_inicio = f"{stringFecha} {stringHora}"                   # Concatenar fecha y hora para crear una cadena completa de fecha y hor
     #print("prueba", datetime.strptime(fecha_hora_inicio, "%Y-%m-%d %H:%M"))
     return datetime.strptime(fecha_hora_inicio, "%Y-%m-%d %H:%M:%S")       # Convertir la fecha y hora de inicio a un objeto datetime
-
 
 def calcular_hora_final(fecha_inicio, hora_inicio, duracion):
 
@@ -69,21 +70,24 @@ def siguiente_dia(fecha):
 ###############################################################################
 ###############################################################################
 def horas_no_laborables(fecha):
-
+    if pd.isna(fecha):
+        fecha_ahora = str(datetime.now().date())
+    else:
+        fecha_ahora = fecha
     # Crear tuplas de cadenas con formato 'YYYY-MM-DD HH:MM:SS'
     madrugada = (
-        datetime.strptime(f"{fecha} 00:00:00", "%Y-%m-%d %H:%M:%S"),
-        datetime.strptime(f"{fecha} 07:59:00", "%Y-%m-%d %H:%M:%S")
+        datetime.strptime(f"{fecha_ahora} 00:00:00", "%Y-%m-%d %H:%M:%S"),
+        datetime.strptime(f"{fecha_ahora} {glo.turnos.startAM.get()}:00", "%Y-%m-%d %H:%M:%S")
         )
 
     mediodia  = (
-        datetime.strptime(f"{fecha} 12:00:00", "%Y-%m-%d %H:%M:%S"),
-        datetime.strptime(f"{fecha} 13:59:00", "%Y-%m-%d %H:%M:%S")
+        datetime.strptime(f"{fecha_ahora} {glo.turnos.endAM.get()}:00", "%Y-%m-%d %H:%M:%S"),
+        datetime.strptime(f"{fecha_ahora} {glo.turnos.startPM.get()}:00", "%Y-%m-%d %H:%M:%S")
         )
 
     noche     = (
-        datetime.strptime(f"{fecha} 18:00:00", "%Y-%m-%d %H:%M:%S"),
-        datetime.strptime(f"{fecha} 23:59:00", "%Y-%m-%d %H:%M:%S")
+        datetime.strptime(f"{fecha_ahora} {glo.turnos.endPM.get()}:00", "%Y-%m-%d %H:%M:%S"),
+        datetime.strptime(f"{fecha_ahora} 23:59:00", "%Y-%m-%d %H:%M:%S")
         )
 
     return {
@@ -93,16 +97,20 @@ def horas_no_laborables(fecha):
     }
 
 def horas_laborables(fecha):
+    if pd.isna(fecha):
+        fecha_ahora = str(datetime.now().date())
+    else:
+        fecha_ahora = fecha
 
     # Crear tuplas de cadenas con formato 'YYYY-MM-DD HH:MM:SS'
     manana = (
-        datetime.strptime(f"{fecha} 08:00:00", "%Y-%m-%d %H:%M:%S"),
-        datetime.strptime(f"{fecha} 11:59:00", "%Y-%m-%d %H:%M:%S")
+        datetime.strptime(f"{fecha_ahora} {glo.turnos.startAM.get()}:00", "%Y-%m-%d %H:%M:%S"),
+        datetime.strptime(f"{fecha_ahora} {glo.turnos.endAM.get()}:00", "%Y-%m-%d %H:%M:%S")
         )
 
     tarde  = (
-        datetime.strptime(f"{fecha} 14:00:00", "%Y-%m-%d %H:%M:%S"), 
-        datetime.strptime(f"{fecha} 17:59:00", "%Y-%m-%d %H:%M:%S")
+        datetime.strptime(f"{fecha_ahora} {glo.turnos.startPM.get()}:00", "%Y-%m-%d %H:%M:%S"), 
+        datetime.strptime(f"{fecha_ahora} {glo.turnos.endPM.get()}:00", "%Y-%m-%d %H:%M:%S")
         )
 
     return {
@@ -116,11 +124,11 @@ def horas_laborables(fecha):
 
 def define_franja(fecha_hora):
     franjas ={
-        0:horas_no_laborables(fecha_hora)["madrugada"][0],
-        8:horas_laborables(fecha_hora)["manana"][0],
-        12:horas_no_laborables(fecha_hora)["mediodia"][0],
-        14:horas_laborables(fecha_hora)["tarde"][0],
-        18:horas_no_laborables(fecha_hora)["noche"][0]
+        glo.turnos.cero           :horas_no_laborables(fecha_hora)["madrugada"][0],
+        glo.turnos.startAM.get()  :horas_laborables(fecha_hora)["manana"][0],
+        glo.turnos.endAM.get()    :horas_no_laborables(fecha_hora)["mediodia"][0],
+        glo.turnos.startPM.get()  :horas_laborables(fecha_hora)["tarde"][0],
+        glo.turnos.endPM.get()    :horas_no_laborables(fecha_hora)["noche"][0]
         }
     
     return franjas
@@ -135,7 +143,7 @@ def define_franja(fecha_hora):
 
 
 def progBloqueMadrugada(inicio, duracion, am, pm, bloques):
- 
+
     fecha_inicio = str(inicio.date())
     fin = calcular_hora_finalDT(inicio, duracion)
 
@@ -199,10 +207,6 @@ def progBloqueNoche(inicio, duracion, am, pm, bloques):
     new_inicio = define_franja(next_dia.date())[am[0]]
     return progBloqueMadrugada(new_inicio, duracion, am, pm, bloques)
 
-
-
-
-
 def programa_bloques(fecha_inicio, hora_inicio, duracion, am, pm):
     bloques = []
     duracionFaltante = duracion
@@ -210,12 +214,9 @@ def programa_bloques(fecha_inicio, hora_inicio, duracion, am, pm):
     momento = datetime.strptime(f"{fecha_inicio} {hora_inicio}", "%Y-%m-%d %H:%M:%S")     # Convertir la fecha y hora de inicio a un objeto datetime
     contador = 0
 
-
-
     while duracion != 0 and contador <=30:
         contador+=1
         #print("------------------------------>vuelta #", contador, ". ", obtener_dia_semana(momento), ". ", momento,"<--------------------------------")
-
         
         #EVUALUA SI ES FIN DE SEMANA, Y EN CASO AFIRMATIVO LO ACTUALIZA A LUNES
         if obtener_dia_semana(momento) == "Sabado":
@@ -226,7 +227,6 @@ def programa_bloques(fecha_inicio, hora_inicio, duracion, am, pm):
                 momento = momento + timedelta(days=1)
                 momento = define_franja(momento.date())[am[0]]
 
-
         #CASO ANTES DE LAS 8AM
         if momento.time() <  define_franja(dia)[am[0]].time():                    #Evalua si está antes de las 8 am
             #print(f"Entro en CASO ANTES DE LAS 8AM")
@@ -236,7 +236,6 @@ def programa_bloques(fecha_inicio, hora_inicio, duracion, am, pm):
                 return bloques                                                              #Rompe el ciclo de ejecución de la función
             momento = define_franja(momento.date())[am[1]]                                  #Actualiza el momento donde terminó a mediodía
             
-
         #CASO ENTRE 8AM Y 12M
         if momento.time() >= define_franja(dia)[am[0]].time() and momento.time() <  define_franja(fecha_inicio)[am[1]].time():    #Evalua si está durante la mañana.
             #print(f"Entro en CASO ENTRE 8AM Y 12M")
@@ -246,9 +245,8 @@ def programa_bloques(fecha_inicio, hora_inicio, duracion, am, pm):
                 return bloques                                                              #Rompe el ciclo de ejecución de la función
             momento = define_franja(momento.date())[am[1]]                                  #Actualiza el momento donde terminó a mediodía
 
-
         #CASO ENTRE LAS 12M Y 2PM
-        if momento.time() >= define_franja(dia)[am[1]].time() and momento.time() <  define_franja(fecha_inicio)[14].time():
+        if momento.time() >= define_franja(dia)[am[1]].time() and momento.time() <  define_franja(fecha_inicio)[pm[0]].time():
             #print(f"Entro en CASO ENTRE LAS 12M Y 2PM")
             duracionFaltante = progBloqueMediodia(momento, duracionFaltante, am, pm, bloques)     #Programa un bloque en la mañana y actualiza el tiempo por programar
             if duracionFaltante == 0:                                                          #Determina si terminó antes del mediodía
@@ -256,7 +254,6 @@ def programa_bloques(fecha_inicio, hora_inicio, duracion, am, pm):
                 return bloques                                                              #Rompe el ciclo de ejecución de la función
             momento = define_franja(momento.date())[pm[1]]                                  #Actualiza el momento donde terminó la tarde
         
-
         #CASO ENTRE LAS 2PM Y 6PM
         if momento.time() >= define_franja(dia)[pm[0]].time() and momento.time() <  define_franja(fecha_inicio)[pm[1]].time():
             #print(f"Entro en CASO ENTRE LAS 2PM Y 6PM")
@@ -266,19 +263,16 @@ def programa_bloques(fecha_inicio, hora_inicio, duracion, am, pm):
                 return bloques                                                              #Rompe el ciclo de ejecución de la función
             momento = define_franja(momento.date())[pm[1]]                                  #Actualiza el momento donde terminó en la tarde
 
-
         #CASO 6PM y TIEMPO RESTANTE distinto DE 0
         if momento == define_franja(momento.date())[pm[1]] and duracionFaltante !=0:
             #print(f"Entro en CASO 6PM y duracionFaltante!=0")                    
             momento = momento + timedelta(days=1)
             momento = define_franja(momento.date())[am[0]]
 
-
         #CASO FIN DE SEMANA
         if obtener_dia_semana(momento) == "Sabado" or obtener_dia_semana(momento)=="Domingo":
             #print("Entró en caso fin de semana")
             continue
-
 
         #CASO ENTRE LAS 6PM Y 12PM
         if momento.time() >= define_franja(dia)[pm[1]].time():
@@ -290,11 +284,46 @@ def programa_bloques(fecha_inicio, hora_inicio, duracion, am, pm):
                 #print("retornó en CASO DESPUES DE 6PM")                
                 return bloques
 
-
-
 def momentoEnd (bloques):
     #print("***************final de horizonte: ", bloques[-1][-1], obtener_dia_semana(bloques[-1][-1]) )
     return bloques[-1][-1]
+
+class Horarios:
+    def __init__(self):
+        self.cero    = "00:00"
+        self.startAM = "08:00"
+        self.endAM   = "12:00"
+        self.startPM = "14:00"
+        self.endPM   = "18:00"
+        self.no_AM   = self.no_laboral("no_AM")
+        self.no_ME   = self.no_laboral("no_ME")
+        self.no_PM   = self.no_laboral("no_PM")
+
+    def no_laboral(self, bloque):
+        if bloque == "no_AM":
+            start_am_td = timedelta(hours=datetime.strptime(self.startAM, "%H:%M").hour,
+                                    minutes=datetime.strptime(self.startAM, "%H:%M").minute)
+            midnight_td = timedelta(hours=0, minutes=0)
+            self.no_AM = str(start_am_td - midnight_td)
+
+        if bloque == "no_ME":
+            end_am_td = timedelta(hours=datetime.strptime(self.endAM, "%H:%M").hour,
+                                  minutes=datetime.strptime(self.endAM, "%H:%M").minute)
+            start_am_td = timedelta(hours=datetime.strptime(self.startAM, "%H:%M").hour,
+                                    minutes=datetime.strptime(self.startAM, "%H:%M").minute)
+            self.no_ME = str(end_am_td - start_am_td)
+
+        if bloque == "no_PM":
+            end_pm_td = timedelta(hours=datetime.strptime(self.endPM, "%H:%M").hour,
+                                  minutes=datetime.strptime(self.endPM, "%H:%M").minute)
+            midnight_td = timedelta(hours=24, minutes=0)  # Representa el final del día
+            self.no_PM = str(midnight_td - end_pm_td)
+
+glo.turnos = Horarios()
+
+
+
+
 
 
 
@@ -303,36 +332,6 @@ def momentoEnd (bloques):
 #for bloque in ejemplo:
 #    print(bloque)
 #print(momentoEnd(ejemplo))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

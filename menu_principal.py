@@ -13,14 +13,8 @@ def crearMenuPrincipal(raiz):
     ###################### submenu de Nuevo######################################
     menuNuevo=tk.Menu(barraMenu, tearoff=0)
     barraMenu.add_cascade(label="Nuevo", menu=menuNuevo)
+    barraMenu.add_cascade(label="Abrir", menu=menuNuevo)
     subNuevo.desplegar_nuevo(subMenu = menuNuevo, root=raiz)
-    #############################################################################
-
-    ########################## submenu de Abrir #################################
-    menuAbrir=tk.Menu(barraMenu, tearoff=0)
-    barraMenu.add_cascade(label="Abrir", menu=menuAbrir)
-    menuAbrir.add_command(label="Abrir Planta", command="")
-    #############################################################################
 
 
     ############################## submenu de Editar ###########################
@@ -28,21 +22,18 @@ def crearMenuPrincipal(raiz):
     barraMenu.add_cascade(label="Editar", menu=menuEditar)
     subEditar.desplegar_editar(subMenu = menuEditar, root=raiz)
     ##########################################################################
-
     ########################### submenu de Importar ###########################
     menuImportar=tk.Menu(barraMenu, tearoff=0)
     barraMenu.add_cascade(label="Importar", menu=menuImportar)
     subImportar.desplegar_importar(subMenu = menuImportar, root=raiz)
-    ##########################################################################
 
-
+    #########################################################################
     #################### submenu de Exportar #################################
     menuExportar=tk.Menu(barraMenu, tearoff=0)
     barraMenu.add_cascade(label="Exportar", menu=menuExportar)
     subExportar.desplegar_exportar(subMenu = menuExportar, root=raiz)
+
     ##########################################################################
-
-
     ######################### submenu de Ayuda ###############################
     menuAyuda=tk.Menu(barraMenu, tearoff=0)
     barraMenu.add_cascade(label="Ayuda", menu=menuAyuda)

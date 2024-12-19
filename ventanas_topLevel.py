@@ -11,9 +11,8 @@ import re
 import glo
 import BBDD
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+import matplotlib.pyplot as plt
 import numpy as np
-
-
 
 class RaizTopLevel:
     
@@ -1430,6 +1429,15 @@ class ventanaGraficos(RaizTopLevel) :
         self.botonesOkCancel.pack(side="bottom", fill="both", padx=20, pady=20)
         self.botones = ButtonsOkCancel(contenedor = self.botonesOkCancel, accionOk="Aceptar", accionCancel="Cancelar", fila=0)
 
+        # Configurar el protocolo de cierre de la ventana
+        self.rootAux.protocol("WM_DELETE_WINDOW", self.on_closing)
+
+    def on_closing(self):
+        # Llamar a las funciones de cierre de ambos gráficos
+        self.ganttTecnicos.on_top_closing(top=self.rootAux)
+        self.ganttVehiculos.on_top_closing(top=self.rootAux)
+        self.destroy()                  # Destruir la ventana
+
     def mostrar_frame(self, frame):
 
         for fr in (self.frameTecnicos, self.frameVehiculos, self.frameTabla):
@@ -1465,7 +1473,12 @@ class GraficoGantt:
         if hasattr(self, 'canvas'):
             self.canvas.get_tk_widget().destroy()  # Destruir el widget Tkinter asociado al canvas
             del self.canvas  # Eliminar referencia al canvas para liberar memoria
-
+        if hasattr(self, 'toolbar'):
+            self.toolbar.destroy()
+            
+    def on_top_closing(self, top):    # Manejar el cierre de la ventana Toplevel
+        plt.close(self.fig)
+        top.destroy()
 
 class FrameTablaGenerica:
     

@@ -37,6 +37,7 @@ cons_newPedido = {}
 base_datos = None
 huerfanos = None
 raiz_principal = None
+actualizar_todo = None
 gantt = False
 ################################################
 ###### FRAMES DE CONTENIDOS PRINCIPALES ########
@@ -44,7 +45,7 @@ class Contenidos:
     def __init__(self):
         self.contenidoDeModelos = None
         self.contenidoDeTecnicos = None
-        self.contenidoProcesos = None
+        self.contenidoDeProcesos = None
         self.contenidoTecProc = None
 
         self.contenidoDeVehiculos = None
@@ -77,7 +78,7 @@ class Contenidos:
 
     def __repr__(self):
         return [self.contenidoDeModelos,
-                self.contenidoProcesos,
+                self.contenidoDeProcesos,
                 self.contenidoDeTecnicos,
                 self.contenidoDeVehiculos,
                 self.tablaVehiculos,
@@ -99,13 +100,15 @@ class Contenidos:
                 self.filtroHistoricos,
                 self.contenidoDeReferencias]
 
-class ProgramaPlanta ():
+class ProgramaPlanta:
     def __init__(self):
         self.procesos = None 
         self.tecnicos = None
         self.modelos = None
         self.vehiculos = None
         self.pedidos = None
+        self.referencias = None
+        self.gantt = None
 
 stateFrame = Contenidos()
 scheduling = ProgramaPlanta()

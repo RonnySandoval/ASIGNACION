@@ -1,5 +1,6 @@
 import re
 import pandas as pd
+import tkinter as tk
 from tkinter.filedialog import askopenfilename
 import CRUD
 import BDcrear
@@ -12,12 +13,21 @@ import ventanas_emergentes
 import modelo_clases, modelo_instancias
 import modelo_llamarGantt
 import fechahora
+import datetime
 import gantt
-
+from estilos import *
+import os
 
 #################################################################################
 ######################### EVENTOS PARA CREAR PLANTA #############################
 #################################################################################
+
+def abrir_planta():
+    ruta = askopenfilename(title="Seleccionar la Planta",
+                            filetypes=[("Archivos Base de datos sqlite", "*.db")])
+    print(ruta)
+    glo.base_datos = os.path.basename(ruta)
+    glo.actualizar_todo()
 
 def step_crearNuevaPlanta():
     ventana = ventanaNuevaPlanta.VentanaNuevaPlanta()
@@ -56,7 +66,10 @@ def crear_plantaBD(dataframes, name, description, ventana):
     df_tecnicos     = dataframes["TECNICOS"]
     df_modelos      = dataframes["MARCAS_MODELOS"]
     df_referencias  = dataframes["MODELOS_REFERENCIAS"]
+    df_tiempos_modelos = dataframes["TIEMPOS_MODELOS"]
     ventana.rootAux.destroy()
+
+    #df_tiempos_modelos = genera_tiempos_modelos_default(df_modelos, df_procesos)
 
     df_tecnicos["ID_TECNICO"] = df_tecnicos.apply(lambda row:genera_idTecnico(row["NOMBRE"], row["APELLIDO"], row["DOCUMENTO"]), axis=1)
     df_modelos["ID_MODELO"] = df_modelos.apply(lambda row:genera_idModelo(row["MARCA"], row["MODELO"]), axis=1)
@@ -65,12 +78,13 @@ def crear_plantaBD(dataframes, name, description, ventana):
     df_tecnicos = elimina_Duplicados_df(df_tecnicos, "ID_TECNICO")[0]
     df_modelos = elimina_Duplicados_df(df_modelos, "ID_MODELO")[0]
     df_referencias = elimina_Duplicados_df(df_referencias, "REFERENCIA")[0]
+    df_tiempos_modelos = elimina_Duplicados_df(df_referencias, "TIEMPOS_MODELOS")[0]
 
     df_merged = pd.merge(df_referencias, df_modelos, on='MODELO', how='left')       # Realiza el merge entre df_referencias y df_modelos
     df_referencias = df_merged [['REFERENCIA', 'ID_MODELO']]                            # Reasigna el dataframe
 
     df_tecnicos, df_tecnicos_procesos = genera_df_tecnicos_proceso(df = df_tecnicos)
-    df_tiempos_modelos = genera_tiempos_modelos_default(df_modelos, df_procesos)
+    df_tiempos_modelos = transformar_dataframe_tiempos(df_tiempos_modelos, "MODELO")
     print(df_procesos)
     print(df_tecnicos)
     print(df_tecnicos_procesos)
@@ -119,7 +133,7 @@ def crear_plantaBD(dataframes, name, description, ventana):
                                             """Se añadieron  con éxito todos los registros de procesos, técnicos, modelos y referencias.
                                             Dirígase a la sección IMPORTAR TIEMPOS, para agregar los tiempos de proceso a los modelos""")
     
-    recarga_root(bbdd = base_datos)
+    glo.actualizar_todo()
 
 def genera_df_tecnicos_proceso(df): 
     especialidad_cols = df.filter(like='ESPECIALIDAD').columns                                 # Filtrar columnas que contienen 'ESPECIALIDAD'
@@ -147,12 +161,6 @@ def genera_df_tecnicos_proceso(df):
     print(df_tecnicos_procesos)
 
     return df_tecnicos, df_tecnicos_procesos
-
-def recarga_root(bbdd):
-    glo.base_datos = bbdd
-    #modelo_clases.obtiene_datos_iniciales()
-    #modelo_instancias.obtiene_datos_iniciales()
-    glo.root.llena_root()
 
 def genera_tiempos_modelos_default(df_modelos, df_procesos):
     df_combinaciones = pd.merge(df_modelos[['ID_MODELO']],    # Crear el DataFrame con las combinaciones deseadas
@@ -470,8 +478,6 @@ def guardar_proceso_nuevo(ventana, bbdd):
 #####################################################################
 ################EVENTOS PARA SECCION DE VEHICULOS####################
 #####################################################################
-def leeVehiculosBBDD(bbdd):
-    return BBDD.leer_vehiculos_completos(bbdd)
 
 def recoger_datos_vehiculo(chasis, bbdd):
     return BBDD.leer_vehiculo(bbdd, chasis)
@@ -699,16 +705,19 @@ def mostrar_gantt_programa(id_programa, bbdd):
     diagramas = {"diagramaTecnicos" : gantt_tecnicos,
                  "diagramaVehiculos": gantt_vehiculos}
     
-    ventanas_topLevel.ventanaGraficos("1000x700", id_programa, diagramas, df)
+    ventana = ventanas_topLevel.ventanaGraficos("1000x700", id_programa, diagramas, df)
+    ventana.botones.asignarfunciones(funcionCancel= ventana.rootAux.destroy,
+                                     funcionOk= lambda: exportar_tabla(ventana, id_programa, "programa", bbdd))
 
 def ventana_infoOrdenes(id_orden, bbdd):
     ventana = ventanas_topLevel.VentanaMuestraInfoOrde(id_orden, bbdd)
     ventana.asignafuncionBoton(funcionCerrar = ventana.rootAux.destroy)
 
 def eliminar_programa_BD(id_programa, bbdd):
-    if ventanas_emergentes.msg_eliminar_ped(id) == "Aceptar":
+    if ventanas_emergentes.msg_eliminar_prog(id_programa) == "Aceptar":
         delPrograma = BBDD.eliminar_programa(bbdd, id_programa)
         delOrdenes  = BBDD.eliminar_ordenes_por_programa(bbdd, id_programa)
+        print("Programa: ", delPrograma, "\n.Órdenes: ", delOrdenes)
         if delPrograma is False:
             if delOrdenes is False:
                 ventanas_emergentes.messagebox.showerror("Programa No eliminado", f"Hubo un error al eliminar el programa {id_programa} y sus registros de órdenes")
@@ -719,6 +728,9 @@ def eliminar_programa_BD(id_programa, bbdd):
                                                 {delPrograma} programas eliminados
                                                 {delOrdenes} órdenes eliminadas""")
 
+def ventana_eliminarOrden(id_orden, bbdd):
+    if BBDD.ventEmerg.msg_eliminar_ord(id_orden) == "Aceptar":
+        BBDD.eliminar_orden(bbdd, id_orden)
 #####################################################################
 ################ EVENTOS PARA SECCION DE HISTÓRICOS #################
 #####################################################################
@@ -753,7 +765,7 @@ def ventana_eliminarHistorico(id_historico, bbdd):
 
 
 #####################################################################
-############ EVENTOS PARA SECCION DE GANTT HITORICOS ################
+############ EVENTOS PARA SECCION DE GANTT HISTORICOS ################
 #####################################################################
 def generar_df_gantt(bbdd):
     df = BBDD.leer_historicos_graficar(bbdd)
@@ -765,6 +777,11 @@ def generar_df_gantt(bbdd):
     # Encontrar el valor máximo y mínimo de cada columna
     inicio_horizonte = df["INICIO"].min()
     fin_horizonte    = df["FIN"].max()
+    if pd.isna(inicio_horizonte):
+        inicio_horizonte = datetime.datetime.now().replace(microsecond=0)
+    if pd.isna(fin_horizonte):
+        fin_horizonte = datetime.datetime.now().replace(hour=23, minute=59, second=0, microsecond=0)
+        
     gantt_tecnicos, gantt_vehiculos = gantt.generar_gantt(df, inicio_horizonte, fin_horizonte)
 
     diagramas = {"diagramaTecnicos" : gantt_tecnicos,
@@ -773,34 +790,46 @@ def generar_df_gantt(bbdd):
     return df, diagramas
 
 ###########################################################################
-#################### MANEJO DE ARCHIVOS DE EXCEL ##########################
+#################### MANEJO DE IMPORTACIÓN DESDE EXCEL ####################
 ###########################################################################
-def aceptar_cargar_referencias_excel(ventana, bbdd):
+
+def aceptar_cargar_excel(ventana, nombreVentana, bbdd):
     ruta = ventana.ruta
     columns = ventana.varColumnas.get()
-    rowSkips = ventana.varSaltarFila.get()
-    dataframe = pd.read_excel(ruta,
-                            usecols=columns,
-                            header=0,
-                            skiprows=int(rowSkips)).dropna(how="all")
+    encabezados = ventana.varEncabezadoFila.get()
+    dataframe = pd.read_excel(ruta, usecols=columns, header=int(encabezados)-1).dropna(how="all")
+    dataframe = dataframe.map(lambda x: x.strip() if isinstance(x, str) else x)
     print("XLSX-->datosExcel: \n", dataframe)
-    
-    ventana.rootAux.destroy()
-    ventVistaPrevia = ventanas_topLevel.VentanaVistaPreviaReferencias(dataframe, bbdd)
-    ventVistaPrevia.asignafuncion(funcionAceptar  = lambda: guardar_ReferenciasExcel_BBDD(ventVistaPrevia, dataframe, bbdd), 
-                                  funcionCancelar = ventVistaPrevia.rootAux.destroy)
-    return dataframe
+    dataframe_limpio = limpiar_espacios_df(df = dataframe)
 
-def guardar_ReferenciasExcel_BBDD(ventana, df, bbdd):
-    df_tabla_modelos = BBDD.leer_modelos_id_modelos(bbdd)
-    print(df_tabla_modelos)
-    df_final = pd.merge(df, df_tabla_modelos, on="MODELO", how="left")   # Hacer un merge entre el DataFrame original y la tabla obtenida de la base de datos
-    print(df_final)
-    df_final = df_final[["REFERENCIA", "ID_MODELO"]]                     # Seleccionar solo las columnas requeridas
-    print(df_final)
-    ventana.rootAux.destroy()
-    BBDD.insertar_referencias_df(bbdd, df_final)
+    if nombreVentana == "PROCESOS":
+        funcion = lambda : guardar_ProcesosExcel_BBDD(ventVistaPrevia, dataframe_limpio, bbdd)
+
+    if nombreVentana == "TECNICOS":
+        funcion = lambda : guardar_TecnicosExcel_BBDD(ventVistaPrevia, dataframe_limpio, bbdd)
+
+    if nombreVentana == "MODELOS":
+        funcion = lambda : guardar_ModelosExcel_BBDD(ventVistaPrevia, dataframe_limpio, bbdd)
+
+    if nombreVentana == "REFERENCIAS":
+        funcion = lambda : guardar_ReferenciasExcel_BBDD(ventVistaPrevia, dataframe_limpio, bbdd)
+
+    if nombreVentana == "TIEMPOS_MODELOS":
+        funcion = lambda : guardar_TiemposModelosExcel_BBDD(ventVistaPrevia, dataframe_limpio, bbdd)
+
+    if nombreVentana == "PEDIDO":
+        ventana.rootAux.destroy()
+        funcion = lambda : guardar_PedidoExcel_BBDD(ventVistaPrevia, dataframe_limpio, bbdd)
+        ventVistaPrevia = ventanas_topLevel.VentanaVistaPreviaPedido(dataframe_limpio, bbdd)
+        ventVistaPrevia.asignafuncion(funcionAceptar  = lambda : guardar_PedidoExcel_BBDD(ventVistaPrevia, dataframe_limpio, bbdd), 
+                                      funcionCancelar = ventVistaPrevia.rootAux.destroy)
+        return
     
+    ventana.rootAux.destroy()
+    ventVistaPrevia = ventanas_topLevel.VentanaVistaPrevia(nombreVentana, dataframe, bbdd)
+    ventVistaPrevia.asignafuncion(funcionAceptar  = funcion,
+                                  funcionCancelar = ventVistaPrevia.rootAux.destroy)
+
 def aceptar_cargar_pedido_excel(ventana, bbdd):
     ruta = ventana.ruta
     columns = ventana.varColumnas.get()
@@ -817,6 +846,40 @@ def aceptar_cargar_pedido_excel(ventana, bbdd):
     ventVistaPrevia = ventanas_topLevel.VentanaVistaPreviaPedido(dataframe, bbdd)
     ventVistaPrevia.asignafuncion(funcionAceptar  = lambda : guardar_PedidoExcel_BBDD(ventVistaPrevia, dataframe, bbdd), 
                                   funcionCancelar = ventVistaPrevia.rootAux.destroy)
+
+def aceptar_cargar_referencias_excel(ventana, bbdd):
+    ruta = ventana.ruta
+    columns = ventana.varColumnas.get()
+    rowSkips = ventana.varSaltarFila.get()
+    dataframe = pd.read_excel(ruta,
+                            usecols=columns,
+                            header=0,
+                            skiprows=int(rowSkips)).dropna(how="all")
+    print("XLSX-->datosExcel: \n", dataframe)
+    
+    ventana.rootAux.destroy()
+    ventVistaPrevia = ventanas_topLevel.VentanaVistaPreviaReferencias(dataframe, bbdd)
+    ventVistaPrevia.asignafuncion(funcionAceptar  = lambda: guardar_ReferenciasExcel_BBDD(ventVistaPrevia, dataframe, bbdd), 
+                                  funcionCancelar = ventVistaPrevia.rootAux.destroy)
+    return dataframe
+
+def aceptar_agregar_referencias(ventana, bbdd):
+    ventana.rootAux.destroy()
+    print("PRESIONÓ AGREGAR REFERENCIAS")
+    print("Aun no se almacenan, ni se cargan los modelos en el pedido")
+
+def guardar_ModelosExcel_BBDD(ventana, df, bbdd):
+    print(df)
+    ventana.rootAux.destroy()
+    try:
+        if BBDD.insertar_tecnicos_df(bbdd, df) is False:
+            ventanas_emergentes.messagebox.showinfo("Error al agregar técnicos", f"Ocurrió un error al agregar la tabla de técnicos cargada") 
+    
+        else:
+            ventanas_emergentes.messagebox.showinfo("Técnicos Agregado", f"Se agregó correctamente la tabla de técnicos cargada")
+
+    except:
+        ventanas_emergentes.messagebox.showinfo("Error al agregar técnicos", f"Ocurrió un error al agregar la tabla de técnicos cargada") 
 
 def guardar_PedidoExcel_BBDD(ventana, df, bbdd):
     nombre = glo.strVar_newPedido['nombre'].get()
@@ -865,43 +928,6 @@ def guardar_PedidoExcel_BBDD(ventana, df, bbdd):
     except Exception as e:
         ventanas_emergentes.messagebox.showinfo("Error al agregado el pedido", f"Ocurrió un error al egregar el Pedido {id_pedido} y/o los vehículos cargados. Error: {e}") 
 
-def aceptar_cargar_excel(ventana, nombreVentana, bbdd):
-    ruta = ventana.ruta
-    columns = ventana.varColumnas.get()
-    encabezados = ventana.varEncabezadoFila.get()
-    dataframe = pd.read_excel(ruta, usecols=columns, header=int(encabezados)-1).dropna(how="all")
-    dataframe = dataframe.map(lambda x: x.strip() if isinstance(x, str) else x)
-    print("XLSX-->datosExcel: \n", dataframe)
-    dataframe_limpio = limpiar_espacios_df(df = dataframe)
-
-    if nombreVentana == "PROCESOS":
-        funcion = lambda : guardar_ProcesosExcel_BBDD(ventVistaPrevia, dataframe_limpio, bbdd)
-
-    if nombreVentana == "TECNICOS":
-        funcion = lambda : guardar_TecnicosExcel_BBDD(ventVistaPrevia, dataframe_limpio, bbdd)
-
-    if nombreVentana == "MODELOS":
-        funcion = lambda : guardar_ModelosExcel_BBDD(ventVistaPrevia, dataframe_limpio, bbdd)
-
-    if nombreVentana == "REFERENCIAS":
-        funcion = lambda : guardar_ReferenciasExcel_BBDD(ventVistaPrevia, dataframe_limpio, bbdd)
-
-    if nombreVentana == "TIEMPOS_MODELOS":
-        funcion = lambda : guardar_TiemposModelosExcel_BBDD(ventVistaPrevia, dataframe_limpio, bbdd)
-
-    if nombreVentana == "PEDIDO":
-        ventana.rootAux.destroy()
-        funcion = lambda : guardar_PedidoExcel_BBDD(ventVistaPrevia, dataframe_limpio, bbdd)
-        ventVistaPrevia = ventanas_topLevel.VentanaVistaPreviaPedido(dataframe_limpio, bbdd)
-        ventVistaPrevia.asignafuncion(funcionAceptar  = lambda : guardar_PedidoExcel_BBDD(ventVistaPrevia, dataframe_limpio, bbdd), 
-                                      funcionCancelar = ventVistaPrevia.rootAux.destroy)
-        return
-    
-    ventana.rootAux.destroy()
-    ventVistaPrevia = ventanas_topLevel.VentanaVistaPrevia(nombreVentana, dataframe, bbdd)
-    ventVistaPrevia.asignafuncion(funcionAceptar  = funcion,
-                                  funcionCancelar = ventVistaPrevia.rootAux.destroy)
-
 def guardar_ProcesosExcel_BBDD(ventana, df, bbdd):
     print(df)
     ventana.rootAux.destroy()
@@ -915,20 +941,17 @@ def guardar_ProcesosExcel_BBDD(ventana, df, bbdd):
     except:
         ventanas_emergentes.messagebox.showinfo("Error al agregar procesos", f"Ocurrió un error al agregar la tabla de procesos cargada") 
 
-def guardar_TecnicosExcel_BBDD(ventana, df, bbdd):
-    print(df)
+def guardar_ReferenciasExcel_BBDD(ventana, df, bbdd):
+    df_tabla_modelos = BBDD.leer_modelos_id_modelos(bbdd)
+    print(df_tabla_modelos)
+    df_final = pd.merge(df, df_tabla_modelos, on="MODELO", how="left")   # Hacer un merge entre el DataFrame original y la tabla obtenida de la base de datos
+    print(df_final)
+    df_final = df_final[["REFERENCIA", "ID_MODELO"]]                     # Seleccionar solo las columnas requeridas
+    print(df_final)
     ventana.rootAux.destroy()
-    try:
-        if BBDD.insertar_tecnicos_df(bbdd, df) is False:
-            ventanas_emergentes.messagebox.showinfo("Error al agregar técnicos", f"Ocurrió un error al agregar la tabla de técnicos cargada") 
+    BBDD.insertar_referencias_df(bbdd, df_final)
     
-        else:
-            ventanas_emergentes.messagebox.showinfo("Técnicos Agregado", f"Se agregó correctamente la tabla de técnicos cargada")
-
-    except:
-        ventanas_emergentes.messagebox.showinfo("Error al agregar técnicos", f"Ocurrió un error al agregar la tabla de técnicos cargada") 
-
-def guardar_ModelosExcel_BBDD(ventana, df, bbdd):
+def guardar_TecnicosExcel_BBDD(ventana, df, bbdd):
     print(df)
     ventana.rootAux.destroy()
     try:
@@ -963,18 +986,21 @@ def guardar_TiemposModelosExcel_BBDD(ventana, df, bbdd):
     except:
         ventanas_emergentes.messagebox.showinfo("Error al agregado el pedido", f"Ocurrió un error al agregar la tabla de tiempos de modelos cargada") 
 
-def aceptar_agregar_referencias(ventana, bbdd):
-    ventana.rootAux.destroy()
-    print("PRESIONÓ AGREGAR REFERENCIAS")
-    print("Aun no se almacenan, ni se cargan los modelos en el pedido")
+def limpiar_espacios_df(df):
+    """
+    Limpia los espacios en blanco al final de las cadenas y reduce múltiples espacios
+    a uno solo en todas las columnas de un DataFrame.
 
-def aceptar_exportar_to_excel(ventana, df, nombreVentana):
-    ruta = nombraArchivoExcel(nombreVentana)
-    ventana.rootAux.destroy()
-    ventanas_emergentes.desea_exportar(nombreExcel = ruta,
-                                       nombreVentana = nombreVentana,
-                                       df = df)
-    
+    :param df: DataFrame de pandas.
+    :return: DataFrame con todas las columnas limpiadas.
+    """
+    for columna in df.columns:
+        df[columna] = df[columna].astype(str).apply(lambda x: ' '.join(x.split()))
+    return df
+
+def nombraArchivoExcel(nombre):
+    return nombre + '_' + '.xlsx'
+
 def verificar_pedidos_vehiculos(bbdd, pedidoNuevo, df_vehiculos, df_tiempos):
     consulta_pedido    = BBDD.leer_pedido(bbdd, pedidoNuevo)
     consulta_vehiculos = BBDD.leer_vehiculos_df(bbdd)
@@ -1002,23 +1028,29 @@ def verificar_pedidos_vehiculos(bbdd, pedidoNuevo, df_vehiculos, df_tiempos):
 
     return existe, coincidencias
 
-def nombraArchivoExcel(nombre):
-    return nombre + '__' + '.xlsx'
-
 def cancelar(ventana):
     ventana.rootAux.destroy()
+###########################################################################
+###################### MANEJO DE EXPORTACIÓN A EXCEL ######################
+###########################################################################
+def aceptar_exportar_to_excel(ventana, df, nombreVentana):
+    ruta = nombraArchivoExcel(nombreVentana)
+    ventana.rootAux.destroy()
+    ventanas_emergentes.desea_exportar(nombreExcel = ruta,
+                                       nombreVentana = nombreVentana,
+                                       df = df)
+    
+def exportar_tabla(ventana, id, tipo, bbdd):
+    if tipo == "programa":
+        df = BBDD.leer_ordenes_graficar_programa(bbdd, id)
+    if tipo == "pedido":
+        df = BBDD.leer_vehiculos_por_pedido_df(bbdd, id)
 
-def limpiar_espacios_df(df):
-    """
-    Limpia los espacios en blanco al final de las cadenas y reduce múltiples espacios
-    a uno solo en todas las columnas de un DataFrame.
-
-    :param df: DataFrame de pandas.
-    :return: DataFrame con todas las columnas limpiadas.
-    """
-    for columna in df.columns:
-        df[columna] = df[columna].astype(str).apply(lambda x: ' '.join(x.split()))
-    return df
+    ruta = nombraArchivoExcel(id)
+    ventana.rootAux.destroy()
+    ventanas_emergentes.desea_exportar(nombreExcel = ruta,
+                                       nombreVentana = id,
+                                       df = df)
 
 ###############################################################################
 ######################### EVENTOS PARA EL SCHEDULING ##########################
@@ -1314,3 +1346,40 @@ def transformar_dataframe_ordenes(df_ordenes, id_programa, bbdd):
     df_reducido = df_reducido.rename(columns={"proceso":"ID_PROCESO"}) # CAMBIAR EL NOMBRE DE LA COLUMNA DE PROCESO
     print(df_reducido.to_string())
     return df_reducido
+
+###############################################################################
+####################### EVENTO MOSTRAR CUADRO DE TEXTO ########################
+###############################################################################
+class Tooltip:
+    def __init__(self, widget, text_func):
+        self.widget = widget
+        self.text_func = text_func
+        self.tooltip_window = None
+        self.widget.bind("<Motion>", self.show_tooltip)
+        self.widget.bind("<Leave>", self.hide_tooltip)
+
+    def show_tooltip(self, event):
+        if self.tooltip_window:
+            self.tooltip_window.destroy()
+        row_id = self.widget.identify_row(event.y)
+        if not row_id:
+            return
+        bbox = self.widget.bbox(row_id)
+        if not bbox:
+            return
+        x, y, width, height = bbox
+        x = event.x_root + 20
+        y = event.y_root + 10
+        self.tooltip_window = tw = tk.Toplevel(self.widget)
+        tw.wm_overrideredirect(True)
+        tw.wm_geometry(f"+{x}+{y}")
+        text = self.text_func(row_id)
+        label = tk.Label(tw, text=text, justify='left',
+                         background="#ffffe0", relief='solid', borderwidth=1,
+                         font=numerosPequeños)
+        label.pack(ipadx=1)
+
+    def hide_tooltip(self, event):
+        if self.tooltip_window:
+            self.tooltip_window.destroy()
+        self.tooltip_window = None

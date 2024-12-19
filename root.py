@@ -73,3 +73,20 @@ def construye_root(root):
     glo.stateFrame.contenidoDeReferencias   = frameRefe.ContenidoReferencias(root.frameReferencias, bbdd=glo.base_datos)
 
     root.mainloop()
+
+def actualizar_root():
+    for frame in (glo.stateFrame.contenidoDeModelos,
+                  glo.stateFrame.contenidoDeTecnicos,
+                  glo.stateFrame.contenidoDeProcesos,
+                  glo.stateFrame.contenidoDeReferencias):
+        frame.actualizar_contenido(bbdd = glo.base_datos)
+        
+    for frame in (glo.stateFrame.tablaVehiculos,
+                  glo.stateFrame.tablaPedidos,
+                  glo.stateFrame.tablaDetalles,
+                  glo.stateFrame.tablaProgramas,
+                  glo.stateFrame.tablaOrdenes,
+                  glo.stateFrame.tablaHistoricos):
+        frame.actualizar_tabla(bbdd = glo.base_datos)
+
+glo.actualizar_todo = actualizar_root

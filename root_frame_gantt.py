@@ -37,10 +37,6 @@ class FrameGraficos:
         self.ganttVehiculos = None
         self.tablaResumen   = None
 
-        self.botonesOkCancel = ctk.CTkFrame(self.frameEntradas, fg_color="black", height=8)
-        self.botonesOkCancel.pack(side="bottom", fill="both", padx=5, pady=5)
-        self.botones = ventop.ButtonsOkCancel(contenedor = self.botonesOkCancel, accionOk="Aceptar", accionCancel="Cancelar", fila=0)
-
     def consultar_graficos(self, bbdd):
         self.df, self.diagramas = eventos.generar_df_gantt(bbdd)
         self.__renderizar_graficos__(self.diagramas, self.df)
@@ -63,7 +59,7 @@ class FrameGraficos:
         # Si el frame ya está activo, no hacer nada
         if hasattr(self, "frame_actual") and self.frame_actual == frame:
             return
-
+        
         # Ocultar todos los frames
         for fr in (self.frameTecnicos, self.frameVehiculos, self.frameTabla):
             fr.pack_forget()

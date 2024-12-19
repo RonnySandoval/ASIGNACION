@@ -171,10 +171,27 @@ class TablaVehiculos():     #Tabla para pedido
             glo.check_procesos[self.check_name_proceso].pack(fill=tk.X, side="left", padx=15, pady=5)
 
     def llenarTabla(self, bbdd):    # Agregar datos a la tabla    
-        self.datos = eventos.leeVehiculosBBDD(bbdd)
+        self.datos = BBDD.leer_vehiculos_completos_df(bbdd)
         print(self.datos)
-        for record in self.datos:
-            self.tablaVehiculos.insert(parent='', index='end', iid=record[0], text='', values=record)
+        for index, row in self.datos.iterrows():
+            self.tablaVehiculos.insert(parent='', index='end', iid=row['CHASIS'], text='', values=row.tolist())
+
+        # Función para obtener el texto del tooltip
+        def obtener_texto_tooltip(iid):
+            
+            valores = self.tablaVehiculos.item(iid, 'values')
+            lecturaRegistros = BBDD.leer_historico_chasis(bbdd, valores[0])
+            
+            if lecturaRegistros == None:
+                return f"Chasis: {valores[0]}\nSin procesos ejecutados"
+            
+            procesos_estados = [(registro[3], registro[8]) for registro in lecturaRegistros]
+            mensaje = "".join([f"\n{proceso}. {estado}" for proceso, estado in procesos_estados])
+
+            return f"Chasis: {valores[0]}\nProcesos: {mensaje}"
+
+        # Añadir tooltips a las filas
+        eventos.Tooltip(self.tablaVehiculos, obtener_texto_tooltip)
 
         #click derecho en información de vehículo       
         def seleccionar_informacion_fila():
@@ -266,4 +283,3 @@ class TablaVehiculos():     #Tabla para pedido
         eventos.recoge_check_tecnicos()
         eventos.abrirFechayHoraProg(tipoPrograma, bbdd)
         ventanas_emergentes.desea_exportar(eventos.nombraArchivoExcel(tipoPrograma))
-

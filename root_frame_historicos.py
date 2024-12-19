@@ -169,6 +169,23 @@ class TablaHistoricos():        #Tabla para historicos
             print(record)
             self.tablaHistoricos.insert(parent='', index='end', iid=record[0], text='', values=record)
 
+        # Función para obtener el texto del tooltip
+        def obtener_texto_tooltip(iid):
+            
+            valores = self.tablaHistoricos.item(iid, 'values')
+            lecturaRegistros = BBDD.leer_historico_completo_porId(bbdd, valores[0])
+            
+            if lecturaRegistros == None:
+                return f"Chasis: {valores[0]}\nSin procesos ejecutados"
+            
+            datos = lecturaRegistros[10], lecturaRegistros[11], lecturaRegistros[12], lecturaRegistros[13]
+            mensaje = f"\nNovedades: {datos[0]}.\nSubcontratar: {datos[1]}.\nObservaciones: {datos[2]}.\nPedido: {datos[3]}"
+    
+            return f"Chasis: {valores[1]}\n:{mensaje}"
+
+        # Añadir tooltips a las filas
+        eventos.Tooltip(self.tablaHistoricos, obtener_texto_tooltip)
+
         #click derecho en información de vehículo       
         def seleccionar_resumen_fila():
             fila = self.tablaHistoricos.selection()     #obtener el item seleccionado

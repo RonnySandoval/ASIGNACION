@@ -7,6 +7,7 @@ import  ventanas_emergentes
 import glo
 import BBDD
 import re
+import pandas as pd
 
 
 # Configuración global del estilo de customtkinter
@@ -160,34 +161,55 @@ class TablaDetallePedido():     #Tabla para pedido
         self.entryTurnoTermina2.grid(row=1, column=6, padx=5, pady=5)
         self.entryTurnoTermina2.bind("<FocusOut>", self.validar_hora)
 
-        self.intVarTurnoInicia3 = tk.StringVar(value=start3)
-        self.entryTurnoInicia3 = ctk.CTkEntry(self.frameTurnos, textvariable = self.intVarTurnoInicia3, width=60)
-        self.entryTurnoInicia3.grid(row=1, column=9, padx=5, pady=5)
-        self.entryTurnoInicia3.bind("<FocusOut>", self.validar_hora)
-
-        self.intVarTurnoTermina3 = tk.StringVar(value=end3)
-        self.entryTurnoTermina3 = ctk.CTkEntry(self.frameTurnos, textvariable = self.intVarTurnoTermina3, width=60)
-        self.entryTurnoTermina3.grid(row=1, column=10, padx=5, pady=5)
-        self.entryTurnoTermina3.bind("<FocusOut>", self.validar_hora)
-
+        glo.turnos.startAM = self.intVarTurnoInicia1
+        glo.turnos.endAM   = self.intVarTurnoTermina1
+        glo.turnos.startPM = self.intVarTurnoInicia2
+        glo.turnos.endPM   = self.intVarTurnoTermina2
+        
     def llenarTabla(self, bbdd, pedido=None):    # Agregar datos a la tabla
 
         if pedido is None:
-            self.pedidoMostrado = list(BBDD.leer_vehiculos_completos(bbdd))
-            self.datos = [(chasis, modelo, color, proceso, estado)
-                            for chasis, fecha, modelo, color, proceso, estado, novedades, subcontratar, pedido
-                            in self.pedidoMostrado]
-
-        if pedido is not None:
-            self.datos = list(BBDD.leer_vehiculos_por_pedido(bbdd, pedido))
-
+            self.datos = BBDD.leer_vehiculos_completos_df(bbdd)           # leemos el dataframe en la BBDD
+        else:
+            self.datos = BBDD.leer_vehiculos_por_pedido_df(bbdd, pedido)  # leemos el dataframe en la BBDD
         print(self.datos)
+
+        # Seleccionar solo las columnas necesarias
+        columnas_necesarias = ['CHASIS', 'ID_MODELO', 'COLOR', 'NOMBRE_PROCESO', 'ESTADO']
+        datos_filtrados = self.datos[columnas_necesarias]
 
         for item in self.tablaDetallePedi.get_children():
             self.tablaDetallePedi.delete(item)
 
-        for record in self.datos:
-            self.tablaDetallePedi.insert(parent='', index='end', iid=record[0], text='', values=record)
+        # Insertar los datos en la tabla
+        for index, row in datos_filtrados.iterrows():
+            self.tablaDetallePedi.insert(parent='', index='end', iid=row['CHASIS'], text='', values=row.tolist())
+
+        # Función para obtener el texto del tooltip
+        def obtener_texto_tooltip(iid):
+            
+            valores = self.tablaDetallePedi.item(iid, 'values')
+            lecturaHistoricos = BBDD.leer_historico_chasis(bbdd, valores[0])
+            lecturaVehiculos  = BBDD.leer_vehiculo_completo(bbdd, valores[0])
+            
+            if lecturaHistoricos == None:
+                return f"Chasis: {valores[1]}\nSin procesos ejecutados"
+            
+            # Obtener las tuplas (proceso, tiempo, estado)
+            procesos_tiempos_estados = []
+            for vehiculo in lecturaVehiculos:
+                proceso = vehiculo[-2]
+                tiempo = vehiculo[-1]
+                estado = next((historico[8] for historico in lecturaHistoricos if historico[3] == proceso), "No")
+                if estado:
+                    procesos_tiempos_estados.append((proceso, tiempo, estado))
+        
+            mensaje = "".join([f"\n{proceso}: {tiempo}min. {estado}"
+                               for proceso, tiempo, estado in procesos_tiempos_estados])
+            return f"Chasis: {valores[1]}\nProcesos: {mensaje}"
+
+        # Añadir tooltips a las filas
+        eventos.Tooltip(self.tablaDetallePedi, obtener_texto_tooltip)
 
         #click derecho en información de vehículo       
         def seleccionar_informacion_fila():

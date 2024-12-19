@@ -345,6 +345,9 @@ class VentanaPreviewLoad():
         self.frameTreeviewReferencias = ctk.CTkFrame(self.frame_scrollable, fg_color=estilos.grisAzuladoOscuro)
         self.frameTreeviewReferencias.pack(expand=True, side="top", fill="both")
 
+        self.frameTreeviewTiempos = ctk.CTkFrame(self.frame_scrollable, fg_color=estilos.grisAzuladoOscuro)
+        self.frameTreeviewTiempos.pack(expand=True, side="top", fill="both")
+
          #Crear estilo personalizado para las cabeceras y el cuerpo
         self.styletreeviewInfo = ttk.Style()
         self.styletreeviewInfo.configure("TreeviewPrevia.Heading", foreground=estilos.moradoMedio, font=estilos.texto1Bajo, background=estilos.grisAzuladoOscuro)
@@ -355,6 +358,7 @@ class VentanaPreviewLoad():
         self.crear_treeview(self.frameTreeviewTecnicos, dict_df["TECNICOS"])
         self.crear_treeview(self.frameTreeviewModelos, dict_df["MARCAS_MODELOS"])
         self.crear_treeview(self.frameTreeviewReferencias, dict_df["MODELOS_REFERENCIAS"])
+        self.crear_treeview(self.frameTreeviewTiempos, dict_df["TIEMPOS_MODELOS"])
 
         self.frameBotones = ctk.CTkFrame(self.rootAux, fg_color=estilos.grisAzuladoOscuro)
         self.frameBotones.pack(side="bottom", fill="both")
