@@ -22,6 +22,10 @@ class ContenidoProcesos:
         self.frameProcesosInterior = ctk.CTkFrame(self.canvasProcesos, fg_color=moradoOscuro)
         self.canvasProcesos.create_window((0, 0), window=self.frameProcesosInterior, anchor="ne")
 
+        self.llenar_contenido(bbdd)
+
+    def llenar_contenido(self, bbdd):
+
         self.labelTitulo = ctk.CTkLabel(self.frameProcesosInterior, text="PROCESOS", font=textoGrande, fg_color=grisOscuro, bg_color=blancoHueso)
         self.labelTitulo .grid(row=0, column=0, columnspan=4, sticky="ew", pady=5)
 

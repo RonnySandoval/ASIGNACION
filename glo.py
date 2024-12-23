@@ -34,11 +34,14 @@ pedido_seleccionado = None
 strVar_newPedido = {}
 cons_newPedido = {}
 
-base_datos = None
-huerfanos = None
-raiz_principal = None
-actualizar_todo = None
-gantt = False
+#VARIABLES PARA EVENTOS
+actualizar_todo = None          #Utilizada por el modulo main
+base_datos = None               #Utilizada por los modulos que interacturan con la base de datos, en especial, eventos
+gantt = False                   #Utilizada por los modulos gantt y llamar gantt. Variable para saber si se ha creado un gantt
+huerfanos = None                #Utilizada por el modulo de Bdvalidar
+raiz_principal = None           #Utilizada por el modulo main y el modulo eventos
+turnos = None                   #Utilizada por los modulos fecha_hora, modelo_clases, eventos, gantt, llamar_gantt
+
 ################################################
 ###### FRAMES DE CONTENIDOS PRINCIPALES ########
 class Contenidos:

@@ -153,7 +153,7 @@ class TablaPedidos():     #Tabla para pedido
 
     def llenarTabla(self, bbdd):    # Agregar datos a la tabla    
         self.lectura = list(BBDD.leer_pedidos(bbdd))
-        self.datos = [(id, rec, ing , est, ent) for id, cli, rec, est, ent, cons, ing  in self.lectura]
+        self.datos = [(id, rec, ing , est, ent) for id, cli, rec, ing, est, ent, cons  in self.lectura]
         print(self.datos)
         for record in self.datos:
             self.tablaPedidos.insert(parent='', index='end', iid=record[0], text='', values=record)

@@ -315,8 +315,8 @@ class Tecnico:                                  # Es cada técnico con nombre e 
                     str(self.comienza.date()),
                     str(self.comienza.time()),
                     tiempo_proceso,
-                    am = (glo.turnos.startAM, glo.turnos.endAM),
-                    pm = (glo.turnos.startPM, glo.turnos.endPM))
+                    am = (glo.turnos.startAM.get(), glo.turnos.endAM.get()),
+                    pm = (glo.turnos.startPM.get(), glo.turnos.endPM.get()))
                 self.comienza = bloques[0][0]               # Calcula el momento de inicio (del tecnico) del proceso actual
                 self.termina =bloques[-1][-1]               # Calcula el momento de fin (del tecnico) del proceso actual
                 self.libre = self.termina                  # Calcula el momento en que el técnico está disponible
@@ -336,8 +336,8 @@ class Tecnico:                                  # Es cada técnico con nombre e 
                     str(self.comienza.date()),
                     str(self.comienza.time()),
                     tiempo_proceso,
-                    am = (glo.turnos.startAM, glo.turnos.endAM),
-                    pm = (glo.turnos.startPM, glo.turnos.endPM))
+                    am = (glo.turnos.startAM.get(), glo.turnos.endAM.get()),
+                    pm = (glo.turnos.startPM.get(), glo.turnos.endPM.get()))
                 self.comienza = bloques[0][0]               # Calcula el momento de inicio (del tecnico) del proceso actual
                 self.termina = bloques[-1][-1]              # Calcula el momento de fin (del tecnico) del proceso actual
                 self.libre   = self.termina                 # Calcula el momento en que el técnico está disponible
@@ -504,13 +504,13 @@ def programa_inmediato(pedido, tecnicos, horizonte, fechaStart, horaStart):
             print(f"****El proceso {siguiente_estado} para el chasis {vehiculo_min_time} queda : {times} + {tiempo_neto}")
 
             asignado = False
-            maximaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(fechaStart, horaStart, horizonte ,am=(glo.turnos.startAM, glo.turnos.endAM), pm=(glo.turnos.startPM, glo.turnos.endPM)))
+            maximaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(fechaStart, horaStart, horizonte ,am=(glo.turnos.startAM, glo.turnos.endAM), pm=(glo.turnos.startPM.get(), glo.turnos.endPM.get())))
             terminaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(
                                                                                 fecha_inicio = str(times.date()),
                                                                                 hora_inicio  = str(times.time()),
                                                                                 duracion     = tiempo_neto,
-                                                                                am   = (glo.turnos.startAM, glo.turnos.endAM),
-                                                                                pm   = (glo.turnos.startPM, glo.turnos.endPM)
+                                                                                am   = (glo.turnos.startAM.get(), glo.turnos.endAM.get()),
+                                                                                pm   = (glo.turnos.startPM.get(), glo.turnos.endPM.get())
                                                                                 )
                                                     )
             print(f"****Se asignará : {times} + {tiempo_neto} = {terminaAsignacion}")
@@ -572,7 +572,6 @@ def programa_completo(pedido, tecnicos, horizonte, fechaStart, horaStart):
         for vehic in vehiculos_por_programar:                               #bucle para mostrar en consola el resumen de estados de cada vehiculo
             print(f"{vehic.id_chasis}: {vehic.historico_estados}")
         
-
         tiempos_restantes = [
             sum(vh.tiempos_proceso[ind_est:] if ind_est < len(vh.tiempos_proceso)
                 else [0,0]) for vh, ind_est in zip(vehiculos_por_programar, ind_est_actuales)
@@ -623,13 +622,16 @@ def programa_completo(pedido, tecnicos, horizonte, fechaStart, horaStart):
             print(f"****El proceso {siguiente_estado} para el chasis {vehiculo_min_time} queda : {times} + {tiempo_neto}*****")
 
             asignado = False
-            maximaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(fechaStart, horaStart, horizonte ,am=(glo.turnos.startAM, glo.turnos.endAM), pm=(glo.turnos.startPM, glo.turnos.endPM)))
-            terminaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(
-                                                                                str(times.date()),
+            maximaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(fechaStart,
+                                                                               horaStart,
+                                                                               horizonte,
+                                                                               am=(glo.turnos.startAM.get(), glo.turnos.endAM.get()),
+                                                                               pm=(glo.turnos.startPM.get(), glo.turnos.endPM.get())))
+            terminaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(str(times.date()),
                                                                                 str(times.time()),
                                                                                 vehiculo_min_time.obtener_tiempo_proceso(siguiente_estado),
-                                                                                am = (glo.turnos.startAM, glo.turnos.endAM),
-                                                                                pm = (glo.turnos.startPM, glo.turnos.endPM)
+                                                                                am = (glo.turnos.startAM.get(), glo.turnos.endAM.get()),
+                                                                                pm = (glo.turnos.startPM.get(), glo.turnos.endPM.get())
                                                                                 )
                                                     )
             print(f"****Se asignará : {times}+{tiempo_neto}={terminaAsignacion}")
@@ -807,13 +809,17 @@ def programar_procesos(pedido, tecnicos, procesos, horizonte, fechaStart, horaSt
                 print(f"****El proceso {proceso} para el chasis {vehiculo_min_time} queda : {times} + {tiempo_neto}")
 
                 asignado = False
-                maximaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(fechaStart, horaStart, horizonte ,am=(glo.turnos.startAM, glo.turnos.endAM), pm=(glo.turnos.startPM, glo.turnos.endPM)))
+                maximaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(fechaStart,
+                                                                                   horaStart,
+                                                                                   horizonte ,
+                                                                                   am=(glo.turnos.startAM.get(), glo.turnos.endAM.get()), 
+                                                                                   pm=(glo.turnos.startPM.get(), glo.turnos.endPM.get())))
                 terminaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(
                                                                                     str(times.date()),
                                                                                     str(times.time()),
                                                                                     vehiculo_min_time.obtener_tiempo_proceso(proceso),
-                                                                                    am = (glo.turnos.startAM, glo.turnos.endAM),
-                                                                                    pm = (glo.turnos.startPM, glo.turnos.endPM)
+                                                                                    am = (glo.turnos.startAM.get(), glo.turnos.endAM.get()),
+                                                                                    pm = (glo.turnos.startPM.get(), glo.turnos.endPM.get())
                                                                                     )
                                                         )
                 print(f"****Se asignará : {times} + {tiempo_neto} = {terminaAsignacion}")

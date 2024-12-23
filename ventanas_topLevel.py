@@ -1213,7 +1213,7 @@ class VentanaVistaPreviaPedido:
         glo.strVar_newPedido['nombre'] = self.varNombre
         glo.strVar_newPedido['cliente'] = self.varCliente
         glo.strVar_newPedido['fecha_recepcion'] = self.varFecha_recepcion
-        glo.strVar_newPedido['fecha_ingreso'] = self.varFecha_entrega
+        glo.strVar_newPedido['fecha_ingreso'] = self.varFecha_ingreso
         glo.strVar_newPedido['fecha_estimada'] = self.varFecha_estimada
         glo.strVar_newPedido['fecha_entrega'] = self.varFecha_entrega
 
@@ -1515,8 +1515,102 @@ class FrameTablaGenerica:
         self.tree.pack(expand=True, side = "top", fill="both")            # Agregar el Treeview a la ventana
 
     def destroy(self):
+    
         """Destruir el Treeview y liberar los recursos."""
         if hasattr(self, 'tree'):
             self.tree.destroy()  # Eliminar el Treeview
         if hasattr(self, 'frameTreeview'):
             self.frameTreeview.destroy()  # Eliminar el frame que contiene el Treeview
+
+class VentanaPreviewLoad():
+    
+    def __init__(self, dict_df):
+
+        # Configuración de la ventana auxiliar
+        self.rootAux = ctk.CTkToplevel()                # Crea ventana auxiliar
+        self.rootAux.attributes('-topmost', True)       # Posiciona al frente de la pantalla
+        self.rootAux.title("Programación de Planta")    # Coloca título de ventana
+        self.rootAux.geometry("400x600")
+        # Configura el tema oscuro
+        self.rootAux.configure(bg=grisAzuladoOscuro)    # Fondo oscuro
+        ctk.set_appearance_mode("dark")                 # Establece el modo oscuro global
+
+        self.labeltitulo = ctk.CTkLabel(self.rootAux, text=f"Vista previa de Planta", font =textoMedio)
+        self.labeltitulo.pack(side="top", fill="both")
+
+        self.frameTablas = ctk.CTkFrame(self.rootAux, fg_color=grisAzuladoOscuro)
+        self.frameTablas.pack(expand=True, side="top", fill="both")
+
+        # Contenedor principal: Canvas para soportar scroll
+        self.canvas = ctk.CTkCanvas(self.frameTablas, bg="#2C3E50", highlightthickness=0)  # Canvas para scroll
+        self.scrollbar_y = ttk.Scrollbar(self.frameTablas, orient="vertical", command=self.canvas.yview)
+        self.scrollbar_x = ttk.Scrollbar(self.frameTablas, orient="horizontal", command=self.canvas.xview)
+
+        self.canvas.configure(yscrollcommand=self.scrollbar_y.set, xscrollcommand=self.scrollbar_x.set)
+
+        self.scrollbar_y.pack(side="right", fill="y")
+        self.scrollbar_x.pack(side="bottom", fill="x")
+        self.canvas.pack(expand=True, fill="both")
+
+        # Frame interno dentro del canvas (contenedor de los widgets)
+        self.frame_scrollable = ctk.CTkFrame(self.canvas, fg_color="#2C3E50")
+        self.frame_scrollable.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+        self.canvas.create_window((0, 0), window=self.frame_scrollable)
+
+         #Crear estilo personalizado para las cabeceras y el cuerpo
+        self.styletreeviewInfo = ttk.Style()
+        self.styletreeviewInfo.configure("TreeviewPrevia.Heading", foreground=moradoMedio, font=texto1Bajo, background=grisAzuladoOscuro)
+        self.styletreeviewInfo.configure("TreeviewPrevia", background=grisOscuro, foreground=blancoFrio, fieldbackground=grisAzuladoOscuro)
+        self.styletreeviewInfo.layout("TreeviewPrevia", [('Treeview.treearea', {'sticky': 'nswe'})])
+
+        self.dictFrames = {}
+        for id_tecnico, df_historico in dict_df.items():
+
+            frameSubtitulo = ctk.CTkFrame(self.frame_scrollable, fg_color=grisAzuladoOscuro)
+            frameSubtitulo.pack(expand=True, side="top", fill="both")
+            labelSubtitulo = ctk.CTkLabel(frameSubtitulo, text=f"Históricos de Técnico:  "+id_tecnico, font =textoMedio)
+            labelSubtitulo.pack(side="top", fill="both")
+
+            nombreFrame = 'frameTreeview'+id_tecnico
+            self.dictFrames[nombreFrame] = ctk.CTkFrame(self.frame_scrollable, fg_color=grisAzuladoOscuro)
+            self.dictFrames[nombreFrame].pack(expand=True, side="top", fill="both")
+            self.crear_treeview(self.dictFrames[nombreFrame], df_historico)
+
+        self.frameBotones = ctk.CTkFrame(self.rootAux, fg_color=grisAzuladoOscuro)
+        self.frameBotones.pack(side="bottom", fill="both")
+
+        self.buttonAceptar = ctk.CTkButton(self.frameBotones, text="Aceptar", font=textoMedio, fg_color=rojoClaro,
+                                           text_color=moradoOscuro, hover_color=(moradoMedio, blancoFrio), anchor="center")
+        self.buttonAceptar.grid(row=0 ,column=0, sticky="ew", pady=5)
+        self.buttonCancelar = ctk.CTkButton(self.frameBotones, text="Cancelar", font=textoMedio, fg_color=rojoClaro,
+                                            text_color=moradoOscuro, hover_color=(moradoMedio, blancoFrio), anchor="center")
+        self.buttonCancelar.grid(row=0 ,column=1, sticky="ew", pady=5, padx = 20)
+
+    def crear_treeview(self, frame, dataframe):
+        """
+        Crea un Treeview a partir de un DataFrame en un frame de tkinter.
+            ->argm. frame: El contenedor donde se colocará el Treeview.
+            ->argm. dataframe: El DataFrame de pandas con los datos para el Treeview.
+        """
+
+        # Crear el Treeview
+        tree = ttk.Treeview(frame, show="headings",  style="TreeviewPrevia")
+        tree.pack(fill=tk.BOTH, expand=True)
+
+        # Configurar las columnas en el Treeview
+        tree["columns"] = list(dataframe.columns)
+        
+        # Configurar encabezados y ancho de columnas
+        for col in dataframe.columns:
+            tree.heading(col, text=col)  # Títulos de las columnas
+            tree.column(col, width=100, anchor=tk.W)  # Ancho de cada columna
+
+        # Insertar filas en el Treeview
+        for _, row in dataframe.iterrows():
+            tree.insert("", tk.END, values=list(row))
+        
+        return tree
+    
+    def asignafuncion(self, funcionAceptar, funcionCancelar):               #Método para asignar la función al command button de aceptar y cancelar desde otro módulo.
+        self.buttonAceptar.configure(command = funcionAceptar)
+        self.buttonCancelar.configure(command = funcionCancelar)

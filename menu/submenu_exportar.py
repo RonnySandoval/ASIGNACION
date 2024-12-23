@@ -13,12 +13,16 @@ def desplegar_exportar(subMenu, root):
     subMenu.add_command(label="Exportar Tiempos",              command = lambda : vent_exportar("TIEMPOS", glo.base_datos)) 
     subMenu.add_command(label="Exportar Referencias/Modelos ", command = lambda : vent_exportar("REFERENCIAS", glo.base_datos))
     subMenu.add_command(label="Exportar Vehiculos",            command = lambda : vent_exportar("VEHICULOS", glo.base_datos))
-
     subMenu.add_separator()
     subMenu.add_command(label="Exportar Pedidos",                   command = lambda : vent_exportar("PEDIDOS", glo.base_datos))
     subMenu.add_command(label="Exportar Programa (No funciona)",   command = lambda : vent_exportar("PROGRAMA", glo.base_datos))
     subMenu.add_command(label="Exportar Historicos (No funciona)", command = lambda : vent_exportar("HISTÓRICOS", glo.base_datos))
+    subMenu.add_command(label="Generar plantilla de Historicos",     command = lambda : generar_plantilla("PLANTILLA HISTORICOS", glo.base_datos))
     return
+
+def generar_plantilla(tipo, bbdd):
+    if tipo == "PLANTILLA HISTORICOS":
+        eventos.generar_formatoExcel_historicos(bbdd)
 
 def vent_exportar(nombreVentana, bbdd):
     if nombreVentana == "PROCESOS":

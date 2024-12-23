@@ -117,6 +117,28 @@ def insertar_historico(bbdd, codigo, chasis, tec, proc, observ, start, end, delt
     finally:
         conn.close()
 
+def insertar_historicos_df(bbdd, dataframe):
+    try:
+        conn = sqlite3.connect(bbdd)
+
+        dataframe.to_sql("HISTORICOS", conn, if_exists="append", index=False)         # Guardar en SQLite
+        resultado = pd.read_sql("SELECT * FROM HISTORICOS", conn)                     # Leer los datos para verificar
+        print("dataframe de órdenes añadido a la BBDD")
+        print(resultado)
+        request = conn.total_changes
+        
+    except sqlite3.Error as e:
+        print(f"Error al insertar el dataframe con las órdenes: {e}")
+        request = False
+
+    except UnboundLocalError as e:
+        print(f"No se llenaron los campos obligatorios de la tabla de órdenes: {e}") 
+        request = False
+        
+    finally:
+        conn.close()
+        return request
+
 def insertar_info_planta(bbdd, nombre, descripcion):
     try:
         conn = sqlite3.connect(bbdd)
@@ -1251,7 +1273,18 @@ def leer_pedidos(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()          
-        cursor.execute("SELECT * FROM PEDIDOS")
+        cursor.execute("""
+                       SELECT
+                            ID_PEDIDO,
+                            CLIENTE,
+                            FECHA_RECEPCION,
+                            FECHA_INGRESO,
+                            ENTREGA_ESTIMADA,
+                            FECHA_ENTREGA,
+                            CONSECUTIVO
+                       FROM
+                            PEDIDOS
+                       """)
         datos = cursor.fetchall()
         conn.commit()
         
@@ -1314,7 +1347,9 @@ def leer_procesos_completo(bbdd):
 def leer_procesos_df(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
-        query = "SELECT * FROM PROCESOS"
+        query = """SELECT *
+                    FROM PROCESOS
+                    ORDER BY SECUENCIA"""
         dataframe = pd.read_sql_query(query, conn)
         print(dataframe)
 
@@ -1414,7 +1449,13 @@ def leer_tecnicos(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()          
-        cursor.execute("SELECT * FROM TECNICOS")
+        cursor.execute("""SELECT *
+                       FROM TECNICOS
+                       LEFT JOIN TECNICOS_PROCESOS
+                       ON TECNICOS_PROCESOS.ID_TECNICO = TECNICOS.ID_TECNICO
+                       LEFT JOIN PROCESOS
+                       ON TECNICOS_PROCESOS.ID_PROCESO = PROCESOS.ID_PROCESO
+                       ORDER BY PROCESOS.SECUENCIA""")
         datos = cursor.fetchall()  # Mantener la consulta original
     except sqlite3.Error as e:
         print(f"Error al leer el registro: {e}")
@@ -1428,7 +1469,13 @@ def leer_tecnicos_modificado(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()          
-        cursor.execute("SELECT * FROM TECNICOS")
+        cursor.execute("""SELECT *
+                       FROM TECNICOS
+                       LEFT JOIN TECNICOS_PROCESOS
+                       ON TECNICOS_PROCESOS.ID_TECNICO = TECNICOS.ID_TECNICO
+                       LEFT JOIN PROCESOS
+                       ON TECNICOS_PROCESOS.ID_PROCESO = PROCESOS.ID_PROCESO
+                       ORDER BY PROCESOS.SECUENCIA""")
         datos = cursor.fetchall()
         
         # Modificar los datos según lo solicitado
@@ -1449,7 +1496,26 @@ def leer_tecnicos_modificado(bbdd):
 def leer_tecnicos_df(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
-        query = "SELECT * FROM TECNICOS"
+        query = """
+                    SELECT
+                        TECNICOS.ID_TECNICO,
+                        TECNICOS.NOMBRE, 
+                        TECNICOS.APELLIDO,
+                        TECNICOS.DOCUMENTO,
+                        PROCESOS.NOMBRE AS PROCESO
+                    FROM
+                        TECNICOS
+                    LEFT JOIN
+                        TECNICOS_PROCESOS
+                    ON
+                        TECNICOS_PROCESOS.ID_TECNICO = TECNICOS.ID_TECNICO
+                    LEFT JOIN
+                        PROCESOS
+                    ON
+                        TECNICOS_PROCESOS.ID_PROCESO = PROCESOS.ID_PROCESO
+                    ORDER BY
+                        PROCESOS.SECUENCIA
+                """
         dataframe = pd.read_sql_query(query, conn)
         print(dataframe)
 
@@ -1464,7 +1530,11 @@ def leer_tecnicos_df(bbdd):
 def leer_tecnicos_procesos_df(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
-        query = "SELECT * FROM TECNICOS_PROCESOS"
+        query = """SELECT *
+                       FROM TECNICOS_PROCESOS
+                       LEFT JOIN PROCESOS
+                       ON _PROCESOS.ID_PROCESO = PROCESOS.ID_PROCESO
+                       ORDER BY PROCESOS.SECUENCIA"""
         dataframe = pd.read_sql_query(query, conn)
         print(dataframe)
 
@@ -1492,6 +1562,12 @@ def leer_tecnicos_por_proceso(bbdd, id_proceso):
                        TECNICOS_PROCESOS
                     ON
                        TECNICOS_PROCESOS.ID_TECNICO = TECNICOS.ID_TECNICO
+                    LEFT JOIN
+                       PROCESOS
+                    ON
+                       TECNICOS_PROCESOS.ID_PROCESO = PROCESOS.ID_PROCESO
+                    ORDER BY
+                       PROCESOS.SECUENCIA
                     WHERE
                        TECNICOS_PROCESOS.ID_PROCESO = ?
                        """,
@@ -2048,6 +2124,19 @@ def obtener_id_procesos_secuencia(bbdd):
 
     return id_procesos
 
+def leer_tiempos_modelos(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        query = "SELECT * FROM TIEMPOS_MODELOS"
+        dataframe = pd.read_sql_query(query, conn)
+        print(dataframe)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la tabla de vehiculos: {e}")
+        dataframe = None
+    finally:
+        conn.close()
+        return dataframe
 #####################################################################
 ########################## MODIFICAR REGISTROS ######################
 def actualizar_historico_estado(bbdd, id, estado):

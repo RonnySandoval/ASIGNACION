@@ -16,7 +16,7 @@ def medir_tiempo_print(n):
     return end - start
 
 # Configuración de los intervalos
-valores_n = range(800, 900, 10)  # De 1000 a 100000 en intervalos de 1000
+valores_n = range(5000, 10000, 250)  # De 1000 a 100000 en intervalos de 1000
 tiempos = []
 
 # Medir tiempos de ejecución para cada n

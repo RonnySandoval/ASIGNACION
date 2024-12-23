@@ -43,7 +43,7 @@ class VentanaImportarDatos():
         self.labelColumnas.grid(row=2, column=0, sticky="ew", padx=20, pady=5)
         self.entryColumnas = ctk.CTkEntry(self.frameEntradas, font = numerosMedianos, fg_color= grisAzuladoClaro, width=20, textvariable=self.varColumnas)
         self.entryColumnas.grid(row=2, column=1, sticky="ew", pady=5)
-        self.varColumnas.set("A:G")
+        self.varColumnas.set("A:C")
 
         self.buttonCargar  = ctk.CTkButton(self.frameEntradas, text="Seleccionar Archivo",  font = textoGrande,
                                            fg_color = grisVerdeMedio,  hover_color = grisVerdeOscuro,

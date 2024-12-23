@@ -22,6 +22,10 @@ class ContenidoTecnicos:
         self.frameTecnicosInterior = ctk.CTkFrame(self.canvasTecnicos, fg_color=moradoOscuro)
         self.canvasTecnicos.create_window((0, 0), window=self.frameTecnicosInterior, anchor="ne")
 
+        self.llenar_contenido(bbdd)
+
+    def llenar_contenido(self, bbdd):
+
         self.labelTitulo = ctk.CTkLabel(self.frameTecnicosInterior, text="TECNICOS", font=textoGrande, fg_color=grisOscuro, bg_color=blancoHueso, width=50)
         self.labelTitulo .grid(row=0, column=0, columnspan=4, sticky="ew", pady=5)
 

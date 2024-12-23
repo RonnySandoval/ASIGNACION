@@ -120,9 +120,7 @@ class ContenidoModelos():
         nombresProcesos = [proceso[1] for proceso in infoProcesos if proceso[0] in titlesDf]     #crea una lista solo con los nombres de los procesos cuyos ids aparecen en el dataframe
         nombresProcesos.sort()
         cantidadProcesos = len(nombresProcesos)
-
         print(nombresProcesos, cantidadProcesos)
-
 
         #Crea los campos con los tiempos de proceso
         cantidadModelos = BBDD.calcula_modelos(bbdd)
@@ -158,7 +156,7 @@ class ContenidoModelos():
             button_name = f"ButtonAgregar{filasAgregarVH}"
             self.button_variables_agregMod[button_name] = ctk.CTkButton(master=self.frameModelosInterior,text="Añadir a Pedido", font=textoBajo, fg_color=grisAzuladoOscuro, width=40, corner_radius=20,
                                                             command=lambda varBoton=button_name:eventos.agregar_vehiculo(varBoton, bbdd))
-            self.button_variables_agregMod[button_name].grid(row=1+filasAgregarVH, column= 7, padx=3)
+            self.button_variables_agregMod[button_name].grid(row=1+filasAgregarVH, column= cantidadProcesos+2, padx=3)
 
     def actualizar_contenido(self, bbdd):
         for widget in self.frameModelosInterior.winfo_children():

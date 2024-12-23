@@ -16,7 +16,6 @@ def crearMenuPrincipal(raiz):
     barraMenu.add_cascade(label="Abrir", menu=menuNuevo)
     subNuevo.desplegar_nuevo(subMenu = menuNuevo, root=raiz)
 
-
     ############################## submenu de Editar ###########################
     menuEditar=tk.Menu(barraMenu, tearoff=0)
     barraMenu.add_cascade(label="Editar", menu=menuEditar)

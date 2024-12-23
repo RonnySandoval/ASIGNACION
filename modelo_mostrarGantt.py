@@ -71,7 +71,7 @@ def crear_gantt_tecnicos(nombre_grafico, tecnicos, inicio, horizonte):
     plt.style.use('dark_background')    # Activar modo oscuro en Matplotlib
     hbar = 10
     num_tecnicos = len(tecnicos)
-    iniciarEje = fechahora.define_franja(str(inicio.date()))[glo.turnos.startAM]
+    iniciarEje = fechahora.define_franja(str(inicio.date()))[glo.turnos.startAM.get()]
     fig, ax = plt.subplots()                           # Objetos del plot
     diagrama = {
         "fig": fig,
@@ -186,7 +186,7 @@ def mostrar_grafico_tecnicos(nombre_grafico):
 def crear_gantt_vehiculos(nombre_grafico, vehiculos, inicio , horizonte):
     hbar = 10
     num_vehiculos = len(vehiculos)
-    iniciarEje = fechahora.define_franja(str(inicio.date()))[glo.turnos.startAM]
+    iniciarEje = fechahora.define_franja(str(inicio.date()))[glo.turnos.startAM.get()]
     fig, ax = plt.subplots()  # Objetos del plot
     print("iniciar eje en:", iniciarEje)
 

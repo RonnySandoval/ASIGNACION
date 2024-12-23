@@ -18,12 +18,6 @@ class ventanaRoot(ctk.CTk):
         self.state('zoomed')
         self.iconbitmap("logo2.ico")
 
-        # Crear un botón binario que activa o desactiva los prints
-        self.boton_print = ctk.CTkButton(self, text="OFFprint", font=numerosMuyPequeños,
-                                         fg_color = negro, hover_color=grisOscuro,
-                                         width=30, command = self.alternar_print)
-        #self.boton_print.pack(side=ctk.BOTTOM, anchor="se", pady=0)
-
     def base_root(self, bbdd):
         # Crear la barra de navegación
         self.nav_frame = ctk.CTkFrame(self)
@@ -39,10 +33,16 @@ class ventanaRoot(ctk.CTk):
         ctk.CTkButton(self.nav_frame, text="Gantt",       command=lambda: self.mostrar_frame(self.frameGantt),      fg_color=negro,             hover_color=grisMedio).pack(side=ctk.LEFT, padx=5, pady=5)
 
         #Label con el nombre de la planta 
-        ctk.CTkLabel(self.nav_frame, text=bbdd, font=textoBajo, width=100).pack(side=ctk.RIGHT, padx=5, pady=5)
-        
+        self.labelbbdd = ctk.CTkLabel(self.nav_frame, text=bbdd, font=textoBajo, width=100)
+        self.labelbbdd.pack(side=ctk.RIGHT, padx=5)
+
+        # Crear un botón binario que activa o desactiva los prints
+        self.boton_print = ctk.CTkButton(self.nav_frame, text="ONprint", font=numerosMuyPequeños, text_color = negro,fg_color = blancoFrio, hover_color=grisClaro, width=30, command = self.alternar_print)
+        self.boton_print.pack(side=ctk.RIGHT, padx=5)
+
         # Crear frames sin empaquetarlos
         self.framePlanta      = ctk.CTkFrame(self, fg_color=moradoMedio)
+        
         self.frameVehiculos   = ctk.CTkFrame(self, fg_color=grisAzuladoMedio)
         self.framePedidos     = ctk.CTkFrame(self, fg_color=azulOscuro)
         self.frameProgramas   = ctk.CTkFrame(self, fg_color=grisVerdeOscuro)
@@ -79,6 +79,8 @@ class ventanaRoot(ctk.CTk):
         self.mostrar_frame(self.frameHistoricos)
 
     def mostrar_frame(self, frame):
+
+        self.labelbbdd.configure(text=glo.base_datos)
 
         for fr in (self.frameVehiculos,
                   self.framePlanta,

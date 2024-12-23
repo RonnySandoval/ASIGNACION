@@ -87,7 +87,7 @@ def crear_plantaBD(dataframes, name, description, ventana):
 
     df_tecnicos, df_tecnicos_procesos = genera_df_tecnicos_proceso(df_tec = df_tecnicos, df_proc=df_procesos)
     df_tiempos_modelos = transformar_dataframe_tiempos(df_tiempos_modelos, "MODELO")
-    df_tiempos_modelos = elimina_Duplicados_df(df_tiempos_modelos, "ID_MODELO")[0]
+    df_tiempos_modelos = elimina_Duplicados_df(df_tiempos_modelos, "PROCESO_MODELO")[0]
 
     print(df_procesos)
     print(df_tecnicos)
@@ -134,8 +134,7 @@ def crear_plantaBD(dataframes, name, description, ventana):
         return
     
     ventanas_emergentes.messagebox.showinfo("Registros añadidos",
-                                            """Se añadieron  con éxito todos los registros de procesos, técnicos, modelos y referencias.
-                                            Dirígase a la sección IMPORTAR TIEMPOS, para agregar los tiempos de proceso a los modelos""")
+                                            """Se añadieron con éxito todos los registros de procesos, técnicos, modelos, referencias y tiempos.""")
     
     nueva_root(bbdd = base_datos)
 
