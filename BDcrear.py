@@ -99,6 +99,10 @@ class PROGRAMAS(Base):
     ID_PEDIDO       = Column(String) 
     DESCRIPCION     = Column(String)
     CONSECUTIVO     = Column(Integer)
+    INICIA_AM       = Column(Integer)
+    TERMINA_AM      = Column(Integer)
+    INICIA_PM       = Column(Integer)
+    TERMINA_PM      = Column(Integer)
 
 class ORDENES(Base):
     __tablename__     = 'ORDENES'

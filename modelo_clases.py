@@ -504,9 +504,12 @@ def programa_inmediato(pedido, tecnicos, horizonte, fechaStart, horaStart):
             print(f"****El proceso {siguiente_estado} para el chasis {vehiculo_min_time} queda : {times} + {tiempo_neto}")
 
             asignado = False
-            maximaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(fechaStart, horaStart, horizonte ,am=(glo.turnos.startAM, glo.turnos.endAM), pm=(glo.turnos.startPM.get(), glo.turnos.endPM.get())))
-            terminaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(
-                                                                                fecha_inicio = str(times.date()),
+            maximaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(fechaStart,
+                                                                               horaStart,
+                                                                               horizonte ,
+                                                                               am   =   (glo.turnos.startAM.get(), glo.turnos.endAM.get()),
+                                                                               pm   =   (glo.turnos.startPM.get(), glo.turnos.endPM.get())))
+            terminaAsignacion = fechahora.momentoEnd(fechahora.programa_bloques(fecha_inicio = str(times.date()),
                                                                                 hora_inicio  = str(times.time()),
                                                                                 duracion     = tiempo_neto,
                                                                                 am   = (glo.turnos.startAM.get(), glo.turnos.endAM.get()),
@@ -544,7 +547,6 @@ def programa_inmediato(pedido, tecnicos, horizonte, fechaStart, horaStart):
 
     scheduling = ProgramaDeProduccion(listaOrdenes)
     df_scheduling = scheduling.to_dataframe()
-    #df_scheduling.to_excel(f"programa_inmediato_{pedido.id_pedido}.xlsx", sheet_name="Hoja1", index=False)
     print(df_scheduling.to_string())
     return {"id"         : reemplazar_caracteres("inmediato_"+ pedido.id_pedido),
             "vehiculos"  : pedido.vehiculos,

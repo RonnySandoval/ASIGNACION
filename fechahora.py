@@ -34,10 +34,6 @@ def separar_fecha_hora(cadena):
     
     return fecha, hora
 
-#inicio, fin = calcular_hora_final("2024-10-7","15:22", 230)
-#print(inicio)
-#print(fin)
-
 ###############################################################################
 ###############################################################################
 def obtener_dia_semana(fecha):
@@ -56,16 +52,8 @@ def obtener_dia_semana(fecha):
     dia_semana_ingles = fecha.date().strftime("%A")        # Obtener el nombre del día de la semana en inglés
     return dias_semana[dia_semana_ingles]                           # Retornar la traducción al español
 
-"""
- Ejemplo de uso
-fecha = "2024-10-06"
-dia_semana = obtener_dia_semana(fecha)
-print(f"La fecha {fecha} es un {dia_semana}")
-"""
 def siguiente_dia(fecha):
     return fecha  +1
-
-
 
 ###############################################################################
 ###############################################################################
@@ -118,10 +106,6 @@ def horas_laborables(fecha):
         "tarde": tarde
     }
 
-
-#print(horas_laborables("2024-10-07")["manana"])
-#print(horas_no_laborables("2024-10-07")["mediodia"])
-
 def define_franja(fecha_hora):
     franjas ={
         glo.turnos.cero           :horas_no_laborables(fecha_hora)["madrugada"][0],
@@ -133,14 +117,8 @@ def define_franja(fecha_hora):
     
     return franjas
 
-
-#print(define_franja("2024-10-07")[8])
-
-
-
 ###############################################################################
 ###############################################################################
-
 
 def progBloqueMadrugada(inicio, duracion, am, pm, bloques):
 
@@ -287,6 +265,128 @@ def programa_bloques(fecha_inicio, hora_inicio, duracion, am, pm):
 def momentoEnd (bloques):
     #print("***************final de horizonte: ", bloques[-1][-1], obtener_dia_semana(bloques[-1][-1]) )
     return bloques[-1][-1]
+
+###############################################################################
+
+def definir_bloques(startAM, endAM, startPM, endPM, inicio, fin):
+    initDT   = inicio #datetime.datetime.strptime(inicio, "%Y-%m-%d %H:%M:%S")
+    finishDT = fin #datetime.datetime.strptime(fin, "%Y-%m-%d %H:%M:%S")
+    fecha_inicio = initDT.date()
+    hora_inicio  = initDT.time()
+    fecha_fin    = finishDT.date()
+    hora_fin     = finishDT.time()
+    deltaFecha = (fecha_fin - fecha_inicio).days
+    
+    if (hora_inicio < endAM)       and    (hora_fin < endAM):
+        if   (deltaFecha == 0):
+            return
+        elif (deltaFecha == 1):
+            print("3 bloques")
+            bloques = [concatenar_datetime([hora_inicio, endAM], fecha_inicio), 
+                       concatenar_datetime([startPM, endPM],     fecha_inicio),
+                       concatenar_datetime([startAM, hora_fin],  fecha_fin)]
+        elif (deltaFecha == 2):
+            print("5 bloques")
+            bloques = [concatenar_datetime([hora_inicio, endAM], fecha_inicio),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + datetime.timedelta(days=1)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + datetime.timedelta(days=1)),
+                       concatenar_datetime([startAM, hora_fin],  fecha_fin)]
+        elif (deltaFecha == 3):
+            print("7 bloques")
+            bloques = [concatenar_datetime([hora_inicio, endAM], fecha_inicio),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + datetime.timedelta(days=1)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + datetime.timedelta(days=1)),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + datetime.timedelta(days=2)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + datetime.timedelta(days=2)),
+                       concatenar_datetime([startAM, hora_fin],  fecha_fin)]
+
+    if (hora_inicio > startPM)     and    (hora_fin > startPM):
+        if   (deltaFecha == 0):
+            return
+        elif (deltaFecha == 1):
+            print("3 bloques")
+            bloques = [concatenar_datetime([hora_inicio, endPM], fecha_inicio),
+                       concatenar_datetime([startAM, endAM],     fecha_fin),
+                       concatenar_datetime([startPM, hora_fin],  fecha_fin)]
+        elif (deltaFecha == 2):
+            print("5 bloques")
+            bloques = [concatenar_datetime([hora_inicio, endPM], fecha_inicio),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + datetime.timedelta(days=1)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + datetime.timedelta(days=1)),
+                       concatenar_datetime([startAM, endAM],     fecha_fin),
+                       concatenar_datetime([startPM, hora_fin],  fecha_fin)]
+        elif (deltaFecha == 3):
+            print("7 bloques")
+            bloques = [concatenar_datetime([hora_inicio, endPM], fecha_inicio),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + datetime.timedelta(days=1)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + datetime.timedelta(days=1)),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + datetime.timedelta(days=2)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + datetime.timedelta(days=2)),
+                       concatenar_datetime([startAM, endAM],     fecha_fin),
+                       concatenar_datetime([startPM, hora_fin],  fecha_fin)]
+
+    if (hora_inicio < endAM)       and    (hora_fin > startPM):
+        if   (deltaFecha == 0):
+            print("2 bloques")
+            bloques = [concatenar_datetime([hora_inicio, endAM], fecha_inicio),
+                       concatenar_datetime([startPM, hora_fin],  fecha_fin)]
+        elif (deltaFecha == 1):
+            print("4 bloques")
+            bloques = [concatenar_datetime([hora_inicio, endAM], fecha_inicio),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio),
+                       concatenar_datetime([startAM, endAM],     fecha_fin),
+                       concatenar_datetime([startPM, hora_fin],  fecha_fin)]
+        elif (deltaFecha == 2):
+            print("6 bloques")
+            bloques = [concatenar_datetime([hora_inicio, endAM], fecha_inicio),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + datetime.timedelta(days=1)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + datetime.timedelta(days=1)),
+                       concatenar_datetime([startAM, endAM],     fecha_fin),
+                       concatenar_datetime([startPM, hora_fin],  fecha_fin)]
+
+    if (hora_inicio > startPM)     and    (hora_fin < endAM):
+        if   (deltaFecha == 1):
+            print("2 bloques")
+            bloques = [concatenar_datetime([hora_inicio, endPM], fecha_inicio),
+                       concatenar_datetime([startAM, hora_fin],  fecha_fin)]
+
+        elif (deltaFecha == 2):
+            print("4 bloques")
+            bloques = [concatenar_datetime([hora_inicio, endPM], fecha_inicio),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + datetime.timedelta(days=1)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + datetime.timedelta(days=1)),
+                       concatenar_datetime([startAM, hora_fin],  fecha_fin)]
+
+        elif (deltaFecha == 3):
+            print("6 bloques")
+            bloques = [concatenar_datetime([hora_inicio, endPM], fecha_inicio),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + datetime.timedelta(days=1)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + datetime.timedelta(days=1)),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + datetime.timedelta(days=2)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + datetime.timedelta(days=2)),
+                       concatenar_datetime([startAM, hora_fin],  fecha_fin)]
+
+    return bloques
+
+def concatenar_datetime(lista_tiempos, fecha):
+    """
+    Convierte una lista de objetos time y un objeto date en objetos datetime.
+
+    Args:
+        lista_tiempos (list): Lista con dos objetos time en formato HH:MM:SS.
+        fecha (date): Objeto date en formato AAAA-MM-DD.
+
+    Returns:
+        list: Lista con dos objetos datetime en formato AAAA-MM-DD HH:MM:SS.
+    """
+    datetime_list = []
+    for t in lista_tiempos:
+        dt = datetime.combine(fecha, t)
+        datetime_list.append(dt)
+    return datetime_list
 
 class Horarios:
     def __init__(self):

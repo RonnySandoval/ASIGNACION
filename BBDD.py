@@ -295,16 +295,16 @@ def insertar_procesos_df(bbdd, dataframe):
         conn.close()
         return request
 
-def insertar_programa(bbdd, nombrePrograma, descripcion, consecutivo, pedido):
+def insertar_programa(bbdd, nombrePrograma, descripcion, consecutivo, pedido, startAM, endAM, startPM, endPM):
 
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()          
         insert_data_script = """INSERT INTO PROGRAMAS
-                                    (ID_PROGRAMA, DESCRIPCION, CONSECUTIVO, ID_PEDIDO)
-                                    VALUES (?, ?, ?, ?)
+                                    (ID_PROGRAMA, DESCRIPCION, CONSECUTIVO, ID_PEDIDO, INICIA_AM, TERMINA_AM, INICIA_PM, TERMINA_PM)
+                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                                 """
-        cursor.execute(insert_data_script, (nombrePrograma, descripcion, consecutivo, pedido))
+        cursor.execute(insert_data_script, (nombrePrograma, descripcion, consecutivo, pedido, startAM, endAM, startPM, endPM))
         conn.commit()
         print(f"Registro de programa de producción {nombrePrograma} añadido")
         request = None
@@ -1384,7 +1384,9 @@ def leer_programa(bbdd, id):
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM PROGRAMAS WHERE ID_PROGRAMA=?", (id,))
+        cursor.execute("""SELECT ID_PROGRAMA, ID_PEDIDO, DESCRIPCION, CONSECUTIVO
+                       FROM PROGRAMAS
+                       WHERE ID_PROGRAMA=?""", (id,))
         datos = cursor.fetchone()
 
         print(datos)
@@ -1401,7 +1403,8 @@ def leer_programas(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()          
-        cursor.execute("SELECT * FROM PROGRAMAS")
+        cursor.execute("""SELECT ID_PROGRAMA, ID_PEDIDO, DESCRIPCION, CONSECUTIVO
+                       FROM PROGRAMAS""")
         datos = cursor.fetchall()
         conn.commit()
         
@@ -1417,7 +1420,7 @@ def leer_programas_por_pedido(bbdd, id_pedido):
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()          
-        cursor.execute("""SELECT *
+        cursor.execute("""SELECT ID_PROGRAMA, ID_PEDIDO, DESCRIPCION, CONSECUTIVO
                        FROM PROGRAMAS
                        WHERE ID_PEDIDO =?""",
                        (id_pedido,))
@@ -1645,6 +1648,36 @@ def leer_tiempos_vehiculos(bbdd):
         conn.close()
 
     return registros
+
+def leer_turnos_programa(bbdd, programa):
+    try:
+        # Establecer la conexión con la base de datos
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+
+        cursor.execute('''
+                SELECT
+                    PROGRAMAS.INICIA_AM,
+                    PROGRAMAS.TERMINA_AM,
+                    PROGRAMAS.INICIA_PM,
+                    PROGRAMAS.TERMINA_PM
+                FROM
+                    PROGRAMAS 
+                WHERE
+                    PROGRAMAS.ID_PROGRAMA = ?''', (programa,))
+        registros = cursor.fetchone()
+        print(registros)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer los turnos de la tabla de programas: {e}")
+        registros = False
+
+    finally:
+        conn.close()  # Cerrar la conexión
+    
+    return registros
+
+leer_turnos_programa('planta_con_ensamble1.db', 'inmediato_NISSAN5_5_2')
 
 def leer_vehiculo(bbdd, chasis):
     try:

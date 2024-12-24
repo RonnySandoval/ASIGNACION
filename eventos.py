@@ -695,10 +695,34 @@ def mostrar_gantt_programa(id_programa, bbdd):
     # Convertir las columnas de fechas de string a datetime
     df["INICIO"] = pd.to_datetime(df["INICIO"])
     df["FIN"]    = pd.to_datetime(df["FIN"])
+    inicio_horizonte = df["INICIO"].min()    # Encontrar el valor mínimo de cada columna
+    fin_horizonte    = df["FIN"].max()       # Encontrar el valor máximo de cada columna
 
-    # Encontrar el valor máximo y mínimo de cada columna
-    inicio_horizonte = df["INICIO"].min()
-    fin_horizonte    = df["FIN"].max()
+    startAM, endAM, startPM, endPM = BBDD.leer_turnos_programa(bbdd, id_programa)
+    iniciaAM, terminaAM, iniciaPM, terminaPM = (datetime.datetime.strptime(hora, '%H:%M').time() for hora in (startAM, endAM, startPM, endPM))
+
+
+    nuevas_filas = []               # Lista para almacenar las nuevas filas
+    for row in df.itertuples(index=True, name='Pandas'):    # Iterar sobre las filas usando itertuples()
+        id_orden    = row.CODIGO_ORDEN
+        inicioTarea = row.INICIO.to_pydatetime().replace(microsecond=0)
+        finTarea    = row.FIN.to_pydatetime().replace(microsecond=0)
+        
+        bloques     = fechahora.definir_bloques(iniciaAM, terminaAM, iniciaPM, terminaPM, inicioTarea, finTarea)
+        if bloques == None:
+            continue
+    
+        # Replicar la fila tantas veces como elementos tenga la lista "bloques"
+        for inicio, fin in bloques:
+            nueva_fila = row._asdict()
+            nueva_fila['INICIO'] = inicio
+            nueva_fila['FIN'] = fin
+            nuevas_filas.append(nueva_fila)
+
+    df_nuevas_filas = pd.DataFrame(nuevas_filas)                                    # Crear un nuevo DataFrame con las nuevas filas
+    df = df[~df['CODIGO_ORDEN'].isin(df_nuevas_filas['CODIGO_ORDEN'])]    # Eliminar las filas originales que cumplen la condición
+    df = pd.concat([df, df_nuevas_filas], ignore_index=True)                        # Añadir las nuevas filas al DataFrame original
+
     gantt_tecnicos, gantt_vehiculos = gantt.generar_gantt(df, inicio_horizonte, fin_horizonte)
 
     diagramas = {"diagramaTecnicos" : gantt_tecnicos,
@@ -833,7 +857,6 @@ def aceptar_cargar_excel(ventana, nombreVentana, bbdd):
     ventVistaPrevia.asignafuncion(funcionAceptar  = funcion,
                                   funcionCancelar = ventVistaPrevia.rootAux.destroy)
 
-
 def aceptar_cargar_historicos_excel(ventana, nombreVentana, bbdd):
     ruta = ventana.ruta
     ventana.rootAux.destroy()
@@ -934,7 +957,6 @@ def guardar_HistoricosExcel_BBDD(ventana, dataframes, bbdd):
     if registrosNuevos > 0:
         ventanas_emergentes.messagebox.showinfo("Históricos agregados", f"Se agregaron correctamente los históricos cargados: total {total} registros")
     
-
 def guardar_ModelosExcel_BBDD(ventana, df, bbdd):
     print(df)
     ventana.rootAux.destroy()
@@ -1275,9 +1297,14 @@ def aceptar_guardar_programa(ventana, programa, pedido, df_programa, bbdd):
     print(programa)
     print(df_programa)
     print(pedido)
+    startAM = glo.turnos.startAM.get()
+    endAM   = glo.turnos.endAM.get()
+    startPM = glo.turnos.startPM.get()
+    endPM   = glo.turnos.endPM.get()
 
     cargaOrdenes  = BBDD.insertar_ordenes_df(bbdd, df_programa)
-    cargaPrograma = BBDD.insertar_programa(bbdd, id_programa, None, consecutivo, pedido)
+    cargaPrograma = BBDD.insertar_programa(bbdd, id_programa, None, consecutivo, pedido,
+                                           startAM=startAM, endAM=endAM, startPM=startPM, endPM=endPM)
 
     if cargaOrdenes is False:
         if cargaPrograma is False:
@@ -1454,6 +1481,9 @@ def transformar_dataframe_ordenes(df_ordenes, id_programa, bbdd):
     df_reducido = df_reducido.rename(columns={"proceso":"ID_PROCESO"}) # CAMBIAR EL NOMBRE DE LA COLUMNA DE PROCESO
     print(df_reducido.to_string())
     return df_reducido
+
+def transformar_dataframe_bloques_programa(df_ordenes, horarios):
+    pass
 
 ###############################################################################
 ####################### EVENTO MOSTRAR CUADRO DE TEXTO ########################
