@@ -1,23 +1,25 @@
-import customtkinter as ctk  # Usar customtkinter en lugar de tkinter
+import customtkinter as ctk
 from   view.estilos import *
 import mainMenu
 import controller.glo as glo
 import builtins
 import view.ventanas_emergentes as ventanas_emergentes
+from PIL import Image, ImageTk
 # Configuración global del estilo de customtkinter
 ctk.set_appearance_mode("dark")  # Modo oscuro por defecto
 ctk.set_default_color_theme("dark-blue")  # Colores por defecto con tonos azulados
 
-class ventanaRoot(ctk.CTk):
+class VentanaRoot(ctk.CTk):
     def __init__(self):
         super().__init__()
 
         self.title("Programación de Planta")
         self.geometry("800x600")
         self.state('zoomed')
-        self.iconbitmap("image\logo2.ico")
+        self.iconbitmap(r"image\\logo0.ico")
 
     def base_root(self, bbdd):
+
         # Crear la barra de navegación
         self.nav_frame = ctk.CTkFrame(self)
         self.nav_frame.pack(side=ctk.TOP, fill=ctk.X)
@@ -40,7 +42,7 @@ class ventanaRoot(ctk.CTk):
         self.boton_print.pack(side=ctk.RIGHT, padx=5)
 
         # Crear frames sin empaquetarlos
-        self.framePlanta      = ctk.CTkFrame(self, fg_color=moradoMedio)
+        self.framePlanta      = ctk.CTkFrame(self, fg_color=grisOscuro)
         
         self.frameVehiculos   = ctk.CTkFrame(self, fg_color=grisAzuladoMedio)
         self.framePedidos     = ctk.CTkFrame(self, fg_color=azulOscuro)
@@ -75,7 +77,7 @@ class ventanaRoot(ctk.CTk):
         self.framePlanta.grid_columnconfigure(1, weight=1)
 
         # Mostrar el primer frame
-        self.mostrar_frame(self.frameHistoricos)
+        self.mostrar_frame(self.framePedidos)
 
     def mostrar_frame(self, frame):
 
@@ -210,7 +212,7 @@ if __name__ == "__main__":
     builtins.print = print_personalizado    # Reemplazar el print globalmente
 
     try:                    # Crear ventana principal
-        root = ventanaRoot()
+        root = VentanaRoot()
         mainMenu.crearMenuPrincipal(root)
         glo.raiz_principal = root
 

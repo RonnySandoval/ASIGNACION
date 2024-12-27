@@ -125,7 +125,7 @@ class ContenidoReferencias():
             button_name = f"ButtonAgregar{filasEliminar}"
             self.button_variables_Eliminar[button_name] = ctk.CTkButton(master=self.frameReferenciasInterior,text="Eliminar",
                                                                         font=textoBajo, fg_color=rojoMuyOscuro, hover_color = naranjaMedio,width=40, corner_radius=20,
-                                                                        command=lambda varBoton=button_name:controller.borrar_referencia(varBoton, bbdd))
+                                                                        command=lambda varBoton=button_name:controller.eliminar_referencia_BBDD(varBoton, bbdd))
             self.button_variables_Eliminar[button_name].grid(row=1+filasEliminar, column= 7, padx=3, pady=2)
         ############################################################################################
         ############################################################################################

@@ -127,10 +127,10 @@ class TablaDetallePedido():     #Tabla para pedido
         self.frameTurnos.pack(fill="both", side="bottom")
 
         self.labelTurno1 = ctk.CTkLabel(self.frameTurnos, text="TURNO 1", anchor="center")
-        self.labelTurno1.grid(row=0, column=0, columnspan = 4, padx=5, pady=5)
+        self.labelTurno1.grid(row=0, column=0, columnspan = 4, padx=5)
 
         self.labelTurno2 = ctk.CTkLabel(self.frameTurnos, text="TURNO 2", anchor="center")
-        self.labelTurno2.grid(row=0, column=4, columnspan = 4, padx=5, pady=5)
+        self.labelTurno2.grid(row=0, column=4, columnspan = 4, padx=5)
 
         # Configurar columnas: 
         for columna in range(0,7):

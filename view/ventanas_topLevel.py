@@ -158,7 +158,7 @@ class VentanaCreaEditaModelo:
         self.construyeCamposProcesos(bbdd)  # Crear campos para los procesos
 
         # BOTONES DE GUARDAR Y CANCELAR
-        self.buttonCancelar = ctk.CTkButton(self.frameEntradas, text="Cancelar", font=texto1Bajo, fg_color=grisAzuladoMedio, text_color=blancoHueso)
+        self.buttonCancelar = ctk.CTkButton(self.frameEntradas, text="Cancelar", font=texto1Bajo, fg_color=naranjaMedio, text_color=blancoHueso)
         self.buttonGuardar = ctk.CTkButton(self.frameEntradas, text="Guardar", font=textoGrande, fg_color=azulMedio, text_color=blancoFrio)
 
         self.buttonCancelar.grid(row=self.num + 3, column=0, padx=22, pady=10)
@@ -271,12 +271,12 @@ class VentanaCreaEditaReferencia:
         self.buttonCancelar.configure(command=funcionCancelar)
 
 class VentanaGestionaVehiculos:
-    def __init__(self, accion, historicos, bbdd):
+    def __init__(self, accion, bbdd):
         self.accion = accion
         self.rootAux = ctk.CTkToplevel()                #crea ventana auxiliar
         self.rootAux.attributes('-topmost', True)       #posiciona al frente de la pantalla
         self.rootAux.title("Programación de Planta")    #coloca titulo de ventana
-        self.rootAux.geometry("400x570")                #dimensiones
+        #self.rootAux.geometry("400x570")                #dimensiones
         self.rootAux.resizable(False, False)            #deshabilita la redimension
         self.procesos = BBDD.leer_procesos(bbdd)  # leer BD para obtener una lista con los procesos
 
@@ -347,7 +347,7 @@ class VentanaGestionaVehiculos:
         self.entryPedido.grid(row=len(self.procesos)+7,column=1, sticky="ew", padx=20 , pady=3)
 
 
-        self.buttonCancelar = ctk.CTkButton(self.frameEntradas,text="Cancelar", font=texto1Bajo, bg_color=grisAzuladoOscuro, command="")   
+        self.buttonCancelar = ctk.CTkButton(self.frameEntradas,text="Cancelar", font=texto1Bajo, bg_color=naranjaMedio, command="")   
         self.buttonCancelar.grid(row=len(self.procesos)+8, column=0, padx=22, pady=10)
 
         if self.accion == "AGREGAR":
@@ -423,7 +423,7 @@ class EstableceFechaHora:
         self.rootAux = ctk.CTkToplevel()
         self.rootAux.title("Iniciar programa")
         self.rootAux.config(bg = grisAzuladoMedio)
-        self.rootAux.iconbitmap("logo5.ico")
+        self.rootAux.iconbitmap("image\\logo5.ico")
         self.rootAux.geometry("400x270")
         self.rootAux.resizable(False, False)
 
@@ -721,7 +721,8 @@ class VentanaMuestraInfoPedi:
         FECHA DE RECEPCIÓN: {self.datosPedido[2]} 
         FECHA DE INGRESO:   {self.datosPedido[3]}
         ENTREGA ESTIMADA:   {self.datosPedido[4]} 
-        FECHA DE ENTREGA:   {self.datosPedido[6]}
+        FECHA DE ENTREGA:   {self.datosPedido[5]}
+        CANTIDAD DE VEHICULOS: {len(self.df_vehiculos)}
         """
         # Etiqueta para datos de Pedido
         self.labelPedido = ctk.CTkLabel(self.framePedido, text = self.titulo, font = texto1Grande, text_color = blancoFrio, bg_color = grisAzuladoOscuro)
@@ -756,6 +757,78 @@ class VentanaMuestraInfoPedi:
             self.labelPedido.pack(expand=True, side="top", fill="x", padx=20, pady=2)
 
         self.buttonCerrar = ctk.CTkButton(self.rootAux, text="Cerrar", font=textoMedio, fg_color=rojoClaro, text_color=moradoOscuro, hover_color=(moradoMedio, blancoFrio))
+        self.buttonCerrar.pack(pady=10)
+
+    def asignafuncionBoton(self, funcionCerrar):
+        self.buttonCerrar.configure(command=funcionCerrar)
+
+class VentanaMuestraInfoProg:
+    
+    def __init__(self, id_programa, bbdd):
+        self.lecturaPrograma = BBDD.leer_programa(bbdd, id_programa)
+        self.lecturaOrdenes = BBDD.leer_ordenes_por_programa(bbdd, id_programa)
+        self.cantidadOrdenes = len(self.lecturaOrdenes)
+        self.cantidadVehiculos =  len(list({orden[1] for orden in self.lecturaOrdenes}))
+        self.turnoAM = self.lecturaPrograma[4]+" - "+self.lecturaPrograma[5]
+        self.turnoPM = self.lecturaPrograma[6]+" - "+self.lecturaPrograma[7]
+        self.procesos =  list({orden[6] for orden in self.lecturaOrdenes})
+        self.datos = (self.lecturaPrograma[0],
+                      self.lecturaPrograma[1],
+                      self.lecturaPrograma[2],
+                      self.cantidadOrdenes,
+                      self.cantidadVehiculos,
+                      self.procesos,
+                      self.turnoAM,
+                      self.turnoPM)
+        print("datos:", self.datos)
+
+        # Configuración de la ventana auxiliar
+        self.rootAux = ctk.CTkToplevel()                # Crea ventana auxiliar
+        self.rootAux.attributes('-topmost', True)       # Posiciona al frente de la pantalla
+        self.rootAux.title("Programación de Planta")    # Coloca título de ventana
+        self.rootAux.geometry("400x600")                # Dimensiones
+
+        # Configura el tema oscuro
+        self.rootAux.configure(bg=grisAzuladoOscuro)    # Fondo oscuro
+        ctk.set_appearance_mode("dark")                 # Establece el modo oscuro global
+
+        self.labeltitulo = ctk.CTkLabel(self.rootAux, text="INFORMACIÓN DE PROGRAMA", font =textoMedio)
+        self.labeltitulo.pack(expand=True, side="top", fill="both")
+
+        # Frame para los datos generales
+        self.frameDatos = ctk.CTkFrame(self.rootAux, fg_color = grisMedio)
+        self.frameDatos.pack(expand=True, side="top", fill="both", padx  =15, pady=5)
+
+        self.encabezados = [
+                            ("ID", "id"),
+                            ("PEDIDO", "pedido"),
+                            ("DESCRIPCION", "descripcion"),
+                            ("CANTIDAD ORDENES", "cantidad ordenes"),
+                            ("CANTIDAD VEHICULOS", "cantidad vehiculos"),
+                            ("PROCESOS", "procesos"),
+                            ("TURNO AM", "turno am"),
+                            ("TURNO PM", "turno pm")
+                        ]
+
+        fila = 0
+        for titulo, item in zip(self.encabezados, self.datos):
+            ctk.CTkLabel(self.frameDatos,
+                         text = f"{titulo[0]} : ",
+                         font=texto1Medio, 
+                         text_color = blancoHueso,
+                         anchor="w",
+                         bg_color = grisMedio).grid(row = fila, column= 0,
+                                                    padx=5, pady=1, sticky = "ew")
+            ctk.CTkLabel(self.frameDatos,
+                        text = item,
+                        font=texto1Medio, 
+                        text_color = blancoHueso,
+                        anchor="w",
+                        bg_color = grisMedio).grid(row = fila, column= 1,
+                                                    padx=2, pady=2, sticky = "ew")
+            fila+=1
+
+        self.buttonCerrar = ctk.CTkButton(self.rootAux, text="Cerrar", font=textoMedio, fg_color=rojoClaro, text_color=grisOscuro, hover_color = rojoMedio)
         self.buttonCerrar.pack(pady=10)
 
     def asignafuncionBoton(self, funcionCerrar):
@@ -1384,10 +1457,10 @@ class VentanaModificarPedido(RaizTopLevel):
         self.labelEntryFechaEstimada = ManejaFechaHora(contenedor = self,  filaFecha=4, filaHora=None, columnaFecha=0, columnaHora=None, textFecha="FECHA ESTIMADA")
         self.labelEntryFechaEntrega = ManejaFechaHora(contenedor = self,  filaFecha=5, filaHora=None, columnaFecha=0, columnaHora=None, textFecha="FECHA ENTREGA")
 
-        self.botones = ButtonsOkCancel(contenedor = self, accionOk="Aceptar", accionCancel="Cancelar", fila=6)
+        self.botones = ButtonsOkCancel(contenedor = self.frameEntradas, accionOk="Aceptar", accionCancel="Cancelar", fila=6)
 
         self.datosPedido = BBDD.leer_pedido(bbdd, id_pedido)
-        id, cliente, recepcion, estimada, entrega, consec, ingreso = self.datosPedido
+        id, cliente, recepcion, ingreso, estimada, entrega, consec = self.datosPedido
 
         self.varIdPedido.set(id) 
         self.varCliente.set(cliente)  
@@ -1610,3 +1683,61 @@ class VentanaPreviewLoad:
     def asignafuncion(self, funcionAceptar, funcionCancelar):               #Método para asignar la función al command button de aceptar y cancelar desde otro módulo.
         self.buttonAceptar.configure(command = funcionAceptar)
         self.buttonCancelar.configure(command = funcionCancelar)
+
+class VentanaCreaEditarPlanta:       #Ventana para crear o editar modelos
+    def __init__(self, tipo, bbdd):
+
+        self.rootAux = ctk.CTkToplevel()
+        self.rootAux.title("Editar Planta")
+        self.rootAux.config(background = grisOscuro)
+        self.rootAux.iconbitmap("image\\logo5.ico")
+        self.rootAux.geometry("450x300")
+        self.rootAux.lift()  # Eleva la ventana Toplevel para que esté al frente
+        self.rootAux.attributes('-topmost', 1)  # También puede asegurar que quede al frente
+
+        self.frameTitulo = ctk.CTkFrame(self.rootAux, fg_color = grisOscuro)
+        self.frameTitulo.pack(expand=True, side="top", fill="both")
+        self.frameEntradas = ctk.CTkFrame(self.rootAux, fg_color=grisOscuro)
+        self.frameEntradas.pack(expand=True, side="top", fill="both", pady=10)
+        self.frameVista = ctk.CTkFrame(self.rootAux, fg_color=grisOscuro)
+        self.frameVista.pack(expand=True, side="bottom", fill="both")
+
+        # variables objeto para los entry. Deben ser parte del constructor, paraétodos
+        self.varNombre      = tk.StringVar()
+        self.varDescripcion = tk.StringVar()
+
+        #LABEL PARA TITULO Y CAMPOS
+        self.labelTitulo      = ctk.CTkLabel(self.frameTitulo,   text = "EDITAR INFORMACIÓN DE PLANTA", font = textoGrande, text_color = blancoFrio, bg_color = grisOscuro)
+        self.labelNombre      = ctk.CTkLabel(self.frameEntradas, text = "Nombre de Planta", font = texto1Medio, text_color = blancoFrio, bg_color = grisOscuro)
+        self.labelDescripcion = ctk.CTkLabel(self.frameEntradas, text = "Descripción de Planta", font = texto1Medio,text_color = blancoFrio, bg_color = grisOscuro)
+
+        self.labelTitulo.pack     (expand=True, side="top", fill="x", padx=20, pady=20)
+        self.labelNombre.grid     (row=0, column=0, sticky="ew", padx=20, pady=5)
+        self.labelDescripcion.grid(row=2, column=0, sticky="ew", padx=20, pady=5)
+
+        #ENTRY PARA CAMPOS
+        self.entryNombre      = ctk.CTkEntry(self.frameEntradas, font = numerosMedianos, text_color = blancoHueso, bg_color=moradoOscuro, width=30, textvariable=self.varNombre)
+        self.entryDescripcion = ctk.CTkEntry(self.frameEntradas, font = numerosMedianos, text_color = blancoHueso, bg_color=moradoOscuro, width=30, textvariable=self.varDescripcion)
+
+        self.entryNombre.grid     (row=0,column=1, sticky="ew", pady=5)
+        self.entryDescripcion.grid(row=2,column=1, sticky="ew", pady=5)
+
+
+        self.buttonCancelar = ctk.CTkButton(self.frameEntradas, text="Cancelar", font = texto1Bajo, text_color = blancoFrio,
+                                            fg_color = azulOscuro, hover_color = azulMedio, command="")
+        self.buttonCancelar.grid(row=4, column=0, padx=22, pady=10)
+
+        self.buttonAceptar  = ctk.CTkButton(self.frameEntradas, text="Aceptar",  font = textoGrande, text_color = blancoFrio,
+                                              fg_color = naranjaOscuro,  hover_color = naranjaMedio, command="")    
+        self.buttonAceptar.grid(row=4, column=1, padx=22, pady=10)
+
+        self.nombre, self.descripcion = BBDD.leer_planta_info(bbdd)
+        if tipo == "EDITAR":
+            self.set_values(self.nombre, self.descripcion)
+    def asignafuncion(self, funcionAceptar, funcionCancelar):               #Método para asignar la función al command button de aceptar y cancelar desde otro módulo.
+        self.buttonAceptar.configure(command = funcionAceptar)    
+        self.buttonCancelar.configure(command = funcionCancelar)
+    
+    def set_values(self, nombre, descripcion):
+        self.varNombre.set(nombre)
+        self.varDescripcion.set(descripcion)

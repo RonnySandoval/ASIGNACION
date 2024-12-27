@@ -8,14 +8,14 @@ class VentanaNuevoProceso():       #Ventana para crear o editar modelos
 
         self.rootAux = ctk.CTkToplevel()
         self.rootAux.title("Crear Nuevo Proceso")
-        self.rootAux.config(background = estilos.grisVerdeMedio)
-        self.rootAux.iconbitmap("logo5.ico")
+        self.rootAux.config(background = estilos.grisVerdeOscuro)
+        self.rootAux.iconbitmap("image\logo5.ico")
         self.rootAux.geometry("450x400")
         self.rootAux.resizable(False, False)
 
-        self.frameTitulo = ctk.CTkFrame(self.rootAux, fg_color=estilos.grisVerdeMedio)
+        self.frameTitulo = ctk.CTkFrame(self.rootAux, fg_color=estilos.grisVerdeOscuro)
         self.frameTitulo.pack(expand=True, side="top", fill="both")
-        self.frameEntradas = ctk.CTkFrame(self.rootAux, fg_color=estilos.grisVerdeMedio)
+        self.frameEntradas = ctk.CTkFrame(self.rootAux, fg_color=estilos.grisVerdeOscuro)
         self.frameEntradas.pack(expand=True, side="bottom", fill="both", pady=10)
 
         # variables objeto para los entry. Deben ser parte del constructor, para poder usarlas en sus métodos
@@ -49,14 +49,14 @@ class VentanaNuevoProceso():       #Ventana para crear o editar modelos
         self.entrySecuencia.grid    (row=3, column=1, sticky="ew", pady=5)
 
 
-        self.buttonCancelar = ctk.CTkButton(self.frameEntradas, text="Cancelar", font = estilos.texto1Bajo,  fg_color = estilos.azulClaro, text_color = estilos.grisOscuro, hover_color = estilos.azulMedio,
+        self.buttonCancelar = ctk.CTkButton(self.frameEntradas, text="Cancelar", font = estilos.texto1Bajo,  fg_color = estilos.naranjaClaro, text_color = estilos.blancoFrio, hover_color = estilos.azulMedio,
                                         command="")   
-        self.buttonGuardar  = ctk.CTkButton(self.frameEntradas, text="Guardar",  font = estilos.textoGrande, fg_color = estilos.naranjaClaro, text_color = estilos.grisOscuro, hover_color = estilos. naranjaMedio,
+        self.buttonGuardar  = ctk.CTkButton(self.frameEntradas, text="Guardar",  font = estilos.textoGrande, fg_color = estilos.azulMedio, text_color = estilos.blancoFrio, hover_color = estilos. naranjaMedio,
                                         command="")    
 
         self.buttonCancelar.grid(row=4, column=0, padx=22, pady=10)
         self.buttonGuardar.grid(row=4, column=1, padx=22, pady=10)
 
-    def asignaFuncion(self, funcionGuardar, funcionCancelar):
+    def asignafuncion(self, funcionGuardar, funcionCancelar):
         self.buttonGuardar.configure(command = funcionGuardar)
         self.buttonCancelar.configure(command = funcionCancelar)

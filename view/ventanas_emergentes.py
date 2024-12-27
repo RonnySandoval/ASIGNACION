@@ -76,6 +76,21 @@ def msg_eliminar_prog(id):
         print("Click en Cancelar")
         return "Cancelar"
 
+def msg_eliminar_proc(nombre):
+    respuesta = messagebox.askokcancel(
+        title="Eliminar Proceso",
+        message=f"¡Está a punto de eliminar el proceso {nombre}!\n"
+        "Este cambio afectará las tablas de PROCESOS, TÉCNICOS_PROCESOS y de TIEMPOS_MODELOS, y es irreversible.\n"
+        "(Los registros de vehiculos, históricos y programas no se verán afectados).\n"
+        "¿Seguro desea eliminarlo?"
+    )
+    if respuesta:
+        print("Click en Aceptar")
+        return "Aceptar"
+    else:
+        print("Click en Cancelar")
+        return "Cancelar"
+    
 def msg_eliminar_veh(chasis):
     respuesta = messagebox.askokcancel(
         title="Eliminar Vehículo",
@@ -95,11 +110,29 @@ def msg_eliminar_mod(modelo, vehiculos):
     respuesta = messagebox.askokcancel(
         title="Eliminar Modelo",
         message=(
-            f"¡Está a punto de eliminar el Modelo {modelo}!\n\n"
-            "Este cambio afectará las tablas MODELOS y TIEMPOS_MODELOS, y es irreversible.\n"
-            "Además eliminará todos los registros pertenecientes a los vehiculos con chasis \n"
-            f"{chasis}. Esto también afectará las tablas VEHICULOS y TIEMPOS_VEHICULOS."
+            f"¡Está a punto de eliminar el Modelo {modelo}!\n\n"+
+            "Este cambio afectará las tablas MODELOS y TIEMPOS_MODELOS, y es irreversible.\n"+
+            "Además eliminará todos los registros pertenecientes a los vehiculos con chasis \n"+
+            f"{chasis}. Esto también afectará las tablas VEHICULOS y TIEMPOS_VEHICULOS."+
+            "(Los registros de histórico y programas no se verán afectados).\n\n"+
             "¿Está seguro de que desea eliminarlo todo?"
+        )
+    )
+    if respuesta:
+        print("Click en Aceptar")
+        return "Aceptar"
+    else:
+        print("Click en Cancelar")
+        return "Cancelar"
+
+def msg_eliminar_ref(referencia, modelo):
+    respuesta = messagebox.askokcancel(
+        title="Eliminar Referencia",
+        message=(
+            f"¡Está a punto de eliminar la referencia {referencia} del modelo {modelo}!\n\n"+
+            "Este cambio es irreversible.\n"+
+            "(Los registros de histórico, vehiculos y programas No se verán afectados).\n\n"+
+            "¿Está seguro de que desea eliminarla?"
         )
     )
     if respuesta:

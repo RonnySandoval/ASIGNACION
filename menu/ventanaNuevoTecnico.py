@@ -9,7 +9,7 @@ class VentanaNuevoTecnico():       #Ventana para crear o editar modelos
         self.rootAux = ctk.CTkToplevel()
         self.rootAux.title("Crear Nuevo Tecnico")
         self.rootAux.config(background = estilos.grisVerdeOscuro)
-        self.rootAux.iconbitmap("logo5.ico")
+        self.rootAux.iconbitmap("image\logo5.ico")
         self.rootAux.geometry("450x400")
         self.rootAux.resizable(False, False)
 
@@ -49,14 +49,14 @@ class VentanaNuevoTecnico():       #Ventana para crear o editar modelos
         self.entryEspecialidad.grid (row=3, column=1, sticky="ew", pady=5)
 
 
-        self.buttonCancelar = ctk.CTkButton(self.frameEntradas, text="Cancelar", font = estilos.texto1Medio,  fg_color = estilos.azulClaro, text_color = estilos.grisOscuro, hover_color = estilos.azulMedio,
+        self.buttonCancelar = ctk.CTkButton(self.frameEntradas, text="Cancelar", font = estilos.texto1Medio,  fg_color = estilos.naranjaClaro, text_color = estilos.blancoFrio, hover_color = estilos.azulMedio,
                                         command="")   
-        self.buttonGuardar  = ctk.CTkButton(self.frameEntradas, text="Guardar",  font = estilos.textoGrande, fg_color = estilos.naranjaClaro, text_color = estilos.grisOscuro, hover_color = estilos. naranjaMedio,
+        self.buttonGuardar  = ctk.CTkButton(self.frameEntradas, text="Guardar",  font = estilos.textoGrande, fg_color = estilos.azulMedio, text_color = estilos.blancoFrio, hover_color = estilos. naranjaMedio,
                                         command="")    
 
         self.buttonCancelar.grid(row=4, column=0, padx=22, pady=10)
         self.buttonGuardar.grid(row=4, column=1, padx=22, pady=10)
 
-    def asignaFuncion(self, funcionGuardar, funcionCancelar):
+    def asignafuncion(self, funcionGuardar, funcionCancelar):
         self.buttonGuardar.configure(command = funcionGuardar)
         self.buttonCancelar.configure(command = funcionCancelar)

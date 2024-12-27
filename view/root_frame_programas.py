@@ -111,23 +111,6 @@ class TablaProgramas():     #Tabla para pedido
         self.programa_seleccionado = None
         self.llenarTabla(bbdd)
 
-        self.frameCheckProcesos = ctk.CTkFrame(contenedor, bg_color=verdeMedio)
-        self.frameCheckProcesos.pack(fill="both", side="bottom")
-
-        #CHECKBUTTON CON PROCESOS
-        self.infoProcesos = BBDD.leer_procesos_completo(bbdd)
-        for id in [proceso[0] for proceso in self.infoProcesos]:
-
-            int_name = f"checkIntvar-{id}"                                        # generar el nombre de la IntVar del checkbutton
-            self.check_name_proceso = id                                          # nombre del checkbutton
-            print(self.check_name_proceso)
-            print(glo.intVar_procesos[int_name])
-            glo.check_procesos[self.check_name_proceso] = ctk.CTkCheckBox(
-                                                                        self.frameCheckProcesos, text=id, 
-                                                                        bg_color=grisOscuro, font=texto1Medio, fg_color=grisOscuro,
-                                                                        variable=glo.intVar_procesos[int_name])
-            glo.check_procesos[self.check_name_proceso].pack(fill=tk.X, side="left", padx=15, pady=5)
-
     def llenarTabla(self, bbdd):    # Agregar datos a la tabla    
         self.lectura = list(BBDD.leer_programas(bbdd))
         self.datos = [(id, id_pedido) for id, desc, consec, id_pedido  in self.lectura]
@@ -188,7 +171,7 @@ class TablaProgramas():     #Tabla para pedido
         def informacion_programa(valores, bbdd):
             id_programa = valores[0]
             print(f"solicitó información de {id_programa}")
-            controller.ventana_infoVehiculo(id_programa, bbdd)
+            controller.ventana_infoPrograma(id_programa, bbdd)
         
         def gantt_programa(valores, bbdd):
             id_programa = valores[0]

@@ -14,7 +14,7 @@ class VentanaNuevaPlanta():       #Ventana para crear o editar modelos
         self.rootAux = ctk.CTkToplevel()
         self.rootAux.title("Crear Nueva Planta")
         self.rootAux.config(background = estilos.grisOscuro)
-        self.rootAux.iconbitmap("logo5.ico")
+        self.rootAux.iconbitmap("image\logo5.ico")
         self.rootAux.geometry("450x400")
         self.rootAux.lift()  # Eleva la ventana Toplevel para que esté al frente
         self.rootAux.attributes('-topmost', 1)  # También puede asegurar que quede al frente
@@ -28,40 +28,25 @@ class VentanaNuevaPlanta():       #Ventana para crear o editar modelos
 
         # variables objeto para los entry. Deben ser parte del constructor, paraétodos
         self.varNombre      = tk.StringVar()
-        self.varProcesos    = tk.StringVar() 
-        self.varTecnicos    = tk.StringVar()
-        self.varMarcas      = tk.StringVar()
         self.varDescripcion = tk.StringVar() 
         self.ruta = ""
 
         #LABEL PARA TITULO Y CAMPOS
         self.labelTitulo      = ctk.CTkLabel(self.frameTitulo,   text = "CREAR NUEVA PLANTA", font = estilos.textoGrande, text_color = estilos.blancoFrio, bg_color = estilos.grisOscuro)
         self.labelNombre      = ctk.CTkLabel(self.frameEntradas, text = "Nombre de Planta", font = estilos.texto1Medio, text_color = estilos.blancoFrio, bg_color = estilos.grisOscuro)
-        #self.labelProcesos    = ctk.CTkLabel(self.frameEntradas, text = "Cantidad de Procesos", font = estilos.texto1Medio, text_color = estilos.blancoFrio, bg_color = estilos.grisOscuro)
-        #self.labelTecnicos    = ctk.CTkLabel(self.frameEntradas, text = "Cantidad de Tecnicos", font = estilos.texto1Medio, text_color = estilos.blancoFrio, bg_color = estilos.grisOscuro)
-        #self.labelMarcas      = ctk.CTkLabel(self.frameEntradas, text = "Cantidad de Marcas", font = estilos.texto1Medio, text_color = estilos.blancoFrio, bg_color = estilos.grisOscuro)
         self.labelDescripcion = ctk.CTkLabel(self.frameEntradas, text = "Descripción de Planta", font = estilos.texto1Medio,text_color = estilos.blancoFrio, bg_color = estilos.grisOscuro)
         self.labelRuta      = ctk.CTkLabel(self.frameVista, text = self.ruta, font = estilos.texto1Medio,text_color = estilos.blancoFrio, bg_color = estilos.grisOscuro)       
 
         self.labelTitulo.pack     (expand=True, side="top", fill="x", padx=20, pady=20)
         self.labelNombre.grid     (row=0, column=0, sticky="ew", padx=20, pady=5)
-        #self.labelProcesos.grid  (row=1, column=0, sticky="ew", padx=20, pady=5)
-        #self.labelTecnicos.grid  (row=2, column=0, sticky="ew", padx=20, pady=5)
-        #self.labelMarcas.grid    (row=3, column=0, sticky="ew", padx=20, pady=5)
         self.labelDescripcion.grid(row=2, column=0, sticky="ew", padx=20, pady=5)
         self.labelRuta.grid       (row=0, column=0, padx=20, pady=5)
 
         #ENTRY PARA CAMPOS
         self.entryNombre      = ctk.CTkEntry(self.frameEntradas, font = estilos.numerosMedianos, text_color = estilos.blancoHueso, bg_color=estilos.moradoOscuro, width=30, textvariable=self.varNombre)
-        #self.entryProcesos    = ctk.CTkEntry(self.frameEntradas, font = estilos.numerosMedianos, text_color = estilos.blancoHueso, bg_color=estilos.moradoOscuro, width=30, textvariable=self.varProcesos)
-        #self.entryTecnicos    = ctk.CTkEntry(self.frameEntradas, font = estilos.numerosMedianos, text_color = estilos.blancoHueso, bg_color=estilos.moradoOscuro, width=30, textvariable=self.varTecnicos)
-        #self.entryMarcas      = ctk.CTkEntry(self.frameEntradas, font = estilos.numerosMedianos, text_color = estilos.blancoHueso, bg_color=estilos.moradoOscuro, width=30, textvariable=self.varMarcas)
         self.entryDescripcion = ctk.CTkEntry(self.frameEntradas, font = estilos.numerosMedianos, text_color = estilos.blancoHueso, bg_color=estilos.moradoOscuro, width=30, textvariable=self.varDescripcion)
 
         self.entryNombre.grid     (row=0,column=1, sticky="ew", pady=5)
-        #self.entryProcesos.grid   (row=1,column=1, sticky="ew", pady=5)
-        #self.entryTecnicos.grid   (row=2,column=1, sticky="ew", pady=5)
-        #self.entryMarcas.grid     (row=3,column=1, sticky="ew", pady=5)
         self.entryDescripcion.grid(row=2,column=1, sticky="ew", pady=5)
 
 

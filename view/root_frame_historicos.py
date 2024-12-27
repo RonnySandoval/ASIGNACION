@@ -4,6 +4,7 @@ import customtkinter as ctk
 import  controller.controller as controller
 from    view.estilos import *
 import database.BBDD as BBDD
+from menu.submenu_importar import vent_importar
 
 # Configuración global del estilo de customtkinter
 ctk.set_appearance_mode("dark")  # Modo oscuro por defecto
@@ -77,7 +78,7 @@ class FiltrosHistoricos():
                                               font=numerosPequeños, hover_color=amarilloMedio, fg_color=amarilloOscuro, corner_radius=15)
         self.boton_actualizar.grid(row=0, column=1, pady=5)
 
-        self.boton_importar = ctk.CTkButton(master=self.frame_filtros, text="Importar", command=lambda:historicos.cargar_historicos(bbdd), width=20,
+        self.boton_importar = ctk.CTkButton(master=self.frame_filtros, text="Importar", command=lambda:vent_importar("HISTORICOS", bbdd), width=20,
                                               font=numerosPequeños, hover_color=verdeMedio, fg_color=verdeOscuro, corner_radius=15)
         self.boton_importar.grid(row=0, column=2, pady=5)
 

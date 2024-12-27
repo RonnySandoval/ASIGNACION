@@ -10,17 +10,18 @@ def crearMenuPrincipal(raiz):
     barraMenu = tk.Menu(raiz, bg=grisOscuro, fg=blancoCalido)
     raiz.config(menu=barraMenu)
 
-    ###################### submenu de Nuevo######################################
+    ######################### submenu de Nuevo######################################
     menuNuevo=tk.Menu(barraMenu, tearoff=0)
     barraMenu.add_cascade(label="Nuevo", menu=menuNuevo)
-    barraMenu.add_cascade(label="Abrir", menu=menuNuevo)
     subNuevo.desplegar_nuevo(subMenu = menuNuevo, root=raiz)
+    ###############################################################################
 
-    ############################## submenu de Editar ###########################
+    ########################### submenu de Editar ##############################
     menuEditar=tk.Menu(barraMenu, tearoff=0)
     barraMenu.add_cascade(label="Editar", menu=menuEditar)
     subEditar.desplegar_editar(subMenu = menuEditar, root=raiz)
     ##########################################################################
+
     ########################### submenu de Importar ###########################
     menuImportar=tk.Menu(barraMenu, tearoff=0)
     barraMenu.add_cascade(label="Importar", menu=menuImportar)
@@ -35,7 +36,7 @@ def crearMenuPrincipal(raiz):
     ##########################################################################
     ######################### submenu de Ayuda ###############################
     menuAyuda=tk.Menu(barraMenu, tearoff=0)
-    barraMenu.add_cascade(label="Ayuda", menu=menuAyuda)
-    menuAyuda.add_command(label="Acerca de (No funciona)", command="")
+    barraMenu.add_cascade(label="Acerca de", menu=menuAyuda)
+    menuAyuda.add_command(label="Planta (No funciona)", command="")
     menuAyuda.add_command(label="Instrucciones (No funciona)", command="")
     ##########################################################################

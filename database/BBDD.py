@@ -1263,7 +1263,19 @@ def leer_pedido(bbdd, id):
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM PEDIDOS WHERE ID_PEDIDO=?", (id,))
+        cursor.execute('''
+                        SELECT 
+                            ID_PEDIDO, 
+                            CLIENTE, 
+                            FECHA_RECEPCION, 
+                            FECHA_INGRESO, 
+                            ENTREGA_ESTIMADA, 
+                            FECHA_ENTREGA,
+                            CONSECUTIVO
+                        FROM 
+                            PEDIDOS
+                        WHERE
+                            ID_PEDIDO=?''', (id,))
         datos = cursor.fetchone()
 
         print(datos)
@@ -1316,6 +1328,21 @@ def leer_pedidos_df(bbdd):
     finally:
         conn.close()
         return dataframe
+
+def leer_planta_info(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()          
+        cursor.execute("SELECT * FROM INFORMACION")
+        datos = cursor.fetchone()
+        print(datos)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer el registro: {e}")
+
+    finally:
+        conn.close()
+        return datos
 
 def leer_procesos(bbdd):
     try:
@@ -1391,9 +1418,21 @@ def leer_programa(bbdd, id):
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()
-        cursor.execute("""SELECT ID_PROGRAMA, ID_PEDIDO, DESCRIPCION, CONSECUTIVO
-                       FROM PROGRAMAS
-                       WHERE ID_PROGRAMA=?""", (id,))
+        cursor.execute("""
+                        SELECT
+                            ID_PROGRAMA,
+                            ID_PEDIDO,
+                            DESCRIPCION,
+                            CONSECUTIVO,
+                            INICIA_AM,
+                            TERMINA_AM,
+                            INICIA_PM,
+                            TERMINA_PM
+                        FROM
+                            PROGRAMAS
+                        WHERE
+                            ID_PROGRAMA=?""",
+                        (id,))
         datos = cursor.fetchone()
 
         print(datos)
@@ -2717,6 +2756,11 @@ def eliminar_proceso(bbdd, id):
     finally:
         conn.close()
 
+def eliminar_proceso_completo(bbdd, id_proceso):
+    eliminar_proceso(bbdd, id_proceso)
+    eliminar_tecnico_proceso_byProceso(bbdd, id_proceso)
+    eliminar_tiempo_modelo_byProceso(bbdd, id_proceso)
+
 def eliminar_programa(bbdd, id):
     try:
         conn = sqlite3.connect(bbdd)
@@ -2740,6 +2784,21 @@ def eliminar_programa(bbdd, id):
             print(f"No se eliminó el programa {id}")
     return request
 
+def eliminar_referencia(bbdd, referencia):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM MODELOS_REFERENCIAS WHERE REFERENCIA=?", (referencia,))
+        conn.commit()
+        print(f"La referencia {referencia} se eliminó correctamente de la tabla MODELOS_REFERENCIAS")
+
+    except sqlite3.Error as e:
+        print(f"Error al eliminar la referencia {referencia}: {e}")
+
+    finally:
+        conn.close()
+
 def eliminar_tiempo_modelo(bbdd, modelo):
     id_modelo = obtener_id_modelo(bbdd, modelo)
 
@@ -2753,6 +2812,22 @@ def eliminar_tiempo_modelo(bbdd, modelo):
 
     except sqlite3.Error as e:
         print(f"Error al eliminar el modelo {modelo}: {e}")
+
+    finally:
+        conn.close()  # Cerrar la conexión después de usarla
+
+def eliminar_tiempo_modelo_byProceso(bbdd, id_proceso):
+
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM TIEMPOS_MODELOS WHERE ID_PROCESO=?", (id_proceso,))
+        conn.commit()
+        print(f"Los registro del proceso {id_proceso} se eliminaron correctamente de la tabla TIEMPOS_MODELOS")
+
+    except sqlite3.Error as e:
+        print(f"Error al eliminar el proceso {id_proceso}: {e}")
 
     finally:
         conn.close()  # Cerrar la conexión después de usarla
@@ -2784,6 +2859,42 @@ def eliminar_tecnico(bbdd, id):
 
     except sqlite3.Error as e:
         print(f"Error al eliminar el tecnico {id}: {e}")
+
+    finally:
+        conn.close()
+
+def eliminar_tecnico_completo(bbdd, id):
+    eliminar_tecnico_proceso(bbdd, id)   #eliminar primero el registro con clave foranea
+    eliminar_tecnico(bbdd, id)          #eliminar después el registro con clave primaria
+
+def eliminar_tecnico_proceso(bbdd, id_tecnico, id_proceso):
+
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM TECNICOS_PROCESOS WHERE ID_TECNICO=? AND ID_PROCESO=?", (id_tecnico, id_proceso))
+        conn.commit()
+        print(f"El tecnico {id_tecnico} se eliminó correctamente de la tabla TECNICOS_PROCESOS")
+
+    except sqlite3.Error as e:
+        print(f"Error al eliminar el tecnico {id_tecnico}: {e}")
+
+    finally:
+        conn.close()
+
+def eliminar_tecnico_proceso_byProceso(bbdd, id_proceso):
+
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM TECNICOS_PROCESOS WHERE ID_PROCESO=?", (id_proceso))
+        conn.commit()
+        print(f"El proceso {id_proceso} se eliminó correctamente de la tabla TECNICOS_PROCESOS")
+
+    except sqlite3.Error as e:
+        print(f"Error al eliminar el proceso {id_proceso}: {e}")
 
     finally:
         conn.close()

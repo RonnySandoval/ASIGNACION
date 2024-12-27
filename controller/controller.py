@@ -14,7 +14,6 @@ import model.model_instancePlant as model_instancePlant
 import model.model_callGantt     as model_callGantt
 import model.model_callGantt     as model_callGantt
 import model.model_datetime      as model_datetime
-import datetime
 import model.model_gantt         as model_gantt
 from view.estilos import *
 import os
@@ -22,7 +21,7 @@ import datetime
 import controller.exception_manejar as e
 
 #################################################################################################################################
-######################### EVENTOS PARA CREAR PLANTA #############################################################################
+######################### EVENTOS PARA PLANTA #############################################################################
 #################################################################################################################################
 @e.manejar_errores("---Abrir planta. Seleccionando de archivo.db de planta a abrir---")
 def abrir_planta():
@@ -185,6 +184,8 @@ def genera_tiempos_modelos_default(df_modelos, df_procesos):
     print(df_combinaciones)                                   # Mostrar el resultado
     return df_combinaciones
 
+def editar_planta_BD():
+    pass
 #####################################################################################################################
 ################EVENTOS PARA SECCION DE MODELOS######################################################################
 #####################################################################################################################
@@ -330,7 +331,7 @@ def guardar_modelo_actualizado(ventana, datos_iniciales, bbdd):
 def agregar_vehiculo(botonPulsado, bbdd):
     datos = recoger_datos_modelo(botonPulsado, bbdd)
     print(datos)
-    ventana = ventanas_topLevel.VentanaGestionaVehiculos("AGREGAR", None, bbdd)
+    ventana = ventanas_topLevel.VentanaGestionaVehiculos("AGREGAR", bbdd)
     ventana.set_values(datos, None, "AGREGAR")
     ventana.asignafuncion(lambda:aceptar_agregar_vehiculo(ventana, bbdd), lambda:cancelar(ventana))
 
@@ -377,9 +378,7 @@ def aceptar_agregar_vehiculo(ventana, bbdd):
 
 @e.manejar_errores("---Eliminar Modelo. Abriendo una ventana para eliminar un modelo y sus tiempos y guardar cambios en base de datos---")
 def eliminar_modelo_BD(ventana, bbdd):
-    modeloDelete = ventana.varModelo.get()
-    datosModelo = ventana.dfModelos[ventana.dfModelos['MODELO']== modeloDelete] 
-    listaDatos = datosModelo.values.flatten().tolist()
+    modeloDelete = ventana.varItem.get()
     vehiCoinciden = BBDD.leer_vehiculo_por_modelo(bbdd, modeloDelete)
     if ventanas_emergentes.msg_eliminar_mod(modelo = modeloDelete, vehiculos = vehiCoinciden) == "Aceptar":
         BBDD.eliminar_modelo_completo(bbdd, modelo = modeloDelete)          # usar el método de la BD para eliminar
@@ -445,6 +444,15 @@ def guardar_referencia_actualizada(ventana, ref_inicial, bbdd):
     #actualizamos el frame de modelos en la ventana
     glo.stateFrame.contenidoDeReferencias.actualizar_contenido(bbdd)
 
+def eliminar_referencia_BBDD(botonPulsado, bbdd):
+
+    datos = recoger_datos_referencia(botonPulsado, bbdd)                         # llamar a la función que recoge los datos de los entry en el panel de modelos
+    print(datos)
+    referencia = datos["referencia"]
+    modelo     = datos["marca_modelo"]
+     
+    if ventanas_emergentes.msg_eliminar_ref(referencia, modelo) == "Aceptar":
+        BBDD.eliminar_referencia(bbdd, referencia)          # usar el método de la BD para eliminar
 #####################################################################################################################
 ################### EVENTOS PARA SECCION TÉCNICOS ###################################################################
 #####################################################################################################################
@@ -483,11 +491,11 @@ def guardar_tecnico_nuevo(ventana, bbdd):
 
 @e.manejar_errores("---Eliminar Tecnico. Recogiendo datos de técnico a eliminar y actualizando en base de datos---")
 def eliminar_tecnico_BD(ventana, bbdd):
-    nombreTecnico = ventana.varTecnico.get()        # obtener el técnico seleccionado
-    idTecnico = ventana.ids_tecnicos.get(nombreTecnico) # obtiene la clave con el id de acuerdo al valor con nombre completo de técnico
+    nombreTecnico = ventana.varItem.get()        # obtener el técnico seleccionado
+    idTecnico = ventana.ids_items.get(nombreTecnico) # obtiene la clave con el id de acuerdo al valor con nombre completo de técnico
     if ventanas_emergentes.msg_eliminar_tec(id_tecnico = idTecnico, nombre = nombreTecnico) == "Aceptar":
-        BBDD.eliminar_tecnico(bbdd, idTecnico)          # usar el método de la BD para eliminar
-        ventana.rootAux.destroy()                       # cerrar la ventana toplevel
+        BBDD.eliminar_tecnico_completo(bbdd, idTecnico)          # usar el método de la BD para eliminar
+        ventana.rootAux.destroy()                                # cerrar la ventana toplevel
 
 #####################################################################################################################
 ################### EVENTOS PARA SECCION PROCESOS ###################################################################
@@ -502,6 +510,15 @@ def guardar_proceso_nuevo(ventana, bbdd):
     BBDD.insertar_proceso(bbdd, *datos)
 
     ventana.rootAux.destroy()
+
+@e.manejar_errores("---Eliminar Proceso. Recogiendo datos de proceso a eliminar y actualizando en base de datos---")
+def eliminar_proceso_BD(ventana, bbdd):
+    nombreProceso = ventana.varItem.get()        # obtener el técnico seleccionado
+    idProceso = ventana.ids_items.get(nombreProceso) # obtiene la clave con el id de acuerdo al valor con nombre completo de técnico
+    if ventanas_emergentes.msg_eliminar_proc(nombre = nombreProceso) == "Aceptar":
+        BBDD.eliminar_proceso_completo(bbdd, idProceso)          # usar el método de la BD para eliminar
+        ventana.rootAux.destroy()                                # cerrar la ventana toplevel
+
 
 #####################################################################################################################
 ################EVENTOS PARA SECCION DE VEHICULOS####################################################################
@@ -523,7 +540,7 @@ def modificar_datos_vehiculo(chasis_anterior, bbdd):
     historicos = BBDD.leer_historico_chasis(bbdd, chasis_anterior)
     print("Los datos en el modulo eventos son: ", datos)
     print("Los tiempos en el modulo eventos son: ", tiempos)
-    ventana = ventanas_topLevel.VentanaGestionaVehiculos("MODIFICAR", historicos, bbdd)       #CREAR LA VENTANA EMERGENTE PARA EDITAR EL VEHICULO
+    ventana = ventanas_topLevel.VentanaGestionaVehiculos("MODIFICAR", bbdd)       #CREAR LA VENTANA EMERGENTE PARA EDITAR EL VEHICULO
     ventana.set_values(datos, tiempos, "MODIFICAR")                                        #AGREGAR LOS DATOS DE LA BBDD A LA VENTANA
     ventana.asignafuncion(lambda:modificarVH_en_BBDD(ventana, chasis_anterior, bbdd), lambda:cancelar(ventana))  #ASIGNAR BOTONES
 
@@ -680,12 +697,17 @@ def ventana_infoPedido(id_pedido, bbdd):
 @e.manejar_errores("---Modificar Pedido. Abriendo ventana para modificar datos de pedido---")
 def modificar_datos_pedido(id_anterior, bbdd):
 
-    ventana = ventanas_topLevel.VentanaModificarPedido(geometry      = "450x500",       #CREAR LA VENTANA EMERGENTE PARA EDITAR EL PEDIDO
+    ventana = ventanas_topLevel.VentanaModificarPedido(geometry      = "450x400",       #CREAR LA VENTANA EMERGENTE PARA EDITAR EL PEDIDO
                                                        nombreVentana = "MODIFICAR PEDIDO",
                                                        id_pedido     = id_anterior,
                                                        bbdd          = bbdd)
     ventana.botones.asignarfunciones(funcionOk      = lambda : modificarPedido_en_BBDD(ventana, id_anterior, bbdd),
                                      funcionCancel  = lambda : cancelar(ventana))
+
+@e.manejar_errores("---Mostrar Info Programa. Abriendo ventana para mostrar info del programa---")
+def ventana_infoPrograma(id_programa, bbdd):
+    ventana = ventanas_topLevel.VentanaMuestraInfoProg(id_programa, bbdd)
+    ventana.asignafuncionBoton(funcionCerrar=ventana.rootAux.destroy)
 
 @e.manejar_errores("---Modificar Pedido. Recogiendo datos de pedido y actualizando en la base de datos de pedidos, vehiculosy programas---")
 def modificarPedido_en_BBDD(ventana, id_anterior, bbdd):
