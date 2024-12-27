@@ -1,14 +1,7 @@
 import tkinter as tk
-from tkinter import ttk
 from tkinter.filedialog import askopenfilename
 import customtkinter as ctk
-from tkcalendar import Calendar
-from tkinter import simpledialog
-from estilos import *
-import datetime
-import re
-import glo
-import BBDD
+from view.estilos import *
 
 class VentanaImportarDatos():
 

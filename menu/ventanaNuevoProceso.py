@@ -1,6 +1,6 @@
 import tkinter as tk
 import customtkinter as ctk
-import estilos
+import view.estilos as estilos
 
 
 class VentanaNuevoProceso():       #Ventana para crear o editar modelos

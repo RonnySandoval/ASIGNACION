@@ -1,6 +1,6 @@
 import tkinter as tk
 import customtkinter as ctk
-import estilos
+import view.estilos as estilos
 
 
 class VentanaNuevoTecnico():       #Ventana para crear o editar modelos
@@ -56,7 +56,6 @@ class VentanaNuevoTecnico():       #Ventana para crear o editar modelos
 
         self.buttonCancelar.grid(row=4, column=0, padx=22, pady=10)
         self.buttonGuardar.grid(row=4, column=1, padx=22, pady=10)
-
 
     def asignaFuncion(self, funcionGuardar, funcionCancelar):
         self.buttonGuardar.configure(command = funcionGuardar)

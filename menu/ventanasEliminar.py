@@ -1,14 +1,7 @@
 import tkinter as tk
-from tkinter import ttk
 import customtkinter as ctk
-from tkcalendar import Calendar
-from tkinter import simpledialog
-import time
-from estilos import *
-import datetime
-import re
-import glo
-import BBDD
+from view.estilos import *
+import database.BBDD as BBDD
 
 
 class VentanaEliminarTecnico():

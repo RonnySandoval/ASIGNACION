@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter.filedialog import askopenfilename
 import customtkinter as ctk
-import estilos
+import view.estilos as estilos
 
 
 # Configuración global del estilo de customtkinter

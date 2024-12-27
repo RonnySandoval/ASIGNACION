@@ -2,8 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter.filedialog import askopenfilename
 import customtkinter as ctk
-import estilos
-import pandas as pd
+import view.estilos as estilos
 
 """
 class VentanaStepProcesos():

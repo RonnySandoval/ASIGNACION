@@ -1,9 +1,9 @@
 import tkinter as tk
-import ventanas_topLevel
+import view.ventanas_topLevel as ventanas_topLevel
 from . import ventanasEliminar, ventanasImportar
-import eventos
-import glo
-import BBDD
+import controller.controller as controller
+import controller.glo as glo
+import database.BBDD as BBDD
 
 def desplegar_exportar(subMenu, root):
     
@@ -22,7 +22,7 @@ def desplegar_exportar(subMenu, root):
 
 def generar_plantilla(tipo, bbdd):
     if tipo == "PLANTILLA HISTORICOS":
-        eventos.generar_formatoExcel_historicos(bbdd)
+        controller.generar_formatoExcel_historicos(bbdd)
 
 def vent_exportar(nombreVentana, bbdd):
     if nombreVentana == "PROCESOS":
@@ -53,5 +53,5 @@ def vent_exportar(nombreVentana, bbdd):
         pass
 
     ventana = ventanas_topLevel.VentanaVistaPrevia(nombreVentana, dataframe, bbdd)
-    ventana.asignafuncion(funcionAceptar  = lambda : eventos.aceptar_exportar_to_excel(ventana, dataframe, nombreVentana),
+    ventana.asignafuncion(funcionAceptar  = lambda : controller.aceptar_exportar_to_excel(ventana, dataframe, nombreVentana),
                           funcionCancelar = ventana.rootAux.destroy)

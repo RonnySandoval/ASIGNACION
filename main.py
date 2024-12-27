@@ -1,10 +1,9 @@
 import customtkinter as ctk  # Usar customtkinter en lugar de tkinter
-from   estilos import *
+from   view.estilos import *
 import mainMenu
-import glo
+import controller.glo as glo
 import builtins
-import ventanas_emergentes
-import matplotlib.pyplot as plt
+import view.ventanas_emergentes as ventanas_emergentes
 # Configuración global del estilo de customtkinter
 ctk.set_appearance_mode("dark")  # Modo oscuro por defecto
 ctk.set_default_color_theme("dark-blue")  # Colores por defecto con tonos azulados
@@ -16,7 +15,7 @@ class ventanaRoot(ctk.CTk):
         self.title("Programación de Planta")
         self.geometry("800x600")
         self.state('zoomed')
-        self.iconbitmap("logo2.ico")
+        self.iconbitmap("image\logo2.ico")
 
     def base_root(self, bbdd):
         # Crear la barra de navegación

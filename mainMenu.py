@@ -1,6 +1,6 @@
 import tkinter as tk
-from estilos import grisOscuro, blancoCalido
-import mainEventos
+from view.estilos import grisOscuro, blancoCalido
+import mainController
 
 def crearMenuPrincipal(raiz):
     #Barra de menú
@@ -28,7 +28,7 @@ def desplegar_abrir(subMenu, root):
     subMenu.add_command(label = "Abrir Planta", command = vent_abrir_planta)
 
 def vent_nueva_planta():
-    mainEventos.step_crearNuevaPlanta()
+    mainController.step_crearNuevaPlanta()
     
 def vent_abrir_planta():
-    mainEventos.abrir_planta()
+    mainController.abrir_planta()

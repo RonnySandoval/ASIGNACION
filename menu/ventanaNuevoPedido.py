@@ -1,7 +1,7 @@
 import tkinter as tk
 import customtkinter as ctk
-import estilos
-import glo
+import view.estilos as estilos
+import controller.glo as glo
 
 
 class VentanaNuevoPedido():       #Ventana para crear o editar modelos
@@ -73,7 +73,6 @@ class VentanaNuevoPedido():       #Ventana para crear o editar modelos
         glo.strVar_newPedido['fecha_ingreso']   = self.varFechaIngreso
         glo.strVar_newPedido['fecha_estimada']  = self.varFechaEstimada
         glo.strVar_newPedido['fecha_entrega']   = self.varFechaEntrega
-
 
     def asignaFuncion(self, funcionGuardar, funcionCancelar):
         self.buttonGuardar.configure(command = funcionGuardar)

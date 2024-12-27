@@ -1,8 +1,6 @@
-import tkinter as tk
-import ventanas_topLevel
 from . import ventanasEliminar
-import eventos
-import glo
+import controller.controller as controller
+import controller.glo as glo
 
 def desplegar_editar(subMenu, root):
     editarPlanta  = subMenu.add_command(label="Editar Planta (No funciona)", command="")
@@ -20,21 +18,8 @@ def desplegar_editar(subMenu, root):
     eliminarProceso = subMenu.add_command(label="Eliminar Proceso (No funciona)", command="")
     return
 
-
 ############## FUNCIONES PARA EDITAR ######################
 def vent_editar_planta():
-    pass
-  
-def vent_editar_pedido():
-    pass
-
-def vent_editar_modelo():
-    pass                          #asignar los botones de guardar y cancelar en la ventana
-
-def vent_editar_vehiculo():
-    pass                          #asignar los botones de guardar y cancelar en la ventana
-
-def vent_editar_tecnico():
     pass
 
 def vent_editar_proceso():
@@ -50,7 +35,7 @@ def vent_eliminar_pedido():
 
 def vent_eliminar_modelo(bbdd):
     ventana = ventanasEliminar.VentanaEliminarModelo(bbdd)
-    ventana.asignafuncion(funcionEliminar = lambda : eventos.eliminar_modelo_BD(ventana, bbdd),
+    ventana.asignafuncion(funcionEliminar = lambda : controller.eliminar_modelo_BD(ventana, bbdd),
                           funcionCancelar = ventana.rootAux.destroy)
 
 def vent_eliminar_vehiculo():
@@ -58,7 +43,7 @@ def vent_eliminar_vehiculo():
 
 def vent_eliminar_tecnico(bbdd):
     ventana = ventanasEliminar.VentanaEliminarTecnico(bbdd)
-    ventana.asignafuncion(funcionAceptar = lambda : eventos.eliminar_tecnico_BD(ventana, bbdd),
+    ventana.asignafuncion(funcionAceptar = lambda : controller.eliminar_tecnico_BD(ventana, bbdd),
                           funcionCancelar = ventana.rootAux.destroy)
 
 def vent_eliminar_proceso():
