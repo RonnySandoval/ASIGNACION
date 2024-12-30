@@ -1,6 +1,7 @@
 import controller.glo as glo
 import pandas as pd
 from datetime import datetime, timedelta
+import database.BBDD as BBDD
 
 ###############################################################################
 ###############################################################################
@@ -277,7 +278,7 @@ def definir_bloques(startAM, endAM, startPM, endPM, inicio, fin):
     hora_fin     = finishDT.time()
     deltaFecha = (fecha_fin - fecha_inicio).days
     
-    if (hora_inicio < endAM)       and    (hora_fin < endAM):
+    if (hora_inicio <= endAM)       and    (hora_fin <= endAM):
         if   (deltaFecha == 0):
             return
         elif (deltaFecha == 1):
@@ -301,8 +302,32 @@ def definir_bloques(startAM, endAM, startPM, endPM, inicio, fin):
                        concatenar_datetime([startAM, endAM],     fecha_inicio + timedelta(days=2)),
                        concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=2)),
                        concatenar_datetime([startAM, hora_fin],  fecha_fin)]
+        elif (deltaFecha == 4):
+            print("9 bloques")
+            bloques = [concatenar_datetime([hora_inicio, endAM], fecha_inicio),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + timedelta(days=1)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=1)),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + timedelta(days=2)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=2)),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + timedelta(days=3)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=3)),
+                       concatenar_datetime([startAM, hora_fin],  fecha_fin)]
+        elif (deltaFecha == 5):
+            print("9 bloques")
+            bloques = [concatenar_datetime([hora_inicio, endAM], fecha_inicio),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + timedelta(days=1)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=1)),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + timedelta(days=2)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=2)),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + timedelta(days=3)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=3)),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + timedelta(days=4)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=4)),
+                       concatenar_datetime([startAM, hora_fin],  fecha_fin)]
 
-    if (hora_inicio > startPM)     and    (hora_fin > startPM):
+    if (hora_inicio >= startPM)     and    (hora_fin >= startPM):
         if   (deltaFecha == 0):
             return
         elif (deltaFecha == 1):
@@ -326,8 +351,32 @@ def definir_bloques(startAM, endAM, startPM, endPM, inicio, fin):
                        concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=2)),
                        concatenar_datetime([startAM, endAM],     fecha_fin),
                        concatenar_datetime([startPM, hora_fin],  fecha_fin)]
+        elif (deltaFecha == 4):
+            print("9 bloques")
+            bloques = [concatenar_datetime([hora_inicio, endPM], fecha_inicio),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + timedelta(days=1)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=1)),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + timedelta(days=2)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=2)),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + timedelta(days=3)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=3)),
+                       concatenar_datetime([startAM, endAM],     fecha_fin),
+                       concatenar_datetime([startPM, hora_fin],  fecha_fin)]
+        elif (deltaFecha == 5):
+            print("11 bloques")
+            bloques = [concatenar_datetime([hora_inicio, endPM], fecha_inicio),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + timedelta(days=1)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=1)),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + timedelta(days=2)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=2)),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + timedelta(days=3)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=3)),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + timedelta(days=4)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=4)),
+                       concatenar_datetime([startAM, endAM],     fecha_fin),
+                       concatenar_datetime([startPM, hora_fin],  fecha_fin)]
 
-    if (hora_inicio < endAM)       and    (hora_fin > startPM):
+    if (hora_inicio <= endAM)       and    (hora_fin >= startPM):
         if   (deltaFecha == 0):
             print("2 bloques")
             bloques = [concatenar_datetime([hora_inicio, endAM], fecha_inicio),
@@ -346,20 +395,40 @@ def definir_bloques(startAM, endAM, startPM, endPM, inicio, fin):
                        concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=1)),
                        concatenar_datetime([startAM, endAM],     fecha_fin),
                        concatenar_datetime([startPM, hora_fin],  fecha_fin)]
-
-    if (hora_inicio > startPM)     and    (hora_fin < endAM):
+        elif (deltaFecha == 3):
+            print("8 bloques")
+            bloques = [concatenar_datetime([hora_inicio, endAM], fecha_inicio),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + timedelta(days=1)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=1)),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + timedelta(days=2)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=2)),
+                       concatenar_datetime([startAM, endAM],     fecha_fin),
+                       concatenar_datetime([startPM, hora_fin],  fecha_fin)]
+        elif (deltaFecha == 4):
+            print("10 bloques")
+            bloques = [concatenar_datetime([hora_inicio, endAM], fecha_inicio),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + timedelta(days=1)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=1)),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + timedelta(days=2)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=2)),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + timedelta(days=3)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=3)),
+                       concatenar_datetime([startAM, endAM],     fecha_fin),
+                       concatenar_datetime([startPM, hora_fin],  fecha_fin)]
+            
+    if (hora_inicio >= startPM)     and    (hora_fin <= endAM):
         if   (deltaFecha == 1):
             print("2 bloques")
             bloques = [concatenar_datetime([hora_inicio, endPM], fecha_inicio),
                        concatenar_datetime([startAM, hora_fin],  fecha_fin)]
-
         elif (deltaFecha == 2):
             print("4 bloques")
             bloques = [concatenar_datetime([hora_inicio, endPM], fecha_inicio),
                        concatenar_datetime([startAM, endAM],     fecha_inicio + timedelta(days=1)),
                        concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=1)),
                        concatenar_datetime([startAM, hora_fin],  fecha_fin)]
-
         elif (deltaFecha == 3):
             print("6 bloques")
             bloques = [concatenar_datetime([hora_inicio, endPM], fecha_inicio),
@@ -367,6 +436,16 @@ def definir_bloques(startAM, endAM, startPM, endPM, inicio, fin):
                        concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=1)),
                        concatenar_datetime([startAM, endAM],     fecha_inicio + timedelta(days=2)),
                        concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=2)),
+                       concatenar_datetime([startAM, hora_fin],  fecha_fin)]
+        elif (deltaFecha == 4):
+            print("8 bloques")
+            bloques = [concatenar_datetime([hora_inicio, endPM], fecha_inicio),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + timedelta(days=1)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=1)),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + timedelta(days=2)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=2)),
+                       concatenar_datetime([startAM, endAM],     fecha_inicio + timedelta(days=3)),
+                       concatenar_datetime([startPM, endPM],     fecha_inicio + timedelta(days=3)),
                        concatenar_datetime([startAM, hora_fin],  fecha_fin)]
 
     return bloques
@@ -391,10 +470,9 @@ def concatenar_datetime(lista_tiempos, fecha):
 class Horarios:
     def __init__(self):
         self.cero    = "00:00"
-        self.startAM = "08:00"
-        self.endAM   = "12:00"
-        self.startPM = "14:00"
-        self.endPM   = "18:00"
+    
+    def set_times(self):
+        __, __, self.startAM, self.endAM, self.startPM, self.endPM = BBDD.leer_planta_info(glo.base_datos)
         self.no_AM   = self.no_laboral("no_AM")
         self.no_ME   = self.no_laboral("no_ME")
         self.no_PM   = self.no_laboral("no_PM")

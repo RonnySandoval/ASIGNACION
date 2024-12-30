@@ -172,7 +172,7 @@ def nueva_root(bbdd):
     glo.base_datos = bbdd
     #modelo_clases.obtiene_datos_iniciales()
     #modelo_instancias.obtiene_datos_iniciales()
-
+    glo.turnos.set_times()
     raiz = glo.raiz_principal
     raiz.base_root(glo.raiz_principal)
     menu_principal.crearMenuPrincipal(raiz)

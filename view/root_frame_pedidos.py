@@ -44,15 +44,17 @@ class FiltrosPedidos():
     # Crear entradas de texto para los filtros
         self.entry_id_pedido = ctk.CTkEntry(self.frame_filtros, fg_color=azulMedio, text_color=blancoHueso)
         self.entry_id_pedido.grid(row=1, column=0, padx=5)
+        self.entry_fecha_recepcion = ctk.CTkEntry(self.frame_filtros, fg_color=azulMedio, text_color=blancoHueso)
+        self.entry_fecha_recepcion.grid(row=1, column=1, padx=5)
         self.entry_fecha_ingreso = ctk.CTkEntry(self.frame_filtros, fg_color=azulMedio, text_color=blancoHueso)
-        self.entry_fecha_ingreso.grid(row=1, column=1, padx=5)
+        self.entry_fecha_ingreso.grid(row=1, column=2, padx=5)
         self.entry_fecha_estimada = ctk.CTkEntry(self.frame_filtros, fg_color=azulMedio, text_color=blancoHueso)
-        self.entry_fecha_estimada.grid(row=1, column=2, padx=5)
+        self.entry_fecha_estimada.grid(row=1, column=3, padx=5)
         self.entry_fecha_entrega = ctk.CTkEntry(self.frame_filtros, fg_color=azulMedio, text_color=blancoHueso)
-        self.entry_fecha_entrega.grid(row=1, column=3, padx=5)
+        self.entry_fecha_entrega.grid(row=1, column=4, padx=5)
 
         # Configurar el peso de las columnas para que se expandan
-        for i in range(4): 
+        for i in range(5): 
             self.frame_filtros.grid_columnconfigure(i, weight=1)
 
         # Crear un botón para aplicar los filtros
@@ -69,21 +71,23 @@ class FiltrosPedidos():
         # Obtener los criterios de filtro de las entradas
         self.datos             = treePedidos.datos
         filtro_id_pedido       = self.entry_id_pedido.get()
+        filtro_fecha_recepcion   = self.entry_fecha_recepcion.get()
         filtro_fecha_ingreso   = self.entry_fecha_ingreso.get()
         filtro_fecha_estimada  = self.entry_fecha_estimada.get()
         filtro_fecha_entrega   = self.entry_fecha_entrega.get()
         print("datos del contenido de Pedidos: ", self.datos)
-        print("Datos de los entry en filtrar_datos:", filtro_id_pedido, filtro_fecha_ingreso, filtro_fecha_estimada, filtro_fecha_entrega)
+        print("Datos de los entry en filtrar_datos:", filtro_id_pedido, filtro_fecha_recepcion, filtro_fecha_ingreso, filtro_fecha_estimada, filtro_fecha_entrega)
         # Limpiar la tabla
         for row in treePedidos.tablaPedidos.get_children():
             treePedidos.tablaPedidos.delete(row)
         
         # Agregar datos filtrados a la tabla
         for record in self.datos:
-            if (filtro_id_pedido.lower()      in str(record[0]).lower() and
-                filtro_fecha_ingreso.lower()  in str(record[1]).lower() and
-                filtro_fecha_estimada.lower() in str(record[2]).lower() and
-                filtro_fecha_entrega.lower()  in str(record[3]).lower()):
+            if (filtro_id_pedido.lower()       in str(record[0]).lower() and
+                filtro_fecha_recepcion.lower() in str(record[1]).lower() and
+                filtro_fecha_ingreso.lower()   in str(record[2]).lower() and
+                filtro_fecha_estimada.lower()  in str(record[3]).lower() and
+                filtro_fecha_entrega.lower()   in str(record[4]).lower()):
 
                 treePedidos.tablaPedidos.insert(parent='', index='end', iid=record[0], text='', values=record)
 

@@ -4,7 +4,7 @@ import mainMenu
 import controller.glo as glo
 import builtins
 import view.ventanas_emergentes as ventanas_emergentes
-from PIL import Image, ImageTk
+
 # Configuración global del estilo de customtkinter
 ctk.set_appearance_mode("dark")  # Modo oscuro por defecto
 ctk.set_default_color_theme("dark-blue")  # Colores por defecto con tonos azulados

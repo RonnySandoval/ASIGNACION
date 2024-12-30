@@ -1,16 +1,18 @@
 import sqlite3
 import pandas as pd
-import os
-import view.ventanas_emergentes as ventEmerg
-import model.model_datetime
-#from planta import modelos, marcas, tiempos
+import sys
 
 
 
 ###########################################################################
 ########################### MANEJO DE TABLAS ##############################
 ###########################################################################
+def _check_module():
+    if __name__ != "__main__" and sys._getframe(1).f_globals['__name__'] != __name__:
+        raise RuntimeError("Esta función solo puede ejecutarse desde el módulo donde está definida.")
+
 def agregar_columna(bbdd, tabla, nombre_columna, tipo_dato):
+    _check_module()  # Verificar si la función se está ejecutando en el módulo de base de datos.
     """
     Agrega una nueva columna a una tabla en la base de datos SQLite.
 
@@ -34,6 +36,8 @@ def agregar_columna(bbdd, tabla, nombre_columna, tipo_dato):
         conn.close()
 
 def crear_tabla(bbdd):
+    _check_module()  # Verificar si la función se está ejecutando en el módulo de base de datos.
+    
     try:
         # Conectarse a la base de datos
         conn = sqlite3.connect(bbdd)
@@ -55,6 +59,8 @@ def crear_tabla(bbdd):
         conn.close()
 
 def eliminar_tabla(bbdd, nombre_tabla):
+    _check_module()  # Verificar si la función se está ejecutando en el módulo de base de datos.
+    
     try:
         # Conectarse a la base de datos
         conn = sqlite3.connect(bbdd)
@@ -73,6 +79,8 @@ def eliminar_tabla(bbdd, nombre_tabla):
         conn.close()
 
 def renombrar_tabla(bbdd, tabla_actual, nueva_tabla):
+    _check_module()  # Verificar si la función se está ejecutando en el módulo de base de datos.
+
     # Conectar a la base de datos
     conn = sqlite3.connect(bbdd)
     cursor = conn.cursor()
@@ -88,6 +96,8 @@ def renombrar_tabla(bbdd, tabla_actual, nueva_tabla):
         conn.commit()
         conn.close()
 
+if __name__ == "__main__":
+    pass
 ###########################################################################
 ############################# PARA PARA INSERTAR ##########################
 ###########################################################################
@@ -139,15 +149,15 @@ def insertar_historicos_df(bbdd, dataframe):
         conn.close()
         return request
 
-def insertar_info_planta(bbdd, nombre, descripcion):
+def insertar_info_planta(bbdd, nombre, descripcion, iniciaAM, terminaAM, iniciaPM, terminaPM):
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()          
         insert_data_script = """INSERT INTO INFORMACION
-                                    (NOMBRE_PLANTA, DESCRIPCION)
-                                    VALUES (?, ?)
+                                    (NOMBRE_PLANTA, DESCRIPCION, INICIA_AM, TERMINA_AM, INICIA_PM, TERMINA_PM)
+                                    VALUES (?, ?, ?, ?, ?, ?)
                                 """
-        cursor.execute(insert_data_script, ( nombre, descripcion))
+        cursor.execute(insert_data_script, ( nombre, descripcion, iniciaAM, terminaAM, iniciaPM, terminaPM))
         conn.commit()
         print("Registro de información general de planta añadido")
         request =None
@@ -1579,11 +1589,11 @@ def leer_tecnicos_df(bbdd):
 def leer_tecnicos_procesos_df(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
-        query = """SELECT *
-                       FROM TECNICOS_PROCESOS
-                       LEFT JOIN PROCESOS
-                       ON _PROCESOS.ID_PROCESO = PROCESOS.ID_PROCESO
-                       ORDER BY PROCESOS.SECUENCIA"""
+        query = """SELECT TP.TEC_PROC, TP.ID_TECNICO, TP.ID_PROCESO
+                       FROM TECNICOS_PROCESOS AS TP
+                       LEFT JOIN PROCESOS AS P
+                       ON P.ID_PROCESO = TP.ID_PROCESO
+                       ORDER BY P.SECUENCIA"""
         dataframe = pd.read_sql_query(query, conn)
         print(dataframe)
 
@@ -1593,7 +1603,7 @@ def leer_tecnicos_procesos_df(bbdd):
 
     except Exception as e:
         print(f"Error al leer la base de datos: {e}")
-        datos_modificados = None
+        dataframe = None
     finally:
         conn.close()
         return dataframe
@@ -2119,6 +2129,28 @@ def leer_tiempos_modelos_df(bbdd):
         print(f"Error en la consulta: {e}")
         return None
 
+def leer_procesos_modelos_df(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        query = """SELECT TM.PROCESO_MODELO, TM.ID_PROCESO, TM.ID_MODELO, TM.TIEMPO
+                       FROM TIEMPOS_MODELOS AS TM
+                       LEFT JOIN PROCESOS AS P
+                       ON TM.ID_PROCESO = P.ID_PROCESO
+                       ORDER BY P.SECUENCIA"""
+        dataframe = pd.read_sql_query(query, conn)
+        print(dataframe)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la tabla de tiempos de modelos: {e}")
+        dataframe = None
+
+    except Exception as e:
+        print(f"Error al leer la base de datos: {e}")
+        dataframe = None
+    finally:
+        conn.close()
+        return dataframe
+
 def leer_tiempos_vehiculos_df(bbdd):
     try:
         # Generar consulta SQL
@@ -2331,6 +2363,50 @@ def actualizar_pedido(bbdd, id_nuevo, cliente, fecha_recepcion, fecha_ingreso, f
         conn.close()
         return actualizados
 
+def actualizar_planta_info(bbdd, nombre, descripcion, iniciaAM, terminaAM, iniciaPm, terminaPM):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()          
+        insert_data_script = """
+                                UPDATE INFORMACION
+                                    SET NOMBRE_PLANTA=?, DESCRIPCION=?, INICIA_AM=?, TERMINA_AM=?, INICIA_PM=?, TERMINA_PM=?
+                                    WHERE NOMBRE_PLANTA=?
+                            """
+        cursor.execute(insert_data_script, (nombre, descripcion, iniciaAM, terminaAM, iniciaPm, terminaPM, nombre))
+        conn.commit()
+        print(f"El Registro de Planta_info con {nombre} fue actualizado: {cursor.rowcount}")
+        
+    except sqlite3.Error as e:
+        print(f"Error al actualizar los datos de planta: {e}")
+
+    except UnboundLocalError as e:
+        print(f"No se llenaron todos los campos: {e}") 
+
+    finally:
+        conn.close()
+
+def actualizar_proceso(bbdd, id_proceso, nombre, descripcion, secuencia, id_proceso_anterior):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()          
+        insert_data_script = """
+                                UPDATE PROCESOS
+                                    SET ID_PROCESO=?, NOMBRE=?, DESCRIPCION=?, SECUENCIA=?
+                                    WHERE ID_PROCESO=?
+                            """
+        cursor.execute(insert_data_script, (id_proceso, nombre, descripcion, secuencia, id_proceso_anterior))
+        conn.commit()
+        print(f"Registro {id_proceso_anterior} actualizado por {id_proceso} : {cursor.rowcount}")
+        
+    except sqlite3.Error as e:
+        print(f"Error al actualizar el proceso: {e}")
+
+    except UnboundLocalError as e:
+        print(f"No se llenaron todos los campos: {e}") 
+
+    finally:
+        conn.close()
+
 def actualizar_programa(bbdd, id_programa, descripcion, consecutivo, id_pedido, id_programa_anterior):
     try:
         conn = sqlite3.connect(bbdd)
@@ -2391,6 +2467,63 @@ def actualizar_programas_pedido(bbdd, id_pedido, id_pedido_anterior):
         conn.close()
         return actualizados
 
+def actualizar_proceso_modelos_many(bbdd, ids_anteriores, ids_nuevos, id_proceso_nuevo):
+    """
+    Actualiza los valores de las columnas PROCESO_MODELO e ID_PROCESO en la tabla TIEMPOS_MODELOS
+    para los registros especificados.
+
+    Args:
+        bbdd (str): Ruta de la base de datos SQLite.
+        ids_anteriores (list): Lista de IDs actuales de los registros a actualizar.
+        ids_nuevos (list): Lista de nuevos valores para la columna PROCESO_MODELO.
+        nuevo_id_proceso (int): Nuevo valor único para la columna ID_PROCESO de los registros seleccionados.
+
+    Raises:
+        ValueError: Si las listas ids_anteriores e ids_nuevos no tienen la misma longitud.
+    """
+    if len(ids_anteriores) != len(ids_nuevos):
+        raise ValueError("Las listas ids_anteriores e ids_nuevos deben tener la misma longitud.")
+    
+    try:
+        # Conexión a la base de datos
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+
+        # Construir consulta SQL con parámetros preparados
+        consulta_sql = """
+            UPDATE TIEMPOS_MODELOS
+            SET 
+                PROCESO_MODELO = CASE
+        """
+        for id_antes, id_nuevo in zip(ids_anteriores, ids_nuevos):
+            consulta_sql += f"    WHEN PROCESO_MODELO = ? THEN ?\n"
+        consulta_sql += """
+                ELSE PROCESO_MODELO
+            END,
+                ID_PROCESO = ?
+            WHERE PROCESO_MODELO IN ({});
+        """.format(",".join("?" for _ in ids_anteriores))
+        
+        # Construir parámetros de la consulta
+        parametros = []
+        for id_antes, id_nuevo in zip(ids_anteriores, ids_nuevos):
+            parametros.extend([id_antes, id_nuevo])
+        parametros.append(id_proceso_nuevo)
+        parametros.extend(ids_anteriores)
+
+        # Ejecutar la consulta
+        cursor.execute(consulta_sql, parametros)
+        conn.commit()
+
+        print(f"Se actualizaron {cursor.rowcount} filas.")
+
+    except sqlite3.Error as e:
+        print(f"Error al actualizar los registros: {e}")
+    finally:
+        # Cerrar la conexión
+        if conn:
+            conn.close()
+
 def actualizar_referencia(bbdd, referencia_nueva, id_modelo, referencia_anterior):
     try:
         conn = sqlite3.connect(bbdd)
@@ -2421,6 +2554,142 @@ def actualizar_referencia(bbdd, referencia_nueva, id_modelo, referencia_anterior
         conn.close()
         return actualizados
     
+def actualizar_tecnico(bbdd, id_tecnico, nombre, apellido, documento, especialidad, id_tecnico_anterior):
+    try:
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()          
+        insert_data_script = """
+                                UPDATE PROCESOS
+                                    SET ID_TECNICO=?, NOMBRE=?, APELLIDO=?, DOCUMENTO=?, ESPECIALIDAD=?
+                                    WHERE ID_PROCESO=?
+                            """
+        cursor.execute(insert_data_script, (id_tecnico, nombre, apellido, documento, especialidad))
+        conn.commit()
+        print(f"Registro {id_tecnico_anterior} actualizado por {id_tecnico} : {cursor.rowcount}")
+        
+    except sqlite3.Error as e:
+        print(f"Error al actualizar el proceso: {e}")
+
+    except UnboundLocalError as e:
+        print(f"No se llenaron todos los campos: {e}") 
+
+    finally:
+        conn.close()
+
+def actualizar_tecnico_procesos_many(bbdd, ids_anteriores, ids_nuevos, id_tecnico_nuevo):
+    """
+    Actualiza los valores de las columnas TEC_PROC e ID_PROCESO en la tabla TECNICOS_PROCESOS
+    para los registros especificados.
+
+    Args:
+        bbdd (str): Ruta de la base de datos SQLite.
+        ids_anteriores (list): Lista de IDs actuales de los registros a actualizar.
+        ids_nuevos (list): Lista de nuevos valores para la columna TEC_PROC.
+        nuevo_id_proceso (int): Nuevo valor único para la columna ID_PROCESO de los registros seleccionados.
+
+    Raises:
+        ValueError: Si las listas ids_anteriores e ids_nuevos no tienen la misma longitud.
+    """
+    if len(ids_anteriores) != len(ids_nuevos):
+        raise ValueError("Las listas ids_anteriores e ids_nuevos deben tener la misma longitud.")
+    
+    try:
+        # Conexión a la base de datos
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+
+        # Construir consulta SQL con parámetros preparados
+        consulta_sql = """
+            UPDATE TECNICOS_PROCESOS
+            SET 
+                TEC_PROC = CASE
+        """
+        for id_antes, id_nuevo in zip(ids_anteriores, ids_nuevos):
+            consulta_sql += f"    WHEN TEC_PROC = ? THEN ?\n"
+        consulta_sql += """
+                ELSE TEC_PROC
+            END,
+                ID_TECNICO = ?
+            WHERE TEC_PROC IN ({});
+        """.format(",".join("?" for _ in ids_anteriores))
+        
+        # Construir parámetros de la consulta
+        parametros = []
+        for id_antes, id_nuevo in zip(ids_anteriores, ids_nuevos):
+            parametros.extend([id_antes, id_nuevo])
+        parametros.append(id_tecnico_nuevo)
+        parametros.extend(ids_anteriores)
+
+        # Ejecutar la consulta
+        cursor.execute(consulta_sql, parametros)
+        conn.commit()
+
+        print(f"Se actualizaron {cursor.rowcount} filas.")
+
+    except sqlite3.Error as e:
+        print(f"Error al actualizar los registros: {e}")
+    finally:
+        # Cerrar la conexión
+        if conn:
+            conn.close()
+
+def actualizar_tecnicos_proceso_many(bbdd, ids_anteriores, ids_nuevos, id_proceso_nuevo):
+    """
+    Actualiza los valores de las columnas TEC_PROC e ID_PROCESO en la tabla TECNICOS_PROCESOS
+    para los registros especificados.
+
+    Args:
+        bbdd (str): Ruta de la base de datos SQLite.
+        ids_anteriores (list): Lista de IDs actuales de los registros a actualizar.
+        ids_nuevos (list): Lista de nuevos valores para la columna TEC_PROC.
+        nuevo_id_proceso (int): Nuevo valor único para la columna ID_PROCESO de los registros seleccionados.
+
+    Raises:
+        ValueError: Si las listas ids_anteriores e ids_nuevos no tienen la misma longitud.
+    """
+    if len(ids_anteriores) != len(ids_nuevos):
+        raise ValueError("Las listas ids_anteriores e ids_nuevos deben tener la misma longitud.")
+    
+    try:
+        # Conexión a la base de datos
+        conn = sqlite3.connect(bbdd)
+        cursor = conn.cursor()
+
+        # Construir consulta SQL con parámetros preparados
+        consulta_sql = """
+            UPDATE TECNICOS_PROCESOS
+            SET 
+                TEC_PROC = CASE
+        """
+        for id_antes, id_nuevo in zip(ids_anteriores, ids_nuevos):
+            consulta_sql += f"    WHEN TEC_PROC = ? THEN ?\n"
+        consulta_sql += """
+                ELSE TEC_PROC
+            END,
+                ID_PROCESO = ?
+            WHERE TEC_PROC IN ({});
+        """.format(",".join("?" for _ in ids_anteriores))
+        
+        # Construir parámetros de la consulta
+        parametros = []
+        for id_antes, id_nuevo in zip(ids_anteriores, ids_nuevos):
+            parametros.extend([id_antes, id_nuevo])
+        parametros.append(id_proceso_nuevo)
+        parametros.extend(ids_anteriores)
+
+        # Ejecutar la consulta
+        cursor.execute(consulta_sql, parametros)
+        conn.commit()
+
+        print(f"Se actualizaron {cursor.rowcount} filas.")
+
+    except sqlite3.Error as e:
+        print(f"Error al actualizar los registros: {e}")
+    finally:
+        # Cerrar la conexión
+        if conn:
+            conn.close()
+
 def actualizar_tiempo_modelo(bbdd, procmodel, id_proceso, id_modelo, tiempo, procmodelo_anterior):
     try:
         conn = sqlite3.connect(bbdd)

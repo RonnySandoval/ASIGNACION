@@ -29,109 +29,10 @@ class Gantt():
         self.gantt_style = plt.style.use('dark_background')    # Activar modo oscuro en Matplotlib
 
         self.graficos_vehiculos = {}        # Diccionarios globales para almacenar las figuras
-        self.graficos_tecnicos  = {}         # Diccionarios globales para almacenar las figuras
+        self.graficos_tecnicos  = {}        # Diccionarios globales para almacenar las figuras
 
-        self.colores = {
-        "azul_noche": "#1A1A7D",
-        "marrón_oscuro": "#3E2A47",
-        "gris_plomo": "#5A5A5A",
-        "café_claro": "#4A2C2A",
-        "verde_hoja": "#2F6B3E",
-        "azul_oscuro": "#003366",
-        "naranja_oscuro": "#D75B4E",
-        "rojo_vino": "#9B2335",
-        "verde_gris": "#6B8E23",
-        "gris_antracita": "#2F4F4F",
-        "rojo_oscuro": "#8B0000",
-        "madera_tierra": "#6F4F37",
-        "verde_oscuro": "#006400",
-        "morado_vino": "#800000",
-        "azul_tintado": "#4C6A92",
-        "marrón_rico": "#7A3F32",
-        "rojo_granate": "#9B111E",
-        "gris_plata": "#A2A2A1",
-        "azul_mediterráneo": "#2C75B2",
-        "verde_army": "#4B5320",
-        "café_miel": "#6B4F2F",
-        "amarillo_terroso": "#BDBB73",
-        "gris_roto": "#8A8A8A",
-        "rojo_cereza": "#9E1B32",
-        "madera_natural": "#8B6F47",
-        "verde_subido": "#468C45",
-        "azul_grisáceo": "#3B5F73",
-        "naranja_terroso": "#A53C2D",
-        "madera_oscura": "#5D3F2C",
-        "rojo_frambuesa": "#990000",
-        "verde_turquesa": "#3F9C87",
-        "gris_como_piedra": "#B8B8B8",
-        "verde_oliva": "#6B8E23",
-        "rojo_marrón": "#8B3A3A",
-        "marrón_toscano": "#6B4226",
-        "azul_galaxia": "#2A2D99",
-        "rojo_oscuridad": "#8B0000",
-        "azul_pavo": "#5F9EA0",
-        "verde_agua": "#3C8D6E",
-        "gris_azulado": "#708090",
-        "verde_fango": "#4C5A3C",
-        "azul_grisáceo_2": "#6B7F89",
-    "MidnightBlue": "#191970",
-    "Navy": "#000080",
-    "DarkBlue": "#00008B",
-    "Indigo": "#4B0082",
-    "DarkSlateBlue": "#483D8B",
-    "RebeccaPurple": "#663399",
-    "Purple": "#800080",
-    "DarkMagenta": "#8B008B",
-    "BlueViolet": "#8A2BE2",
-    "DarkViolet": "#9400D3",
-    "SlateBlue": "#6A5ACD",
-    "DarkOrchid": "#9932CC",
-    "MediumPurple": "#9370DB",
-    "DarkSlateGray": "#2F4F4F",
-    "Teal": "#008080",
-    "DarkCyan": "#008B8B",
-    "SeaGreen": "#2E8B57",
-    "DarkGreen": "#006400",
-    "ForestGreen": "#228B22",
-    "OliveDrab": "#6B8E23",
-    "SaddleBrown": "#8B4513",
-    "Maroon": "#800000",
-    "DarkRed": "#8B0000",
-    "FireBrick": "#B22222",
-    "Brown": "#A52A2A",
-    "Chocolate": "#D2691E",
-    "Sienna": "#A0522D",
-    "DarkGoldenrod": "#B8860B",
-    "Goldenrod": "#DAA520",
-    "Peru": "#CD853F",
-    "RosyBrown": "#BC8F8F",
-    "DimGray": "#696969",
-    "SlateGray": "#708090",
-    "LightSlateGray": "#778899",
-    "MediumSlateBlue": "#7B68EE",
-    "SteelBlue": "#4682B4",
-    "RoyalBlue": "#4169E1",
-    "DodgerBlue": "#1E90FF",
-    "CornflowerBlue": "#6495ED",
-    "CadetBlue": "#5F9EA0",
-    "MediumSeaGreen": "#3CB371",
-    "DarkOliveGreen": "#556B2F",
-    "MediumForestGreen": "#66CDAA",
-    "MediumAquamarine": "#7FFFD4",
-    "DarkTurquoise": "#00CED1",
-    "MediumTurquoise": "#48D1CC",
-    "LightSeaGreen": "#20B2AA",
-    "DeepSkyBlue": "#00BFFF",
-    "DarkSlateGrey": "#2F4F4F",
-    "MediumVioletRed": "#C71585",
-    "Orchid": "#DA70D6"
-        }
-
-        self.colores_tecnicos = {}                                  # Diccionario para almacenar los colores de cada técnico
-        self.colores_tec_disponibles = list(self.colores.values())  # Lista de valores (colores) del diccionario
-
-        self.colores_vehiculos = {}                                 # Diccionario para almacenar los colores de cada vehiculo
-        self.colores_vh_disponibles = list(self.colores.values())  # Lista de valores (colores) del diccionario
+        self.colores_tecnicos = {}
+        self.colores_vehiculos = {}
 
         self.gantt_tecnicos  = self.__crear_gantt__("tecnicos",  tecnicos,  inicio, horizonte)
         self.gantt_vehiculos = self.__crear_gantt__("vehiculos", vehiculos, inicio, horizonte)
@@ -216,69 +117,61 @@ class Gantt():
         
         return diagrama
 
+        self.colores_vehiculos = {}  # Para almacenar colores de vehículos
+        self.colores_tecnicos = {}  # Para almacenar colores de técnicos
+
+    def __asignar_color__(self, tipo, task):
+        """
+        Asigna un color a la tarea (vehículo o técnico), generando un color aleatorio
+        si no se ha asignado previamente, y lo almacena para reutilización.
+
+        Args:
+            tipo (str): Tipo de gráfico, ya sea 'vehiculos' o 'tecnicos'.
+            task (str): El identificador de la tarea (vehículo o técnico).
+        
+        Returns:
+            str: El color asignado a la tarea en formato RGB (como string).
+        """
+        if tipo == "vehiculos":
+            colores_asignados = self.colores_vehiculos
+        elif tipo == "tecnicos":
+            colores_asignados = self.colores_tecnicos
+        else:
+            raise ValueError(f"Tipo de gráfico '{tipo}' no válido")
+
+
+        if task in colores_asignados:        # Verifica si ya se asignó un color previamente a la tarea
+            return colores_asignados[task]
+        
+        color = self.__generar_color_random__()        # Si no se ha asignado color, generar uno aleatorio
+        colores_asignados[task] = color        # Almacenar el color generado para reutilizarlo
+        
+        return color
+
+    def __generar_color_random__(self):
+        """
+        Genera un color aleatorio en formato RGB (rango 0-255 para cada componente).
+        
+        Returns:
+            str: El color generado en formato RGB (como string).
+        """
+
+        r, g, b = rdm.randint(30, 235), rdm.randint(30, 235), rdm.randint(30, 235)        # Generar valores aleatorios para R, G, B en el rango [0, 255]
+        return (r / 255.0, g / 255.0, b / 255.0)        # Devolver el color en formato RGB
+
     def agregar_proceso(self, tipo, t0, duracion, proceso, task, item, color=None):
         """
         Agrega un proceso a un diagrama de Gantt, ya sea asociado a un técnico o a un vehículo, 
         dependiendo del tipo especificado.
-
-
-        Args:
-        ----------
-        nombre_grafico : str
-            El nombre del gráfico al que se agregará el proceso.
-        tipo : str
-            Puede ser "tecnico" o "vehiculo", indicando el tipo de gráfico al que se refiere.
-        t0 : datetime
-            Fecha y hora de inicio del proceso.
-        duracion : timedelta
-            Duración del proceso.
-        proceso : str
-            Nombre o descripción del proceso asociado al task/item.
-        task : str
-            Identificador principal del proceso, puede ser un vehículo o tarea específica.
-        item : str
-            Identificador secundario, como el técnico asignado o el vehículo involucrado.
-        color : str, opcional
-            Color personalizado para la barra del proceso. Si no se especifica, se selecciona uno aleatoriamente.
-
-        Procedure:
-        --------
-        - Verifica si el gráfico especificado existe en los datos globales.
-        - Determina el color a usar para el proceso según el `task` o el `item`.
-        - Convierte las fechas y tiempos en formatos compatibles con matplotlib.
-        - Agrega una barra principal y un borde al gráfico.
-        - Añade una etiqueta en la barra para identificar el proceso, incluyendo su duración y proceso.
-        - Guarda la información de la barra y la etiqueta en el diagrama para futuras interacciones.
-
-        Excepciones:
-        ------------
-        - Si el gráfico no existe, imprime un mensaje de error y no realiza ninguna acción.
         """
-        if tipo == "vehiculos":        # Guardar el diagrama en el diccionario global
-            
+
+        if tipo == "vehiculos":        
             diagrama = self.graficos_vehiculos.get(tipo)
+            color = self.__asignar_color__("vehiculos", task)            # Asignar color a la tarea si no tiene uno
 
-            if task in self.colores_tecnicos:
-                color = self.colores_tecnicos[task]
-            else:
-                if color is None:
-                    # Sortear un color del diccionario
-                    color = rdm.choice(self.colores_tec_disponibles)
-                    self.colores_tec_disponibles.remove(color)  # Opcional: elimina el color para evitar repetirlo
-                self.colores_tecnicos[task] = color
-
-
-        if tipo == "tecnicos":        # Guardar el diagrama en el diccionario global
+        elif tipo == "tecnicos":        
             diagrama = self.graficos_tecnicos.get(tipo)
-
-            if task in self.colores_vehiculos:
-                color = self.colores_vehiculos[task]
-            else:
-                if color is None:
-                    # Sortear un color del diccionario
-                    color = rdm.choice(self.colores_vh_disponibles)
-                    self.colores_vh_disponibles.remove(color)  # Opcional: elimina el color para evitar repetirlo
-                self.colores_vehiculos[task] = color
+            color = self.__asignar_color__("tecnicos", task)            # Asignar color a la tarea si no tiene uno
 
         if diagrama is None:
             print(f"Error: El gráfico '{tipo}' no existe.")

@@ -29,6 +29,7 @@ def abrir_planta():
                             filetypes=[("Archivos Base de datos sqlite", "*.db")])
     print(ruta)
     glo.base_datos = os.path.basename(ruta)
+    glo.turnos.set_times()
     glo.actualizar_todo()
 
 @e.manejar_errores("---Crear planta. En el Paso que abre la ventana para ingresar los campos---")
@@ -43,6 +44,10 @@ def step_CargarTodo(ventana):
     ruta = ventana.ruta
     nombre= ventana.varNombre.get()
     descripcion = ventana.varDescripcion.get()
+    iniciaAM    = ventana.varInicio_AM.get()
+    terminaAM   = ventana.varTermino_AM.get()
+    iniciaPM    = ventana.varInicio_PM.get()
+    terminaPM   = ventana.varTermino_PM.get()
 
     ventana.rootAux.destroy()
     hojas = pd.read_excel(ruta, sheet_name=None)
@@ -60,14 +65,18 @@ def step_CargarTodo(ventana):
         print(dataframe, "\n")
     
     ventVistaPrevia = steps_nueva_planta.VentanaPreviewLoad(dataframes)
-    ventVistaPrevia.asignafuncion(funcionAceptar = lambda : crear_plantaBD(dataframes = dataframes,
-                                                                           name = nombre,
-                                                                           description = descripcion,
-                                                                           ventana = ventVistaPrevia),
+    ventVistaPrevia.asignafuncion(funcionAceptar = lambda : crear_plantaBD( dataframes  = dataframes,
+                                                                            name        = nombre,
+                                                                            description = descripcion,
+                                                                            iniciaAM    = iniciaAM,
+                                                                            terminaAM   = terminaAM,
+                                                                            iniciaPM    = iniciaPM,
+                                                                            terminaPM   = terminaPM,
+                                                                            ventana     = ventVistaPrevia),
                                   funcionCancelar=ventVistaPrevia.rootAux.destroy)
 
 @e.manejar_errores("---Crear planta. Generando los dataframe necesarios para nueva planta y/o cargando en base de datos---")
-def crear_plantaBD(dataframes, name, description, ventana):
+def crear_plantaBD(dataframes, name, description, iniciaAM, terminaAM, iniciaPM, terminaPM,ventana):
     df_procesos     = dataframes["PROCESOS"]
     df_tecnicos     = dataframes["TECNICOS"]
     #df_modelos      = dataframes["MARCAS_MODELOS"]
@@ -103,7 +112,13 @@ def crear_plantaBD(dataframes, name, description, ventana):
     if base_datos == "existe":
         return
     
-    BBDD.insertar_info_planta(bbdd = base_datos, nombre = name, descripcion = description)
+    BBDD.insertar_info_planta(bbdd = base_datos,
+                              nombre = name,
+                              descripcion = description,
+                              iniciaAM = iniciaAM,
+                              terminaAM = terminaAM,
+                              iniciaPM = iniciaPM,
+                              terminaPM = terminaPM)
     ins_proce  = BBDD.insertar_procesos_df(bbdd = base_datos, dataframe=df_procesos)
     ins_tecni  = BBDD.insertar_tecnicos_df(bbdd = base_datos, dataframe=df_tecnicos)
     ins_tecpr  = BBDD.insertar_tecnicos_procesos_df(bbdd = base_datos, dataframe=df_tecnicos_procesos)
@@ -140,6 +155,8 @@ def crear_plantaBD(dataframes, name, description, ventana):
     ventanas_emergentes.messagebox.showinfo("Registros añadidos",
                                             """Se añadieron con éxito todos los registros de procesos, técnicos, modelos, referencias y tiempos.""")
     
+
+    glo.turnos.set_times()
     glo.actualizar_todo()
 
 @e.manejar_errores("---Crear planta. Transformando el df de tecnicos y procesos en los que recibe la base de datos---")
@@ -184,8 +201,19 @@ def genera_tiempos_modelos_default(df_modelos, df_procesos):
     print(df_combinaciones)                                   # Mostrar el resultado
     return df_combinaciones
 
-def editar_planta_BD():
-    pass
+def editar_planta_BD(ventana, bbdd):
+    nombre      = ventana.varNombre.get()
+    descripcion = ventana.entryDescripcion.get(index1="1.0")
+    iniciaAM    = ventana.varInicia_AM.get()
+    terminaAM   = ventana.varTermina_AM.get()
+    iniciaPM    = ventana.varInicia_PM.get()
+    terminaPM   = ventana.varTermina_PM.get()
+    ventana.rootAux.destroy()
+
+    BBDD.actualizar_planta_info(bbdd, nombre, descripcion , iniciaAM, terminaAM , iniciaPM, terminaPM)
+    ventanas_emergentes.messagebox.showinfo("Planta Actualizada", "Se ha actualizado la información básica de la Planta")
+    glo.actualizar_todo()
+
 #####################################################################################################################
 ################EVENTOS PARA SECCION DE MODELOS######################################################################
 #####################################################################################################################
@@ -457,6 +485,44 @@ def eliminar_referencia_BBDD(botonPulsado, bbdd):
 ################### EVENTOS PARA SECCION TÉCNICOS ###################################################################
 #####################################################################################################################
 
+@e.manejar_errores("---Actualizar Técnico. Abriendo una ventana para modificar un técnico---")
+def editar_tecnico_BD(ventana, datos, bbdd):
+    ventana.rootAux.destroy()
+    ventEditar = ventanas_topLevel.VentanaEditaTecnico("EDITAR", "TECNICO")
+    ventEditar.set_values(datos)
+    id_anterior = datos[0]
+    ventEditar.asignafuncion(funcionGuardar  = lambda:guardar_tecnico_actualizado(id_anterior, ventEditar, bbdd),
+                             funcionCancelar = lambda:ventEditar.rootAux.destroy)
+
+@e.manejar_errores("---Actualizar Técnico. Recogiendo datos y efectuando actualizacion de técnico en base de datos---")
+def guardar_tecnico_actualizado(id_anterior, ventana, bbdd):
+    
+    nombre = ventana.varNombre.get()
+    apellido = ventana.varApellido.get()
+    documento = ventana.varDocumento.get()
+    especialidad = ventana.varEspecialidad.get()
+    ventana.rootAux.destroy()
+
+    id_tecnico_nuevo = genera_idTecnico(nombre, apellido, documento)
+    BBDD.actualizar_tecnico(bbdd, id_tecnico_nuevo, nombre, apellido, documento, especialidad, id_anterior)
+    
+    df_tecnProc = BBDD.leer_tecnicos_procesos_df(bbdd)
+
+    df_tecnProc_anterior = df_tecnProc[df_tecnProc['ID_PROCESO'] == id_anterior]
+
+    ids_tecnProc_anterior, ids_procesos = df_tecnProc_anterior["TEC_PROC"], df_tecnProc_anterior["ID_PROCESO"]
+    
+    ids_tecnProc_nuevo = []
+    for id_proceso in ids_procesos:
+        nuevo_id_tecnProc = f"{id_tecnico_nuevo}{id_proceso}"
+        ids_tecnProc_nuevo.append(nuevo_id_tecnProc)
+
+    BBDD.actualizar_tecnicos_proceso_many(bbdd, ids_tecnProc_anterior, ids_tecnProc_nuevo, id_tecnico_nuevo)
+
+    ventanas_emergentes.messagebox.showinfo("Tecnico actualizado",
+                                            f"Tecnico {id_anterior} actualizado con éxito.")
+
+
 @e.manejar_errores("---Check Tecnicos. Recogiendo checkbox para verificar los técnicos a incluir en el programa---")
 def recoge_check_tecnicos():
     checktecnicos = {}     # Crear un nuevo diccionario temporal para almacenar las claves modificadas
@@ -500,6 +566,50 @@ def eliminar_tecnico_BD(ventana, bbdd):
 #####################################################################################################################
 ################### EVENTOS PARA SECCION PROCESOS ###################################################################
 #####################################################################################################################
+@e.manejar_errores("---Actualizar Proceso. Abriendo una ventana para modificar un proceso---")
+def editar_proceso_BD(ventana, datos, bbdd):
+    ventana.rootAux.destroy()
+    ventEditar = ventanas_topLevel.VentanaEditaProceso("EDITAR", "PROCESO")
+    ventEditar.set_values(datos)
+    id_anterior = datos[0]
+    ventEditar.asignafuncion(funcionGuardar  = lambda:guardar_proceso_actualizado(id_anterior, ventEditar, bbdd),
+                             funcionCancelar = lambda:ventEditar.rootAux.destroy)
+    
+@e.manejar_errores("---Actualizar Proceso. Recogiendo datos y efectuando actualizacion de proceso en base de datos---")
+def guardar_proceso_actualizado(id_anterior, ventana, bbdd):
+    nombre = ventana.varNombre.get()
+    id_proceso_nuevo = ventana.varIdProceso.get()
+    descripcion = ventana.varDescripcion.get()
+    secuencia = ventana.varSecuencia.get()
+    ventana.rootAux.destroy()
+
+    BBDD.actualizar_proceso(bbdd, id_proceso_nuevo, nombre, descripcion, secuencia, id_anterior)
+    
+    df_timeMode = BBDD.leer_procesos_modelos_df(bbdd)
+    df_tecnProc = BBDD.leer_tecnicos_procesos_df(bbdd)
+
+    df_timeMode_anterior = df_timeMode[df_timeMode['ID_PROCESO'] == id_anterior]
+    df_tecnProc_anterior = df_tecnProc[df_tecnProc['ID_PROCESO'] == id_anterior]
+
+    ids_timeMode_anterior, ids_modelos = df_timeMode_anterior["PROCESO_MODELO"], df_timeMode_anterior["ID_MODELO"]
+    ids_tecnProc_anterior, ids_tecnicos = df_tecnProc_anterior["TEC_PROC"], df_tecnProc_anterior["ID_TECNICO"]
+
+    ids_timeMode_nuevo = []
+    for id_modelo in ids_modelos:
+        nuevo_id_timeMode = f"{id_proceso_nuevo}-{id_modelo}"
+        ids_timeMode_nuevo.append(nuevo_id_timeMode)
+    
+    ids_tecnProc_nuevo = []
+    for id_tecnico in ids_tecnicos:
+        nuevo_id_tecnProc = f"{id_tecnico}{id_proceso_nuevo}"
+        ids_tecnProc_nuevo.append(nuevo_id_tecnProc)
+
+    BBDD.actualizar_proceso_modelos_many(bbdd, ids_timeMode_anterior, ids_timeMode_nuevo, id_proceso_nuevo)
+    BBDD.actualizar_tecnicos_proceso_many(bbdd, ids_tecnProc_anterior, ids_tecnProc_nuevo, id_proceso_nuevo)
+
+    ventanas_emergentes.messagebox.showinfo("Proceso actualiado",
+                                            f"Proceso {id_anterior} actualizado con éxito.")
+
 @e.manejar_errores("---Crear Proceso. Recogiendo datos de proceso nuevo y almacenando en base de datos---")
 def guardar_proceso_nuevo(ventana, bbdd):
     datos = (ventana.varIdProceso.get(),
@@ -758,30 +868,8 @@ def mostrar_gantt_programa(id_programa, bbdd):
     fin_horizonte    = df["FIN"].max()       # Encontrar el valor máximo de cada columna
 
     startAM, endAM, startPM, endPM = BBDD.leer_turnos_programa(bbdd, id_programa)
-    iniciaAM, terminaAM, iniciaPM, terminaPM = (datetime.datetime.strptime(hora, '%H:%M').time() for hora in (startAM, endAM, startPM, endPM))
-
-    nuevas_filas = []               # Lista para almacenar las nuevas filas
-    for row in df.itertuples(index=True, name='Pandas'):    # Iterar sobre las filas usando itertuples()
-        id_orden    = row.CODIGO_ORDEN
-        inicioTarea = row.INICIO.to_pydatetime().replace(microsecond=0)
-        finTarea    = row.FIN.to_pydatetime().replace(microsecond=0)
-        
-        bloques     = model_datetime.definir_bloques(iniciaAM, terminaAM, iniciaPM, terminaPM, inicioTarea, finTarea)
-        if bloques == None:
-            continue
-    
-        # Replicar la fila tantas veces como elementos tenga la lista "bloques"
-        for inicio, fin in bloques:
-            nueva_fila = row._asdict()
-            nueva_fila['INICIO'] = inicio
-            nueva_fila['FIN'] = fin
-            nuevas_filas.append(nueva_fila)
-
-    df_nuevas_filas = pd.DataFrame(nuevas_filas)                                    # Crear un nuevo DataFrame con las nuevas filas
-    df = df[~df['CODIGO_ORDEN'].isin(df_nuevas_filas['CODIGO_ORDEN'])]    # Eliminar las filas originales que cumplen la condición
-    df = pd.concat([df, df_nuevas_filas], ignore_index=True)                        # Añadir las nuevas filas al DataFrame original
-
-    gantt_tecnicos, gantt_vehiculos = model_gantt.generar_gantt(df, inicio_horizonte, fin_horizonte)
+    df_con_bloques = incluir_bloques_horarios(df, startAM, endAM, startPM, endPM)
+    gantt_tecnicos, gantt_vehiculos = model_gantt.generar_gantt(df_con_bloques, inicio_horizonte, fin_horizonte)
 
     diagramas = {"diagramaTecnicos" : gantt_tecnicos,
                  "diagramaVehiculos": gantt_vehiculos}
@@ -1338,20 +1426,27 @@ def aceptarFechayHoraProg(ventana, tipoPrograma, bbdd):
         print(f"el horizonte es {horizonte_calculado}")
     
     ########## GRAFICAR PROGRAMACIÓN EN GANTT ##########
-    diagramaTecnicos = model_callGantt.generar_gantt_tecnicos(personal    = tecnicos_a_programar,
-                                              fechaStart  = fecha,
-                                              horaStart   = hora,
-                                              horizonte_calculado = horizonte_calculado)
-    diagramaVehiculos = model_callGantt.generar_gantt_vehiculos(pedido     =  pedido_a_programar,
-                                              fechaStart  = fecha,
-                                              horaStart   = hora,
-                                              horizonte_calculado = horizonte_calculado)
+    inicio = datetime.datetime.strptime(fecha + " " + hora, "%Y-%m-%d %H:%M:%S")
+    df_con_bloques = incluir_bloques_horarios(diccPrograma["programa"],
+                                              glo.turnos.startAM.get(),
+                                              glo.turnos.endAM.get(),
+                                              glo.turnos.startPM.get(),
+                                              glo.turnos.endPM.get())
     
-    for diccionario, clave in zip((diagramaTecnicos, diagramaVehiculos), ('tecnicos', 'vehiculos')):
-        diccionario['items'] = diccionario.pop(clave)
+    gantt_tecnicos, gantt_vehiculos = model_gantt.generar_gantt(df_con_bloques,
+                                                                inicio,
+                                                                horizonte_calculado)
+    #diagramaTecnicos = model_callGantt.generar_gantt_tecnicos(personal    = tecnicos_a_programar,
+    #                                          fechaStart  = fecha,
+    #                                          horaStart   = hora,
+    #                                          horizonte_calculado = horizonte_calculado)
+    #diagramaVehiculos = model_callGantt.generar_gantt_vehiculos(pedido     =  pedido_a_programar,
+    #                                          fechaStart  = fecha,
+    #                                          horaStart   = hora,
+    #                                          horizonte_calculado = horizonte_calculado)
 
-    diagramas = {"diagramaTecnicos" : diagramaTecnicos,
-                 "diagramaVehiculos": diagramaVehiculos}
+    diagramas = {"diagramaTecnicos" : gantt_tecnicos,
+                 "diagramaVehiculos": gantt_vehiculos}
     
 
     ########## PREPARAR INFORMACIÓN PARA BASE DE DATOS ############
@@ -1406,6 +1501,48 @@ def aceptar_guardar_programa(ventana, programa, pedido, df_programa, bbdd):
     else:
         ventanas_emergentes.messagebox.showinfo("Programa Agregado", f"Se agregaron correctamente las órdenes y el  programa de producción a la base de datos")
 
+def incluir_bloques_horarios(df, startAM, endAM, startPM, endPM):
+    """
+    Incluir bloques de tiempo vacías en programa o históricos,
+    de acuerdode horarios en el DataFrame de órdenes de producción.
+
+    :param df: DataFrame de órdenes de producción.
+    :param startAM: Hora de inicio del turno de la mañana.
+    :param endAM: Hora de fin del turno de la mañana.
+    :param startPM: Hora de inicio del turno de la tarde.
+    :param endPM: Hora de fin del turno de la tarde.
+
+    :return: DataFrame de órdenes de producción con lo horarios incluidos.
+    """
+    iniciaAM, terminaAM, iniciaPM, terminaPM = (
+                                                hora if isinstance(hora, datetime.time)
+                                                else datetime.datetime.strptime(hora, '%H:%M').time()
+                                                for hora in (startAM, endAM, startPM, endPM)
+                                                )
+    nuevas_filas = []               # Lista para almacenar las nuevas filas
+    for row in df.itertuples(index=True, name='Pandas'):    # Iterar sobre las filas usando itertuples()
+        id_orden    = row.CODIGO_ORDEN
+        inicioTarea = row.INICIO.to_pydatetime().replace(microsecond=0)
+        finTarea    = row.FIN.to_pydatetime().replace(microsecond=0)
+        
+        bloques     = model_datetime.definir_bloques(iniciaAM, terminaAM, iniciaPM, terminaPM, inicioTarea, finTarea)
+        if bloques == None:
+            continue
+    
+        # Replicar la fila tantas veces como elementos tenga la lista "bloques"
+        for inicio, fin in bloques:
+            nueva_fila = row._asdict()
+            nueva_fila['INICIO'] = inicio
+            nueva_fila['FIN'] = fin
+            nuevas_filas.append(nueva_fila)
+
+    df_nuevas_filas = pd.DataFrame(nuevas_filas)                           # Crear un nuevo DataFrame con las nuevas filas
+    df_con_bloques = df[~df['CODIGO_ORDEN'].isin(df_nuevas_filas['CODIGO_ORDEN'])]    # Eliminar las filas originales que cumplen la condición
+    df_con_bloques = pd.concat([df_con_bloques, df_nuevas_filas], ignore_index=True)               # Añadir las nuevas filas al DataFrame original
+
+    return df_con_bloques
+
+      
 ###############################################################################################################################
 ####################### FUNCIONES GENERADORAS DE ID ###########################################################################
 ###############################################################################################################################
@@ -1556,16 +1693,16 @@ def transformar_dataframe_ordenes(df_ordenes, id_programa, bbdd):
         3. Agrega una columna "id_programa" al DataFrame.
     """
 
-    df_reducido = df_ordenes.drop(["marca",                           #RETIRAR LAS COLUMNAS QUE NO VAN EN LA BBDD
-                                    "modelo",
-                                    "color",
-                                    "novedades",
-                                    "pedido",
-                                    "nombre_tecnico",
-                                    "plazo"],
+    df_reducido = df_ordenes.drop(["MARCA",                           #RETIRAR LAS COLUMNAS QUE NO VAN EN LA BBDD
+                                    "MODELO",
+                                    "COLOR",
+                                    "NOVEDADES",
+                                    "PEDIDO",
+                                    "TECNICO",
+                                    "PLAZO"],
                        axis=1)
     df_reducido["id_programa"] = id_programa                           # AÑADIR EL MISMO PROGRAMA A TODAS LAS ÓRDENES
-    df_reducido = df_reducido.rename(columns={"proceso":"ID_PROCESO"}) # CAMBIAR EL NOMBRE DE LA COLUMNA DE PROCESO
+    df_reducido = df_reducido.rename(columns={"PROCESO":"ID_PROCESO"}) # CAMBIAR EL NOMBRE DE LA COLUMNA DE PROCESO
     print(df_reducido.to_string())
     return df_reducido
 

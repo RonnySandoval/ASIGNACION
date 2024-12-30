@@ -35,11 +35,11 @@ strVar_newPedido = {}
 cons_newPedido = {}
 
 #VARIABLES PARA EVENTOS
-actualizar_todo = None          #Utilizada por el modulo main
-base_datos = None               #Utilizada por los modulos que interacturan con la base de datos, en especial, eventos
-gantt = False                   #Utilizada por los modulos gantt y llamar gantt. Variable para saber si se ha creado un gantt
-huerfanos = None                #Utilizada por el modulo de Bdvalidar
-raiz_principal = None           #Utilizada por el modulo main y el modulo eventos
+actualizar_todo = None          #Función del módulo root y Utilizada por el modulo main
+base_datos = None               #cadena de terzo utilizada por los modulos que interacturan con la base de datos, en especial, eventos
+gantt = False                   #Variable Boleana para saber si se ha creado un gantt. Utilizada por los modulos gantt y llamar gantt.  
+huerfanos = None                #Objeto de Clase Utilizada por el modulo de BDdvalidar, que determina si hayregistros huérfanos en la base de datos
+raiz_principal = None           #Objeto de la clase ctk.CTk, utilizada por el modulo main y el modulo eventos
 turnos = None                   #Utilizada por los modulos fecha_hora, modelo_clases, eventos, gantt, llamar_gantt
 
 ################################################

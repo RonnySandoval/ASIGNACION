@@ -11,6 +11,7 @@ import controller.glo as glo
 import database.BBDD as BBDD
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import matplotlib.pyplot as plt
+import view.ventanas_emergentes as ventanas_emergentes
 
 class RaizTopLevel:
     
@@ -303,7 +304,6 @@ class VentanaGestionaVehiculos:
         self.labelTitulo   = ctk.CTkLabel(self.frameTitulo, text = self.titulo + " VEHICULO", font = textoGrande)
         self.labelTitulo.pack(expand=True, side="top", fill="x", padx=20, pady=5)
 
-
         self.labelChasis   = ctk.CTkLabel(self.frameEntradas, text = "CHASIS", font = texto1Bajo, anchor="w")
         self.labelChasis.grid(row=0,column=0, sticky="ew", padx=20, pady=3)
         self.entryChasis = ctk.CTkEntry  (self.frameEntradas, font = numerosMedianos, width=12, textvariable=self.varChasis) 
@@ -347,15 +347,15 @@ class VentanaGestionaVehiculos:
         self.entryPedido.grid(row=len(self.procesos)+7,column=1, sticky="ew", padx=20 , pady=3)
 
 
-        self.buttonCancelar = ctk.CTkButton(self.frameEntradas,text="Cancelar", font=texto1Bajo, bg_color=naranjaMedio, command="")   
+        self.buttonCancelar = ctk.CTkButton(self.frameEntradas,text="Cancelar", font=texto1Bajo, fg_color=naranjaMedio, hover_color=naranjaClaro, command="")   
         self.buttonCancelar.grid(row=len(self.procesos)+8, column=0, padx=22, pady=10)
 
         if self.accion == "AGREGAR":
-            self.buttonAgregar = ctk.CTkButton(self.frameEntradas,text="Agregar", font=textoGrande, bg_color=azulMedio, command="")    
+            self.buttonAgregar = ctk.CTkButton(self.frameEntradas,text="Agregar", font=textoGrande, fg_color=azulMedio, hover_color=azulClaro, command="")    
             self.buttonAgregar.grid(row=len(self.procesos)+8, column=1, padx=22, pady=10)
 
         if self.accion == "MODIFICAR":
-            self.buttonAgregar = ctk.CTkButton(self.frameEntradas,text="Reemplazar", font=textoGrande, bg_color=azulMedio, command="")    
+            self.buttonAgregar = ctk.CTkButton(self.frameEntradas,text="Reemplazar", font=textoGrande, fg_color=azulMedio, hover_color=azulClaro, command="")    
             self.buttonAgregar.grid(row=len(self.procesos)+8, column=1, padx=22, pady=10)            
 
     def defineAccionyEstilo(self):
@@ -1469,7 +1469,8 @@ class VentanaModificarPedido(RaizTopLevel):
         self.labelEntryFechaEstimada.varFecha.set(estimada)
         self.labelEntryFechaEntrega.varFecha.set(entrega)
 
-class ventanaGraficos(RaizTopLevel) :
+class ventanaGraficos(RaizTopLevel):
+
     def __init__(self, geometry, id_programa, diagramas, df=None):
         RaizTopLevel.__init__(self, geometry)
         self.frameTitulo.configure(fg_color="black")
@@ -1505,7 +1506,7 @@ class ventanaGraficos(RaizTopLevel) :
         # Llamar a las funciones de cierre de ambos gráficos
         self.ganttTecnicos.on_top_closing(top=self.rootAux)
         self.ganttVehiculos.on_top_closing(top=self.rootAux)
-        self.destroy()                  # Destruir la ventana
+        self.rootAux.destroy()                  # Destruir la ventana
 
     def mostrar_frame(self, frame):
 
@@ -1516,6 +1517,7 @@ class ventanaGraficos(RaizTopLevel) :
         frame.pack(expand=True, side="top", fill="both", padx=20, pady=20)
 
 class GraficoGantt:
+
     def __init__(self, master, diagrama):
         # Configurar atributos del diagrama
         self.fig = diagrama["fig"]
@@ -1581,7 +1583,7 @@ class FrameTablaGenerica:
         for _, registro in df.iterrows():              # Insertar los registros en el Treeview
             self.tree.insert("", "end", values=list(registro))
 
-        self.tree.pack(expand=True, side = "top", fill="both")            # Agregar el Treeview a la ventana
+        self.tree.pack(expand=True, side = "top", fill="both", padx=30)            # Agregar el Treeview a la ventana
 
     def destroy(self):
     
@@ -1684,14 +1686,13 @@ class VentanaPreviewLoad:
         self.buttonAceptar.configure(command = funcionAceptar)
         self.buttonCancelar.configure(command = funcionCancelar)
 
-class VentanaCreaEditarPlanta:       #Ventana para crear o editar modelos
+class VentanaEditarPlanta:       #Ventana para crear o editar modelos
     def __init__(self, tipo, bbdd):
 
         self.rootAux = ctk.CTkToplevel()
         self.rootAux.title("Editar Planta")
         self.rootAux.config(background = grisOscuro)
-        self.rootAux.iconbitmap("image\\logo5.ico")
-        self.rootAux.geometry("450x300")
+        self.rootAux.geometry("450x500")
         self.rootAux.lift()  # Eleva la ventana Toplevel para que esté al frente
         self.rootAux.attributes('-topmost', 1)  # También puede asegurar que quede al frente
 
@@ -1699,15 +1700,15 @@ class VentanaCreaEditarPlanta:       #Ventana para crear o editar modelos
         self.frameTitulo.pack(expand=True, side="top", fill="both")
         self.frameEntradas = ctk.CTkFrame(self.rootAux, fg_color=grisOscuro)
         self.frameEntradas.pack(expand=True, side="top", fill="both", pady=10)
-        self.frameVista = ctk.CTkFrame(self.rootAux, fg_color=grisOscuro)
-        self.frameVista.pack(expand=True, side="bottom", fill="both")
+        self.frameHorarios = ctk.CTkFrame(self.rootAux, fg_color=grisOscuro)
+        self.frameHorarios.pack(expand=True, side="bottom", fill="both")
 
         # variables objeto para los entry. Deben ser parte del constructor, paraétodos
         self.varNombre      = tk.StringVar()
         self.varDescripcion = tk.StringVar()
 
         #LABEL PARA TITULO Y CAMPOS
-        self.labelTitulo      = ctk.CTkLabel(self.frameTitulo,   text = "EDITAR INFORMACIÓN DE PLANTA", font = textoGrande, text_color = blancoFrio, bg_color = grisOscuro)
+        self.labelTitulo      = ctk.CTkLabel(self.frameTitulo,   text = tipo +" INFORMACIÓN DE PLANTA", font = textoGrande, text_color = blancoFrio, bg_color = grisOscuro)
         self.labelNombre      = ctk.CTkLabel(self.frameEntradas, text = "Nombre de Planta", font = texto1Medio, text_color = blancoFrio, bg_color = grisOscuro)
         self.labelDescripcion = ctk.CTkLabel(self.frameEntradas, text = "Descripción de Planta", font = texto1Medio,text_color = blancoFrio, bg_color = grisOscuro)
 
@@ -1716,12 +1717,14 @@ class VentanaCreaEditarPlanta:       #Ventana para crear o editar modelos
         self.labelDescripcion.grid(row=2, column=0, sticky="ew", padx=20, pady=5)
 
         #ENTRY PARA CAMPOS
-        self.entryNombre      = ctk.CTkEntry(self.frameEntradas, font = numerosMedianos, text_color = blancoHueso, bg_color=moradoOscuro, width=30, textvariable=self.varNombre)
-        self.entryDescripcion = ctk.CTkEntry(self.frameEntradas, font = numerosMedianos, text_color = blancoHueso, bg_color=moradoOscuro, width=30, textvariable=self.varDescripcion)
+        self.entryNombre      = ctk.CTkEntry(self.frameEntradas, font = numerosMedianos, text_color = blancoHueso, bg_color=grisOscuro, width=30, textvariable=self.varNombre)
+        self.entryDescripcion = ctk.CTkTextbox(self.frameEntradas, font = numerosMedianos, text_color = blancoHueso, bg_color=grisOscuro, width=30, height=112, border_color=grisMedio, border_width=2)
 
         self.entryNombre.grid     (row=0,column=1, sticky="ew", pady=5)
         self.entryDescripcion.grid(row=2,column=1, sticky="ew", pady=5)
 
+        self.nombre, self.descripcion, self.iniciaAM, self.terminaAM, self.iniciaPM, self.terminaPM = BBDD.leer_planta_info(bbdd)
+        self.construyeCamposHorarios(iniciaAM=self.iniciaAM, terminaAM=self.terminaAM, iniciaPM=self.iniciaPM, terminaPM=self.terminaPM)
 
         self.buttonCancelar = ctk.CTkButton(self.frameEntradas, text="Cancelar", font = texto1Bajo, text_color = blancoFrio,
                                             fg_color = azulOscuro, hover_color = azulMedio, command="")
@@ -1731,13 +1734,238 @@ class VentanaCreaEditarPlanta:       #Ventana para crear o editar modelos
                                               fg_color = naranjaOscuro,  hover_color = naranjaMedio, command="")    
         self.buttonAceptar.grid(row=4, column=1, padx=22, pady=10)
 
-        self.nombre, self.descripcion = BBDD.leer_planta_info(bbdd)
         if tipo == "EDITAR":
-            self.set_values(self.nombre, self.descripcion)
+            self.set_values()
+            
+    def construyeCamposHorarios(self, iniciaAM, terminaAM, iniciaPM, terminaPM):
+
+        self.frameTurnos = ctk.CTkFrame(self.frameHorarios, fg_color=grisOscuro)
+        self.frameTurnos.pack(fill="both", side="top")
+
+        self.labelTurnoAM = ctk.CTkLabel(self.frameTurnos, text="TURNO AM", anchor="center", fg_color=grisOscuro, width=30)
+        self.labelTurnoAM.grid(row=0, column=0, columnspan = 4, padx=5)
+
+        self.labelTurnoPM = ctk.CTkLabel(self.frameTurnos, text="TURNO PM", anchor="center", fg_color=grisOscuro, width=30)
+        self.labelTurnoPM.grid(row=0, column=4, columnspan = 4, padx=5)
+
+        # Configurar columnas: 
+        for columna in range(0,7):
+            # Las columnas 0 y 5 son las de los extremos (espacio vacío).
+            self.frameTurnos.grid_columnconfigure(columna, weight=1)  # Espacio izquierdo
+
+        self.varInicia_AM = tk.StringVar(value=iniciaAM)
+        self.entryIniciaAM = ctk.CTkEntry(self.frameTurnos, font=numerosGrandes, textvariable = self.varInicia_AM, width=60)
+        self.entryIniciaAM.grid(row=1, column=1, padx=5, pady=5)
+        self.entryIniciaAM.bind("<FocusOut>", self.validar_hora)
+
+        self.varTermina_AM = tk.StringVar(value=terminaAM)
+        self.entryTerminaAM = ctk.CTkEntry(self.frameTurnos, font=numerosGrandes, textvariable = self.varTermina_AM, width=60)
+        self.entryTerminaAM.grid(row=1, column=2, padx=5, pady=5)
+        self.entryTerminaAM.bind("<FocusOut>", self.validar_hora)
+
+        self.varInicia_PM = tk.StringVar(value=iniciaPM)
+        self.entryIniciaPM = ctk.CTkEntry(self.frameTurnos, font=numerosGrandes, textvariable = self.varInicia_PM, width=60)
+        self.entryIniciaPM.grid(row=1, column=5, padx=5, pady=5)
+        self.entryIniciaPM.bind("<FocusOut>", self.validar_hora)
+
+        self.varTermina_PM = tk.StringVar(value=terminaPM)
+        self.entryTerminaPM = ctk.CTkEntry(self.frameTurnos, font=numerosGrandes, textvariable = self.varTermina_PM, width=60)
+        self.entryTerminaPM.grid(row=1, column=6, padx=5, pady=5)
+        self.entryTerminaPM.bind("<FocusOut>", self.validar_hora)
+
     def asignafuncion(self, funcionAceptar, funcionCancelar):               #Método para asignar la función al command button de aceptar y cancelar desde otro módulo.
         self.buttonAceptar.configure(command = funcionAceptar)    
         self.buttonCancelar.configure(command = funcionCancelar)
     
-    def set_values(self, nombre, descripcion):
-        self.varNombre.set(nombre)
-        self.varDescripcion.set(descripcion)
+    def validar_hora(self, event):
+        """Valida que el formato sea HH:MM en los Entry al perder el foco"""
+        entry = event.widget
+        texto = entry.get()
+
+        if texto:  # Solo validar si no está vacío
+            if not re.match(r'^\d{2}:\d{2}$', texto):  # Valida el formato HH:MM
+                ventanas_emergentes.messagebox.showerror("Formato de Hora Inválido",
+                                                         f"'{texto}' no es un formato válido.\nUtilice 'HH:MM'.")
+                entry.focus_set()  # Vuelve a enfocar el Entry
+                entry.delete(0, tk.END)  # Borra el contenido inválido
+
+    def set_values(self):
+        """Establece los valores de los Entry con los datos de la planta a editar."""
+        self.varNombre.set(self.nombre)
+        self.entryDescripcion.insert(index="1.0", text=self.descripcion)
+        self.varInicia_AM.set(self.iniciaAM)
+        self.varTermina_AM.set(self.terminaAM)
+        self.varInicia_PM.set(self.iniciaPM)
+        self.varTermina_PM.set(self.terminaPM)
+
+class VentanaTablaEditar:       #Ventana para crear o editar modelos
+
+    def __init__(self, tipo, bbdd, funcion):
+
+        self.rootAux = ctk.CTkToplevel()
+        self.rootAux.title(f"Editar {tipo.lower()}")
+        self.rootAux.config(background = grisOscuro)
+        self.rootAux.lift()  # Eleva la ventana Toplevel para que esté al frente
+        self.rootAux.attributes('-topmost', 1)  # También puede asegurar que quede al frente
+
+        if tipo == "TECNICO":
+            self.df_datos = BBDD.leer_tecnicos_df(bbdd)
+        elif tipo == "PROCESO":
+            self.df_datos = BBDD.leer_procesos_df(bbdd)
+
+        self.tablaEditar = FrameTablaGenerica(master = self.rootAux, nombreVentana=tipo, df=self.df_datos)
+        self.tablaEditar.labeltitulo.configure(text = "SELECCIONE "+tipo+" A MODIFICAR")
+
+        self.tablaEditar.tree.bind("<ButtonRelease-1>", lambda event: self.click_fila(event, funcion))    # Vincular el evento de clic en la fila
+        self.tablaEditar.tree.bind("<Motion>", self.on_motion)                   # Vincular el evento de movimiento del ratón
+        self.last_highlighted = None                                        # Almacenar la última fila resaltada
+    
+    def click_fila(self, event, funcion):
+
+        tabla = event.widget
+        filas_seleccionadas = tabla.selection()
+        if filas_seleccionadas:
+            print("Filas seleccionadas con click_fila:", filas_seleccionadas)
+            self.item_selection = tabla.item(filas_seleccionadas[0], "values")
+            print("Datos de la fila seleccionada:", self.item_selection)
+            funcion(self, self.item_selection, glo.base_datos)
+
+    def on_motion(self, event):
+        row_id = self.tablaEditar.tree.identify_row(event.y)
+        if row_id != self.last_highlighted:
+            # Restaurar el color de la última fila resaltada
+            if self.last_highlighted:
+                self.tablaEditar.tree.item(self.last_highlighted, tags=())
+
+            # Resaltar la nueva fila
+            self.tablaEditar.tree.item(row_id, tags=("highlight",))
+            self.last_highlighted = row_id
+
+        # Configurar el estilo para la fila resaltada
+        self.tablaEditar.tree.tag_configure("highlight", background=verdeClaro, foreground=verdeOscuro)
+
+class VentanaEditaProceso:
+    def __init__(self, tipo, item):
+
+        self.rootAux = ctk.CTkToplevel()
+        self.rootAux.title(f"{tipo.lower()} nuevo {item.lower()}")
+        self.rootAux.config(background = grisVerdeMedio)
+        self.rootAux.iconbitmap("image\logo5.ico")
+        self.rootAux.resizable(False, False)
+
+        self.frameTitulo = ctk.CTkFrame(self.rootAux, fg_color=grisVerdeMedio)
+        self.frameTitulo.pack(expand=True, side="top", fill="both")
+        self.frameEntradas = ctk.CTkFrame(self.rootAux, fg_color=grisVerdeMedio)
+        self.frameEntradas.pack(expand=True, side="bottom", fill="both", pady=10)
+
+        # variables objeto para los entry. Deben ser parte del constructor, para poder usarlas en sus métodos
+        self.varNombre       = tk.StringVar()
+        self.varIdProceso     = tk.StringVar()
+        self.varDescripcion = tk.StringVar() 
+        self.varSecuencia    = tk.StringVar() 
+    
+        #LABEL PARA TITULO Y CAMPOS
+        self.labelTitulo       = ctk.CTkLabel(self.frameTitulo,   text = f"{tipo} {item}",           font = textoGrande, text_color = blancoHueso, fg_color=grisVerdeMedio)
+        self.labelNombre       = ctk.CTkLabel(self.frameEntradas, text = "Nombre",                  font = texto1Medio, text_color = blancoHueso, fg_color=grisVerdeMedio)
+        self.labelIdProceso     = ctk.CTkLabel(self.frameEntradas, text = "Identificador",           font = texto1Medio, text_color = blancoHueso, fg_color=grisVerdeMedio)
+        self.labelDescripcion = ctk.CTkLabel(self.frameEntradas, text = "Descripción",             font = texto1Medio, text_color = blancoHueso, fg_color=grisVerdeMedio)
+        self.labelSecuencia    = ctk.CTkLabel(self.frameEntradas, text = "Secuencia en el proceso", font = texto1Medio, text_color = blancoHueso, fg_color=grisVerdeMedio)
+
+        self.labelTitulo.pack      (expand=True, side="top", fill="x", padx=20, pady=20)
+        self.labelNombre.grid      (row=0, column=0, sticky="ew", padx=20, pady=5)
+        self.labelIdProceso.grid    (row=1, column=0, sticky="ew", padx=20, pady=5)
+        self.labelDescripcion.grid(row=2, column=0, sticky="ew", padx=20, pady=5)
+        self.labelSecuencia.grid   (row=3, column=0, sticky="ew", padx=20, pady=5)
+
+        #ENTRY PARA CAMPOS
+        self.entryNombre    = ctk.CTkEntry      (self.frameEntradas, font = numerosMedianos, text_color = blancoHueso, fg_color=grisOscuro, width=30, textvariable=self.varNombre)
+        self.entryIdProceso  = ctk.CTkEntry    (self.frameEntradas, font = numerosMedianos, text_color = blancoHueso, fg_color=grisOscuro, width=30, textvariable=self.varIdProceso)
+        self.entryDescripcion = ctk.CTkEntry(self.frameEntradas, font = numerosMedianos, text_color = blancoHueso, fg_color=grisOscuro, width=30, textvariable=self.varDescripcion)
+        self.entrySecuencia = ctk.CTkEntry   (self.frameEntradas, font = numerosMedianos, text_color = blancoHueso, fg_color=grisOscuro,  width=30, textvariable=self.varSecuencia)
+
+        self.entryNombre.grid       (row=0, column=1, sticky="ew", pady=5, padx=20)
+        self.entryIdProceso.grid     (row=1, column=1, sticky="ew", pady=5, padx=20)    
+        self.entryDescripcion.grid (row=2, column=1, sticky="ew", pady=5, padx=20)
+        self.entrySecuencia.grid    (row=3, column=1, sticky="ew", pady=5, padx=20)
+
+        self.buttonCancelar = ctk.CTkButton(self.frameEntradas, text="Cancelar", font = texto1Bajo,  fg_color = naranjaMedio, text_color = blancoFrio, hover_color = naranjaClaro,
+                                        command="")   
+        self.buttonGuardar  = ctk.CTkButton(self.frameEntradas, text="Guardar",  font = textoGrande, fg_color = azulMedio, text_color = blancoFrio, hover_color = azulClaro,
+                                        command="")    
+
+        self.buttonCancelar.grid(row=4, column=0, padx=22, pady=10)
+        self.buttonGuardar.grid(row=4, column=1, padx=22, pady=10)
+
+    def set_values(self, datos):
+        """Establece los valores de los Entry con los datos del proceso o técnico a editar."""
+        self.varNombre.set(datos[1])
+        self.varIdProceso.set(datos[0])
+        self.varDescripcion.set(datos[2])
+        self.varSecuencia.set(datos[3])
+
+    def asignafuncion(self, funcionGuardar, funcionCancelar):
+        self.buttonGuardar.configure(command = funcionGuardar)
+        self.buttonCancelar.configure(command = funcionCancelar)
+
+class VentanaEditaTecnico:
+    def __init__(self, tipo, item):
+
+        self.rootAux = ctk.CTkToplevel()
+        self.rootAux.title(f"{tipo.lower()} nuevo {item.lower()}")
+        self.rootAux.config(background = grisVerdeMedio)
+        self.rootAux.iconbitmap("image\logo5.ico")
+        self.rootAux.resizable(False, False)
+
+        self.frameTitulo = ctk.CTkFrame(self.rootAux, fg_color=grisVerdeMedio)
+        self.frameTitulo.pack(expand=True, side="top", fill="both")
+        self.frameEntradas = ctk.CTkFrame(self.rootAux, fg_color=grisVerdeMedio)
+        self.frameEntradas.pack(expand=True, side="bottom", fill="both", pady=10)
+
+        # variables objeto para los entry. Deben ser parte del constructor, para poder usarlas en sus métodos
+        self.varNombre       = tk.StringVar()
+        self.varApellido     = tk.StringVar()
+        self.varDocumento = tk.StringVar() 
+        self.varEspecialidad    = tk.StringVar() 
+    
+        #LABEL PARA TITULO Y CAMPOS
+        self.labelTitulo       = ctk.CTkLabel(self.frameTitulo,   text = f"{tipo} {item}", font = textoGrande, text_color = blancoHueso, fg_color=grisVerdeMedio)
+        self.labelNombre       = ctk.CTkLabel(self.frameEntradas, text = "Nombre",       font = texto1Medio, text_color = blancoHueso, fg_color=grisVerdeMedio)
+        self.labelApellido     = ctk.CTkLabel(self.frameEntradas, text = "Apellido",     font = texto1Medio, text_color = blancoHueso, fg_color=grisVerdeMedio)
+        self.labelDocumento    = ctk.CTkLabel(self.frameEntradas, text = "Documento",    font = texto1Medio, text_color = blancoHueso, fg_color=grisVerdeMedio)
+        self.labelEspecialidad = ctk.CTkLabel(self.frameEntradas, text = "Especialidad", font = texto1Medio, text_color = blancoHueso, fg_color=grisVerdeMedio)
+
+        self.labelTitulo.pack      (expand=True, side="top", fill="x", padx=20, pady=20)
+        self.labelNombre.grid      (row=0, column=0, sticky="ew", padx=20, pady=5)
+        self.labelApellido.grid    (row=1, column=0, sticky="ew", padx=20, pady=5)
+        self.labelDocumento.grid(row=2, column=0, sticky="ew", padx=20, pady=5)
+        self.labelEspecialidad.grid   (row=3, column=0, sticky="ew", padx=20, pady=5)
+
+        #ENTRY PARA CAMPOS
+        self.entryNombre    = ctk.CTkEntry      (self.frameEntradas, font = numerosMedianos, text_color = blancoHueso, fg_color=grisOscuro, width=30, textvariable=self.varNombre)
+        self.entryApellido  = ctk.CTkEntry    (self.frameEntradas, font = numerosMedianos, text_color = blancoHueso, fg_color=grisOscuro, width=30, textvariable=self.varApellido)
+        self.entryDocumento = ctk.CTkEntry(self.frameEntradas, font = numerosMedianos, text_color = blancoHueso, fg_color=grisOscuro, width=30, textvariable=self.varDocumento)
+        self.entryEspecialidad = ctk.CTkEntry   (self.frameEntradas, font = numerosMedianos, text_color = blancoHueso, fg_color=grisOscuro,  width=30, textvariable=self.varEspecialidad)
+
+        self.entryNombre.grid       (row=0, column=1, sticky="ew", pady=5, padx=20)
+        self.entryApellido.grid     (row=1, column=1, sticky="ew", pady=5, padx=20)    
+        self.entryDocumento.grid (row=2, column=1, sticky="ew", pady=5, padx=20)
+        self.entryEspecialidad.grid    (row=3, column=1, sticky="ew", pady=5, padx=20)
+
+        self.buttonCancelar = ctk.CTkButton(self.frameEntradas, text="Cancelar", font = texto1Bajo,  fg_color = naranjaMedio, text_color = blancoFrio, hover_color = naranjaClaro,
+                                        command="")   
+        self.buttonGuardar  = ctk.CTkButton(self.frameEntradas, text="Guardar",  font = textoGrande, fg_color = azulMedio, text_color = blancoFrio, hover_color = azulClaro,
+                                        command="")    
+
+        self.buttonCancelar.grid(row=4, column=0, padx=22, pady=10)
+        self.buttonGuardar.grid(row=4, column=1, padx=22, pady=10)
+
+    def set_values(self, datos):
+        """Establece los valores de los Entry con los datos del proceso o técnico a editar."""
+        self.varNombre.set(datos[1])
+        self.varApellido.set(datos[2])
+        self.varDocumento.set(datos[3])
+        self.varEspecialidad.set(datos[4])
+
+    def asignafuncion(self, funcionGuardar, funcionCancelar):
+        self.buttonGuardar.configure(command = funcionGuardar)
+        self.buttonCancelar.configure(command = funcionCancelar)

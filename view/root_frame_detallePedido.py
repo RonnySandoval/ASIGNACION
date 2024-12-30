@@ -118,18 +118,19 @@ class TablaDetallePedido():     #Tabla para pedido
         self.tablaDetallePedi.pack(expand=True, fill="both", side="bottom")
         self.scrollbarTablaDetallePedi.pack(side='right', fill='y')
         
+        __, __, self.iniciaAM, self.terminaAM, self.iniciaPM, self.terminaPM = BBDD.leer_planta_info(bbdd)
         self.llenarTabla(bbdd)
-        self.construyeCamposHorarios(contenedor, start1="08:00", end1="12:00", start2="14:00", end2="18:00", start3=" ", end3=" ")
+        self.construyeCamposHorarios(contenedor, start1=self.iniciaAM, end1=self.terminaAM, start2=self.iniciaPM, end2=self.terminaPM)
 
-    def construyeCamposHorarios(self, contenedor, start1, end1, start2, end2, start3, end3):
+    def construyeCamposHorarios(self, contenedor, start1, end1, start2, end2):
 
         self.frameTurnos = ctk.CTkFrame(contenedor, bg_color=moradoMedio)
         self.frameTurnos.pack(fill="both", side="bottom")
 
-        self.labelTurno1 = ctk.CTkLabel(self.frameTurnos, text="TURNO 1", anchor="center")
+        self.labelTurno1 = ctk.CTkLabel(self.frameTurnos, text="TURNO AM", anchor="center", width=30)
         self.labelTurno1.grid(row=0, column=0, columnspan = 4, padx=5)
 
-        self.labelTurno2 = ctk.CTkLabel(self.frameTurnos, text="TURNO 2", anchor="center")
+        self.labelTurno2 = ctk.CTkLabel(self.frameTurnos, text="TURNO PM", anchor="center", width=30)
         self.labelTurno2.grid(row=0, column=4, columnspan = 4, padx=5)
 
         # Configurar columnas: 
@@ -138,22 +139,22 @@ class TablaDetallePedido():     #Tabla para pedido
             self.frameTurnos.grid_columnconfigure(columna, weight=1)  # Espacio izquierdo
 
         self.intVarTurnoInicia1 = tk.StringVar(value=start1)
-        self.entryTurnoInicia1 = ctk.CTkEntry(self.frameTurnos, textvariable = self.intVarTurnoInicia1, width=60)
+        self.entryTurnoInicia1 = ctk.CTkEntry(self.frameTurnos, font=numerosGrandes, textvariable = self.intVarTurnoInicia1, width=60)
         self.entryTurnoInicia1.grid(row=1, column=1, padx=5, pady=5)
         self.entryTurnoInicia1.bind("<FocusOut>", self.validar_hora)
 
         self.intVarTurnoTermina1 = tk.StringVar(value=end1)
-        self.entryTurnoTermina1 = ctk.CTkEntry(self.frameTurnos, textvariable = self.intVarTurnoTermina1, width=60)
+        self.entryTurnoTermina1 = ctk.CTkEntry(self.frameTurnos, font=numerosGrandes, textvariable = self.intVarTurnoTermina1, width=60)
         self.entryTurnoTermina1.grid(row=1, column=2, padx=5, pady=5)
         self.entryTurnoTermina1.bind("<FocusOut>", self.validar_hora)
 
         self.intVarTurnoInicia2 = tk.StringVar(value=start2)
-        self.entryTurnoInicia2 = ctk.CTkEntry(self.frameTurnos, textvariable = self.intVarTurnoInicia2, width=60)
+        self.entryTurnoInicia2 = ctk.CTkEntry(self.frameTurnos, font=numerosGrandes, textvariable = self.intVarTurnoInicia2, width=60)
         self.entryTurnoInicia2.grid(row=1, column=5, padx=5, pady=5)
         self.entryTurnoInicia2.bind("<FocusOut>", self.validar_hora)
 
         self.intVarTurnoTermina2 = tk.StringVar(value=end2)
-        self.entryTurnoTermina2 = ctk.CTkEntry(self.frameTurnos, textvariable = self.intVarTurnoTermina2, width=60)
+        self.entryTurnoTermina2 = ctk.CTkEntry(self.frameTurnos, font=numerosGrandes, textvariable = self.intVarTurnoTermina2, width=60)
         self.entryTurnoTermina2.grid(row=1, column=6, padx=5, pady=5)
         self.entryTurnoTermina2.bind("<FocusOut>", self.validar_hora)
 

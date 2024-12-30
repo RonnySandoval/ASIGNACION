@@ -392,21 +392,17 @@ class OrdenProduccion:
         self.pedido             = pedido
         self.proceso            = proceso
         self.id_tecnico         = tecnico.id_tecnico
-        self.nombre_tecnico     = tecnico.nombre
+        self.tecnico            = tecnico.nombre
         self.inicio             = inicio
         self.fin                = fin
         self.duracion           = (fin-inicio).total_seconds()/60
         self.tiempo_productivo  = tiempo_productivo
         self.plazo              = vehiculo.fecha
-        self.codigo_orden       = self.codificar_orden()
+        self.codigo_orden       = self.__codificar_orden__()
 
-    def codificar_orden(self):
-        chasis = self.chasis
-        tecnico = self.nombre_tecnico
-        proceso = self.proceso
-        self.codigo_orden = str(chasis)[-4:].upper() + str(tecnico)[-4:].upper() + str(proceso).upper() + f"{rnd.randint(0, 9999):04d}"
-        return self.codigo_orden
-
+    def __codificar_orden__(self):
+       return str(self.chasis)[-4:].upper() + str(self.tecnico)[-4:].upper() + str(self.proceso).upper() + f"{rnd.randint(0, 9999):04d}"
+        
     def almacenar_orden(self):
         datos = (self.codigo_orden,
                  self.chasis,
@@ -424,11 +420,9 @@ class OrdenProduccion:
                  self.fin,
                  self.duracion,
                  self.plazo)
-        #CODIGO_ORDEN, CHASIS, MARCA, MODELO, COLOR, NOVEDADES, PEDIDO, ID_PEDIDO, PROCESO, ID_TECNICO, NOMBRE_TECNICO, ESPECIALIDAD, INICIO, FIN, DURACION, PLAZO
-        #CRUD.insertar_orden(*datos)
 
     def __repr__(self):
-        return f"Orden: {self.codigo_orden}, Chasis: {self.chasis},Modelo: {self.modelo}, Marca: {self.marca}, Color: {self.color}, Proceso: {self.proceso}, Id_tecnico: {self.id_tecnico} Tecnico: {self.nombre_tecnico}, Pedido(ID: {self.pedido}, Inicio: {self.inicio}, Fin: {self.fin}, Duración: {self.duracion}, Fecha Entrega: {self.plazo}"
+        return f"Orden: {self.codigo_orden}, Chasis: {self.chasis},Modelo: {self.modelo}, Marca: {self.marca}, Color: {self.color}, Proceso: {self.proceso}, Id_tecnico: {self.id_tecnico} Tecnico: {self.tecnico}, Pedido(ID: {self.pedido}, Inicio: {self.inicio}, Fin: {self.fin}, Duración: {self.duracion}, Fecha Entrega: {self.plazo}"
 
 class ProgramaDeProduccion:
     def __init__(self, ordenes):
@@ -461,7 +455,7 @@ def programa_inmediato(pedido, tecnicos, horizonte, fechaStart, horaStart):
     vehiculos_por_programar = pedido.vehiculos.copy()                   # Extrae una copia de la lista de vehiculos
 
     contador = 0
-    while len(vehiculos_por_programar) > 0 and contador <=50:
+    while len(vehiculos_por_programar) > 0 and contador <=150:
         contador = contador + 1
         print(f"---------------------->inicia vuelta #{contador}<------------------------")
 
@@ -547,6 +541,7 @@ def programa_inmediato(pedido, tecnicos, horizonte, fechaStart, horaStart):
 
     scheduling = ProgramaDeProduccion(listaOrdenes)
     df_scheduling = scheduling.to_dataframe()
+    df_scheduling.columns = df_scheduling.columns.str.upper()
     print(df_scheduling.to_string())
     return {"id"         : reemplazar_caracteres("inmediato_"+ pedido.id_pedido),
             "vehiculos"  : pedido.vehiculos,
@@ -564,7 +559,7 @@ def programa_completo(pedido, tecnicos, horizonte, fechaStart, horaStart):
     vehiculos_por_programar = pedido.vehiculos.copy()                   # Extrae una copia de la lista de vehiculos
 
     contador = 0
-    while len(vehiculos_por_programar) > 0  and contador <=200:
+    while len(vehiculos_por_programar) > 0  and contador <=300:
         contador = contador + 1
         print(f"---------------------->inicia vuelta #{contador}<------------------------")
 
@@ -671,6 +666,7 @@ def programa_completo(pedido, tecnicos, horizonte, fechaStart, horaStart):
 
     scheduling = ProgramaDeProduccion(listaOrdenes)
     df_scheduling = scheduling.to_dataframe()
+    df_scheduling.columns = df_scheduling.columns.str.upper()
     #df_scheduling.to_excel(f"programa_completo_{pedido.id_pedido}.xlsx", sheet_name="Hoja1", index=False)
     print(df_scheduling.to_string())
     return {"id"         : reemplazar_caracteres("completo_"+ pedido.id_pedido),
@@ -734,7 +730,7 @@ def programar_procesos(pedido, tecnicos, procesos, horizonte, fechaStart, horaSt
     print(todos_los_tiempos)
 
     contador = 0
-    while len(vehiculos_por_programar) > 0 and contador <=50:
+    while len(vehiculos_por_programar) > 0 and contador <=150:
         contador += 1
         print(f"---------------------->inicia vuelta #{contador}<------------------------")
 
@@ -860,6 +856,7 @@ def programar_procesos(pedido, tecnicos, procesos, horizonte, fechaStart, horaSt
 
     scheduling = ProgramaDeProduccion(listaOrdenes)
     df_scheduling = scheduling.to_dataframe()
+    df_scheduling.columns = df_scheduling.columns.str.upper()
     #df_scheduling.to_excel(f"programa_{procesos}_{pedido.id_pedido}.xlsx", sheet_name="Hoja1", index=False)
     print(df_scheduling.to_string())
     return {"id"         : reemplazar_caracteres(f"procesos{procesos}"+ pedido.id_pedido),

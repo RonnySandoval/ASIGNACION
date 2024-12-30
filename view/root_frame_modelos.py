@@ -148,9 +148,6 @@ class ContenidoModelos():
         ############ Botones de INGRESAR un vehiculo #########
         ############################################################
 
-        # Configurar columnas para que se expandan
-
-
         self.button_variables_agregMod = {}
         for filasAgregarVH in range (1, BBDD.calcula_modelos(bbdd)+1):
             button_name = f"ButtonAgregar{filasAgregarVH}"

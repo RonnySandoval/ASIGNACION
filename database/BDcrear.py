@@ -12,6 +12,10 @@ class INFORMACION(Base):
     __tablename__    = 'INFORMACION'
     NOMBRE_PLANTA    = Column(String, primary_key=True)
     DESCRIPCION      = Column(String)
+    INICIA_AM        = Column(Integer)
+    TERMINA_AM       = Column(Integer)
+    INICIA_PM        = Column(Integer)
+    TERMINA_PM       = Column(Integer)
 
 class PROCESOS(Base):
     __tablename__   = 'PROCESOS'

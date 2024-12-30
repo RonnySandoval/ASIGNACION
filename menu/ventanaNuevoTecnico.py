@@ -49,9 +49,9 @@ class VentanaNuevoTecnico():       #Ventana para crear o editar modelos
         self.entryEspecialidad.grid (row=3, column=1, sticky="ew", pady=5)
 
 
-        self.buttonCancelar = ctk.CTkButton(self.frameEntradas, text="Cancelar", font = estilos.texto1Medio,  fg_color = estilos.naranjaClaro, text_color = estilos.blancoFrio, hover_color = estilos.azulMedio,
+        self.buttonCancelar = ctk.CTkButton(self.frameEntradas, text="Cancelar", font = estilos.texto1Bajo,  fg_color = estilos.naranjaMedio, text_color = estilos.blancoFrio, hover_color = estilos.naranjaClaro,
                                         command="")   
-        self.buttonGuardar  = ctk.CTkButton(self.frameEntradas, text="Guardar",  font = estilos.textoGrande, fg_color = estilos.azulMedio, text_color = estilos.blancoFrio, hover_color = estilos. naranjaMedio,
+        self.buttonGuardar  = ctk.CTkButton(self.frameEntradas, text="Guardar",  font = estilos.textoGrande, fg_color = estilos.azulMedio, text_color = estilos.blancoFrio, hover_color = estilos.azulClaro,
                                         command="")    
 
         self.buttonCancelar.grid(row=4, column=0, padx=22, pady=10)
