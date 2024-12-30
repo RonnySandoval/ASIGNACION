@@ -12,7 +12,6 @@ import view.ventanas_emergentes as ventanas_emergentes
 import model.model_classPlant    as model_classPlant
 import model.model_instancePlant as model_instancePlant
 import model.model_callGantt     as model_callGantt
-import model.model_callGantt     as model_callGantt
 import model.model_datetime      as model_datetime
 import model.model_gantt         as model_gantt
 from view.estilos import *
@@ -386,8 +385,6 @@ def aceptar_agregar_vehiculo(ventana, bbdd):
         print (dato)
     BBDD.insertar_vehiculo(bbdd,*datos)
 
-
-
     id_procesos = BBDD.obtener_id_procesos(bbdd)
     id_procesos.sort()
     #insertamos en la tabla de tiempos_vehiculoss
@@ -401,8 +398,9 @@ def aceptar_agregar_vehiculo(ventana, bbdd):
 
     ventana.rootAux.destroy()   #cerramos la ventana auxiliar
     
-    #actualizamos el frame de modelos en la ventana
-    #glo.stateFrame.contenidoDeModelos.actualizar_contenido(bbdd)
+    #actualizamos el frame de vehiculos en la ventana
+    for frame in (glo.stateFrame.contenidoDeVehiculos, glo.stateFrame.contenidoDeDetalles):
+        frame.actualizar_tabla(bbdd)
 
 @e.manejar_errores("---Eliminar Modelo. Abriendo una ventana para eliminar un modelo y sus tiempos y guardar cambios en base de datos---")
 def eliminar_modelo_BD(ventana, bbdd):
@@ -612,15 +610,45 @@ def guardar_proceso_actualizado(id_anterior, ventana, bbdd):
 
 @e.manejar_errores("---Crear Proceso. Recogiendo datos de proceso nuevo y almacenando en base de datos---")
 def guardar_proceso_nuevo(ventana, bbdd):
-    datos = (ventana.varIdProceso.get(),
-             ventana.varNombre.get(),
-             ventana.varDescripcion.get(),
-             ventana.varSecuencia.get())
-    print(datos)
-    BBDD.insertar_proceso(bbdd, *datos)
+    id_proceso, nombre_proceso, descripcion, secuencia = (ventana.varIdProceso.get(),
+                                                          ventana.varNombre.get(),
+                                                          ventana.varDescripcion.get(),
+                                                          ventana.varSecuencia.get())
+
+
+    #PREPARAR DATAFRAME DE TIEMPOS MODELOS
+    ids_modelos = [modelo[0] for modelo in BBDD.leer_modelos(bbdd)]
+    df_procesos_modelos = pd.DataFrame([{'PROCESO_MODELO': f"{id_proceso}-{id_modelo}",
+                                         'ID_PROCESO': id_proceso,
+                                         'ID_MODELO': id_modelo,
+                                         'TIEMPO': 0}  for id_modelo in ids_modelos])
+    #PREPARAR DATAFRAME DE TIEMPOS VEHICULOS
+    chasises = [vehiculo[0] for vehiculo in BBDD.leer_vehiculos(bbdd)]
+    df_procesos_chasises = pd.DataFrame([{'PROCESO_CHASIS': f"{id_proceso}-{chasis}",
+                                         'ID_PROCESO': id_proceso,
+                                         'CHASIS': chasis,
+                                         'TIEMPO': 0}  for chasis in chasises])
+
+    #PREPARAR DATAFRAME DE TECNICOS PROCESOS
+    ids_tecnicos = [tecnico[0] for tecnico in BBDD.leer_tecnicos(bbdd)]
+    df_tecnicos_procesos = pd.DataFrame([{'TEC_PROC': f"{id_tecnico}{id_proceso}",
+                                         'ID_PROCESO': id_proceso,
+                                         'ID_TECNICO': id_tecnico}  for id_tecnico in ids_tecnicos])
+
+    print(id_proceso, nombre_proceso, descripcion, secuencia)
+    print(df_procesos_modelos)
+    print(df_procesos_chasises)
+    print(df_tecnicos_procesos)
+
+    BBDD.insertar_proceso(bbdd, id_proceso, nombre_proceso, descripcion, secuencia)
+    BBDD.insertar_tiempos_modelos_df(bbdd, df_procesos_modelos)
+    BBDD.insertar_tiempos_vehiculos_df(bbdd, df_procesos_chasises)
+    BBDD.insertar_tecnicos_procesos_df(bbdd, df_tecnicos_procesos)
 
     ventana.rootAux.destroy()
-
+    ventanas_emergentes.messagebox.showinfo("Proceso creado",
+                                            f"Proceso {id_proceso} creado con éxito."
+                                            "Se actualizaron las tablas de tiempos de modelos, tiempos de vehiculos y tecnicos procesos.")  
 @e.manejar_errores("---Eliminar Proceso. Recogiendo datos de proceso a eliminar y actualizando en base de datos---")
 def eliminar_proceso_BD(ventana, bbdd):
     nombreProceso = ventana.varItem.get()        # obtener el técnico seleccionado
@@ -1195,7 +1223,7 @@ def guardar_ProcesosExcel_BBDD(ventana, df, bbdd):
 
 @e.manejar_errores("---Cargar(Guardar) Referencias de excel. Preparando dataframe y Guardando en base de datos el dataframe de referencias---")
 def guardar_ReferenciasExcel_BBDD(ventana, df, bbdd):
-    df_tabla_modelos = BBDD.leer_modelos_id_modelos(bbdd)
+    df_tabla_modelos = BBDD.leer_modelos_id_modelos_df(bbdd)
     print(df_tabla_modelos)
     df_final = pd.merge(df, df_tabla_modelos, on="MODELO", how="left")   # Hacer un merge entre el DataFrame original y la tabla obtenida de la base de datos
     print(df_final)
@@ -1436,19 +1464,10 @@ def aceptarFechayHoraProg(ventana, tipoPrograma, bbdd):
     gantt_tecnicos, gantt_vehiculos = model_gantt.generar_gantt(df_con_bloques,
                                                                 inicio,
                                                                 horizonte_calculado)
-    #diagramaTecnicos = model_callGantt.generar_gantt_tecnicos(personal    = tecnicos_a_programar,
-    #                                          fechaStart  = fecha,
-    #                                          horaStart   = hora,
-    #                                          horizonte_calculado = horizonte_calculado)
-    #diagramaVehiculos = model_callGantt.generar_gantt_vehiculos(pedido     =  pedido_a_programar,
-    #                                          fechaStart  = fecha,
-    #                                          horaStart   = hora,
-    #                                          horizonte_calculado = horizonte_calculado)
 
     diagramas = {"diagramaTecnicos" : gantt_tecnicos,
                  "diagramaVehiculos": gantt_vehiculos}
     
-
     ########## PREPARAR INFORMACIÓN PARA BASE DE DATOS ############
     id_programa = diccPrograma["id"]
     id_programa_new = id_programa + "_" + str(BBDD.next_consecutivoPrograma(bbdd))
@@ -1633,7 +1652,7 @@ def transformar_vehiculos_pedido_cargado(df, id_pedido, fecha_ingreso, bbdd):
         ventanas_emergentes.msg_registro_duplicado(registros_nulos)
         return
 
-    df_mod_idModelos = BBDD.leer_modelos_id_modelos(bbdd)                                       # Incluimos los id_modelos    
+    df_mod_idModelos = BBDD.leer_modelos_id_modelos_df(bbdd)                                       # Incluimos los id_modelos    
     df_combinado2 = pd.merge(df_combinado1, df_mod_idModelos, on="ID_MODELO", how="left")
     print(df_combinado2)
 

@@ -1256,7 +1256,7 @@ def leer_modelos_marcas_df(bbdd):
         conn.close()
         return dataframe
 
-def leer_modelos_id_modelos(bbdd):
+def leer_modelos_id_modelos_df(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
         df_datos = pd.read_sql_query("SELECT MODELO, ID_MODELO FROM MODELOS", conn)
@@ -1508,13 +1508,25 @@ def leer_tecnicos(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()          
-        cursor.execute("""SELECT *
-                       FROM TECNICOS
-                       LEFT JOIN TECNICOS_PROCESOS
-                       ON TECNICOS_PROCESOS.ID_TECNICO = TECNICOS.ID_TECNICO
-                       LEFT JOIN PROCESOS
-                       ON TECNICOS_PROCESOS.ID_PROCESO = PROCESOS.ID_PROCESO
-                       ORDER BY PROCESOS.SECUENCIA""")
+        cursor.execute("""
+                        SELECT
+                            T. ID_TECNICO,
+                            T. NOMBRE,
+                            T. APELLIDO,
+                            T. DOCUMENTO,
+                            T. ESPECIALIDAD
+                        FROM
+                            TECNICOS AS T
+                        LEFT JOIN
+                            TECNICOS_PROCESOS AS TP
+                        ON
+                            TP.ID_TECNICO = T.ID_TECNICO
+                        LEFT JOIN
+                            PROCESOS AS P
+                        ON
+                            TP.ID_PROCESO = P.ID_PROCESO
+                        ORDER BY
+                            P.SECUENCIA""")
         datos = cursor.fetchall()  # Mantener la consulta original
     except sqlite3.Error as e:
         print(f"Error al leer el registro: {e}")
@@ -1852,8 +1864,7 @@ def leer_vehiculos(bbdd):
                             CHASIS,
                             FECHA_INGRESO,
                             ID_MODELO,
-                            COLOR, 
-                            ESTADO,
+                            COLOR,
                             NOVEDADES,
                             SUBCONTRATAR,
                             ID_PEDIDO
@@ -1863,6 +1874,7 @@ def leer_vehiculos(bbdd):
 
     except sqlite3.Error as e:
         print(f"Error al leer la Tabla de Vehiculos: {e}")
+        registros = None
 
     finally:
         conn.close()

@@ -1,6 +1,6 @@
 import customtkinter as ctk
 from   view.estilos import *
-import mainMenu
+import controller.mainMenu as mainMenu
 import controller.glo as glo
 import builtins
 import view.ventanas_emergentes as ventanas_emergentes

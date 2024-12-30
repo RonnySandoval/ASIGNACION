@@ -1,6 +1,6 @@
 import tkinter as tk
 from view.estilos import grisOscuro, blancoCalido
-import mainController
+import controller.mainController as mainController
 
 def crearMenuPrincipal(raiz):
     #Barra de menú

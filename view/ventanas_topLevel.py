@@ -222,7 +222,7 @@ class VentanaCreaEditaReferencia:
 
         self.defineAccionyEstilo()  # Determinar el título y el color
 
-        self.df_IdModelos = BBDD.leer_modelos_id_modelos(bbdd)
+        self.df_IdModelos = BBDD.leer_modelos_id_modelos_df(bbdd)
         self.lista_IdModelos = self.df_IdModelos["ID_MODELO"].to_list()
 
         # Variables objeto para los entry

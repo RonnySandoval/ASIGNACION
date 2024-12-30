@@ -31,12 +31,6 @@ def vent_editar(tipo, bbdd):
                                                        bbdd,
                                                        funcion=lambda ventana, datos, bbdd: controller.editar_tecnico_BD(ventana, datos, bbdd))
 
-def vent_editar_proceso():
-    pass
-
-def vent_editar_tecnico():
-    pass
-
 ############## FUNCIONES PARA ELIMINAR ####################
 def vent_eliminar_item(tipo, bbdd):
     ventana = ventanasEliminar.VentanaEliminar(tipo, bbdd)
