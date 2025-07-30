@@ -1,5 +1,5 @@
 import customtkinter as ctk
-import database.BBDD as BBDD
+import database.BDqueries as BDqueries
 import  controller.controller as controller
 import  controller.glo as glo
 from    view.estilos import *
@@ -76,7 +76,7 @@ class ContenidoReferencias():
         ############################################################################################
         ################################ Botones de EDITAR modelo ##################################
         ############################################################################################
-        self.df_Modelos_referencias = BBDD.leer_referencias_modelos_df(bbdd)
+        self.df_Modelos_referencias = BDqueries.leer_referencias_modelos_df(bbdd)
         self.df_Modelos_referencias = self.df_Modelos_referencias.sort_values(by='ID_MODELO', ascending=True)
         print("el dataframe de referencias es\n:" , self.df_Modelos_referencias)
         self.idModelos = self.df_Modelos_referencias['ID_MODELO'].to_list()

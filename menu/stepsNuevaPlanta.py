@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter.filedialog import askopenfilename
 import customtkinter as ctk
+
 import view.estilos as estilos
 
 """

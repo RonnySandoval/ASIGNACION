@@ -4,7 +4,7 @@ import customtkinter as ctk
 import  controller.controller as controller
 from    view.estilos import *
 import controller.glo as glo
-import database.BBDD as BBDD
+import database.BDqueries as BDqueries
 
 
 # Configuración global del estilo de customtkinter
@@ -112,7 +112,7 @@ class TablaProgramas():     #Tabla para pedido
         self.llenarTabla(bbdd)
 
     def llenarTabla(self, bbdd):    # Agregar datos a la tabla    
-        self.lectura = list(BBDD.leer_programas(bbdd))
+        self.lectura = list(BDqueries.leer_programas(bbdd))
         self.datos = [(id, id_pedido) for id, desc, consec, id_pedido  in self.lectura]
         print(self.datos)
         for record in self.datos:

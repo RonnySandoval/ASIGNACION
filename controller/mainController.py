@@ -1,14 +1,14 @@
 import os
 import pandas as pd
 from tkinter.filedialog import askopenfilename
-import database.BDcrear as BDcrear
-import database.BBDD as BBDD
+import database.BDcreate as BDcreate
+import database.BDqueries as BDqueries
 import controller.glo as glo
 import menu.stepsNuevaPlanta as steps_nueva_planta
 import menu.ventanaNuevaPlanta as ventanaNuevaPlanta
+import menu.menu_principal as menu_principal
 import view.ventanas_emergentes as ventanas_emergentes
 import view.root as root
-import menu.menu_principal as menu_principal
 
 def abrir_planta():
     ruta = askopenfilename(title="Seleccionar la Planta",
@@ -96,17 +96,17 @@ def crear_plantaBD(dataframes, name, description, ventana):
     print(df_modelos)
     print(df_referencias)
     print(df_tiempos_modelos)
-    base_datos = BDcrear.crea_BBDD(nombre = name)
+    base_datos = BDcreate.crea_BBDD(nombre = name)
     if base_datos == "existe":
         return
     
-    BBDD.insertar_info_planta(bbdd = base_datos, nombre = name, descripcion = description)
-    ins_proce  = BBDD.insertar_procesos_df(bbdd = base_datos, dataframe=df_procesos)
-    ins_tecni  = BBDD.insertar_tecnicos_df(bbdd = base_datos, dataframe=df_tecnicos)
-    ins_tecpr  = BBDD.insertar_tecnicos_procesos_df(bbdd = base_datos, dataframe=df_tecnicos_procesos)
-    ins_model  = BBDD.insertar_modelos_df(bbdd = base_datos, dataframe=df_modelos)  
-    ins_refer  = BBDD.insertar_referencias_df(bbdd = base_datos, dataframe=df_referencias)
-    ins_timod  = BBDD.insertar_tiempos_modelos_df(bbdd = base_datos, dataframe=df_tiempos_modelos)
+    BDqueries.insertar_info_planta(bbdd = base_datos, nombre = name, descripcion = description)
+    ins_proce  = BDqueries.insertar_procesos_df(bbdd = base_datos, dataframe=df_procesos)
+    ins_tecni  = BDqueries.insertar_tecnicos_df(bbdd = base_datos, dataframe=df_tecnicos)
+    ins_tecpr  = BDqueries.insertar_tecnicos_procesos_df(bbdd = base_datos, dataframe=df_tecnicos_procesos)
+    ins_model  = BDqueries.insertar_modelos_df(bbdd = base_datos, dataframe=df_modelos)  
+    ins_refer  = BDqueries.insertar_referencias_df(bbdd = base_datos, dataframe=df_referencias)
+    ins_timod  = BDqueries.insertar_tiempos_modelos_df(bbdd = base_datos, dataframe=df_tiempos_modelos)
 
     no_insertados = []
     if ins_proce is False:

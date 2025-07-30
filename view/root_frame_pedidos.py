@@ -5,7 +5,7 @@ import  controller.controller as controller
 from    view.estilos import *
 import  view.ventanas_emergentes as ventanas_emergentes
 import controller.glo as glo
-import database.BBDD as BBDD
+import database.BDqueries as BDqueries
 
 
 # Configuración global del estilo de customtkinter
@@ -142,7 +142,7 @@ class TablaPedidos():     #Tabla para pedido
         self.frameCheckProcesos.pack(fill="both", side="bottom")
 
         #CHECKBUTTON CON PROCESOS
-        self.infoProcesos = BBDD.leer_procesos_completo(bbdd)
+        self.infoProcesos = BDqueries.leer_procesos_completo(bbdd)
         for id in [proceso[0] for proceso in self.infoProcesos]:
 
             int_name = f"checkIntvar-{id}"                                        # generar el nombre de la IntVar del checkbutton
@@ -156,7 +156,7 @@ class TablaPedidos():     #Tabla para pedido
             glo.check_procesos[self.check_name_proceso].pack(fill=tk.X, side="left", padx=15, pady=5)
 
     def llenarTabla(self, bbdd):    # Agregar datos a la tabla    
-        self.lectura = list(BBDD.leer_pedidos(bbdd))
+        self.lectura = list(BDqueries.leer_pedidos(bbdd))
         self.datos = [(id, rec, ing , est, ent) for id, cli, rec, ing, est, ent, cons  in self.lectura]
         print(self.datos)
         for record in self.datos:

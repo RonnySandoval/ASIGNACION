@@ -1,9 +1,10 @@
 import tkinter as tk
 from tkinter.filedialog import askopenfilename
-import view.ventanas_emergentes as ventanas_emergentes
 import customtkinter as ctk
-import view.estilos as estilos
 import re
+
+import view.ventanas_emergentes as ventanas_emergentes
+import view.estilos as estilos
 
 # Configuración global del estilo de customtkinter
 ctk.set_appearance_mode("dark")  # Modo oscuro por defecto

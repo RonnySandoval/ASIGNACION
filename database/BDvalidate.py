@@ -1,5 +1,5 @@
 import sqlite3
-import glob
+import controller.glo as glo
 import pandas as pd
 
 def gestion_sqlite(bbdd):
@@ -30,7 +30,7 @@ def gestion_sqlite(bbdd):
         return wrapper
     return decorador
 
-@gestion_sqlite(glob.base_datos)
+@gestion_sqlite(glo.base_datos)
 def lectura_huerfanos(cursor, tabla1, tabla2, campo1, campo2):
     consulta  = f"""
                    SELECT *
@@ -41,7 +41,7 @@ def lectura_huerfanos(cursor, tabla1, tabla2, campo1, campo2):
     cursor.execute(consulta)
     return cursor.fetchall()
 
-@gestion_sqlite(glob.base_datos)
+@gestion_sqlite(glo.base_datos)
 def lecturaJoin_huerfanos(cursor, tabla1, tablaJoin, tablaCompare, campo1, campoJoin, campoCompare, join):
     consulta = f"""
                    SELECT *
@@ -109,10 +109,8 @@ class Huerfanos:
     def __getattribute__(self, name):
         """Sobrescribe el acceso a todas las propiedades."""
         print(f"Accediendo al atributo: {name}")
-        # Llama al método original para obtener el atributo
-        value = super().__getattribute__(name)
-        # Si es una lista de tuplas, convierte a DataFrame
-        if isinstance(value, list) and all(isinstance(i, tuple) for i in value):
+        value = super().__getattribute__(name)                      # Llama al método original para obtener el atributo
+        if isinstance(value, list) and all(isinstance(i, tuple) for i in value):# Si es una lista de tuplas, convierte a DataFrame
             return pd.DataFrame(value)
         return value
 
@@ -126,7 +124,7 @@ class Huerfanos:
         data = [[key, len(value) if isinstance(value, list) else 0] for key, value in vars(self).items()]
         return pd.DataFrame(data, columns=["RELACION", "CANTIDAD"])  # Sin nombres de columna
 
-glob.huerfanos = Huerfanos()
+glo.huerfanos = Huerfanos()
 
 
 

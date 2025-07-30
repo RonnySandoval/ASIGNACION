@@ -3,7 +3,7 @@ from    tkinter import ttk
 import customtkinter as ctk
 import  controller.controller as controller
 from    view.estilos import *
-import database.BBDD as BBDD
+import database.BDqueries as BDqueries
 
 # Configuración global del estilo de customtkinter
 ctk.set_appearance_mode("dark")  # Modo oscuro por defecto
@@ -127,14 +127,14 @@ class TablaOrdenes():     #Tabla para pedido
     def llenarTabla(self, bbdd, programa=None):    # Agregar datos a la tabla
 
         if programa is None:
-            self.programaMostrado = list(BBDD.leer_ordenes_completo(bbdd))
+            self.programaMostrado = list(BDqueries.leer_ordenes_completo(bbdd))
             self.datos = [(codigo, chasis, tecnico, proceso, inicio, fin, modelo)
                             for codigo, chasis, inicio, fin, duracion, tiempo_productivo, proceso,
                                 observaciones, modelo, color, tecnico
                             in self.programaMostrado]
 
         if programa is not None:
-            self.programaMostrado = list(BBDD.leer_ordenes_por_programa(bbdd, programa))
+            self.programaMostrado = list(BDqueries.leer_ordenes_por_programa(bbdd, programa))
             self.datos = [(codigo, chasis, tecnico, proceso, inicio, fin, modelo)
                             for codigo, chasis, inicio, fin, duracion, tiempo_productivo, proceso,
                                 observaciones, modelo, color, tecnico

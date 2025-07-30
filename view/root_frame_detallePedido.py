@@ -5,7 +5,7 @@ import  controller.controller as controller
 from    view.estilos import *
 import  view.ventanas_emergentes as ventanas_emergentes
 import controller.glo as glo
-import database.BBDD as BBDD
+import database.BDqueries as BDqueries
 import re
 import pandas as pd
 
@@ -118,7 +118,7 @@ class TablaDetallePedido():     #Tabla para pedido
         self.tablaDetallePedi.pack(expand=True, fill="both", side="bottom")
         self.scrollbarTablaDetallePedi.pack(side='right', fill='y')
         
-        __, __, self.iniciaAM, self.terminaAM, self.iniciaPM, self.terminaPM = BBDD.leer_planta_info(bbdd)
+        __, __, self.iniciaAM, self.terminaAM, self.iniciaPM, self.terminaPM = BDqueries.leer_planta_info(bbdd)
         self.llenarTabla(bbdd)
         self.construyeCamposHorarios(contenedor, start1=self.iniciaAM, end1=self.terminaAM, start2=self.iniciaPM, end2=self.terminaPM)
 
@@ -166,9 +166,9 @@ class TablaDetallePedido():     #Tabla para pedido
     def llenarTabla(self, bbdd, pedido=None):    # Agregar datos a la tabla
 
         if pedido is None:
-            self.datos = BBDD.leer_vehiculos_completos_df(bbdd)           # leemos el dataframe en la BBDD
+            self.datos = BDqueries.leer_vehiculos_completos_df(bbdd)           # leemos el dataframe en la BBDD
         else:
-            self.datos = BBDD.leer_vehiculos_por_pedido_df(bbdd, pedido)  # leemos el dataframe en la BBDD
+            self.datos = BDqueries.leer_vehiculos_por_pedido_df(bbdd, pedido)  # leemos el dataframe en la BBDD
         print(self.datos)
 
         # Seleccionar solo las columnas necesarias
@@ -186,8 +186,8 @@ class TablaDetallePedido():     #Tabla para pedido
         def obtener_texto_tooltip(iid):
             
             valores = self.tablaDetallePedi.item(iid, 'values')
-            lecturaHistoricos = BBDD.leer_historico_chasis(bbdd, valores[0])
-            lecturaVehiculos  = BBDD.leer_vehiculo_completo(bbdd, valores[0])
+            lecturaHistoricos = BDqueries.leer_historico_chasis(bbdd, valores[0])
+            lecturaVehiculos  = BDqueries.leer_vehiculo_completo(bbdd, valores[0])
             
             if lecturaHistoricos == None:
                 return f"Chasis: {valores[1]}\nSin procesos ejecutados"

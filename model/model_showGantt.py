@@ -163,6 +163,8 @@ def agregar_vehiculo(nombre_grafico, t0, duracion, tecnico, nombre, color=None):
                                "label": label,
                                "tecnico": tecnico,
                                "nombre": nombre})
+
+
 """
 # Función para mostrar un gráfico específico
 def mostrar_grafico_tecnicos(nombre_grafico):

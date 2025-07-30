@@ -1,6 +1,6 @@
 import tkinter as tk
 import customtkinter as ctk
-import database.BBDD as BBDD
+import database.BDqueries as BDqueries
 import controller.glo as glo
 from view.estilos import *
 
@@ -49,7 +49,7 @@ class ContenidoProcesos:
 
         # Lee los nombres desde la BBDD y los almacena en variables
         fila = 0
-        for filasProcesos in BBDD.leer_procesos_completo(bbdd):
+        for filasProcesos in BDqueries.leer_procesos_completo(bbdd):
             columna = 0
             for columnasProcesos in filasProcesos:
 

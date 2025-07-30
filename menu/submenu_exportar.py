@@ -1,9 +1,10 @@
 import tkinter as tk
+
 import view.ventanas_topLevel as ventanas_topLevel
 from . import ventanasEliminar, ventanasImportar
 import controller.controller as controller
 import controller.glo as glo
-import database.BBDD as BBDD
+import database.BDqueries as BDqueries
 
 def desplegar_exportar(subMenu, root):
     
@@ -26,25 +27,25 @@ def generar_plantilla(tipo, bbdd):
 
 def vent_exportar(nombreVentana, bbdd):
     if nombreVentana == "PROCESOS":
-        dataframe = BBDD.leer_procesos_df(bbdd)
+        dataframe = BDqueries.leer_procesos_df(bbdd)
 
     elif nombreVentana == "TECNICOS":
-        dataframe = BBDD.leer_tecnicos_df(bbdd)
+        dataframe = BDqueries.leer_tecnicos_df(bbdd)
 
     elif nombreVentana == "MARCAS_MODELOS":
-        dataframe = BBDD.leer_modelos_marcas_df(bbdd)
+        dataframe = BDqueries.leer_modelos_marcas_df(bbdd)
 
     elif nombreVentana == "TIEMPOS":
-        dataframe = BBDD.leer_tiempos_modelos_df(bbdd)
+        dataframe = BDqueries.leer_tiempos_modelos_df(bbdd)
 
     elif nombreVentana == "REFERENCIAS":
-        dataframe = BBDD.leer_referencias_modelos_df(bbdd)
+        dataframe = BDqueries.leer_referencias_modelos_df(bbdd)
 
     elif nombreVentana == "VEHICULOS":
-        dataframe = BBDD.leer_vehiculos_df(bbdd)
+        dataframe = BDqueries.leer_vehiculos_df(bbdd)
 
     elif nombreVentana == "PEDIDOS":
-        dataframe = BBDD.leer_pedidos_df(bbdd)
+        dataframe = BDqueries.leer_pedidos_df(bbdd)
 
     elif nombreVentana == "PROGRAMA":
         pass

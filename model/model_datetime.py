@@ -1,7 +1,7 @@
 import controller.glo as glo
 import pandas as pd
 from datetime import datetime, timedelta
-import database.BBDD as BBDD
+import database.BDqueries as BDqueries
 
 ###############################################################################
 ###############################################################################
@@ -472,7 +472,7 @@ class Horarios:
         self.cero    = "00:00"
     
     def set_times(self):
-        __, __, self.startAM, self.endAM, self.startPM, self.endPM = BBDD.leer_planta_info(glo.base_datos)
+        __, __, self.startAM, self.endAM, self.startPM, self.endPM = BDqueries.leer_planta_info(glo.base_datos)
         self.no_AM   = self.no_laboral("no_AM")
         self.no_ME   = self.no_laboral("no_ME")
         self.no_PM   = self.no_laboral("no_PM")

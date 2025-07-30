@@ -1,7 +1,7 @@
 import  tkinter as tk
 from    tkinter import ttk
 import customtkinter as ctk
-import database.BBDD as BBDD
+import database.BDqueries as BDqueries
 import  controller.controller as controller
 import  re
 import  controller.glo as glo
@@ -70,7 +70,7 @@ class ContenidoModelos():
         #####################################################
         ############ Botones de EDITAR modelo ###############
         #####################################################
-        for filasCambiarMod in range (1, BBDD.calcula_modelos(bbdd)+1):
+        for filasCambiarMod in range (1, BDqueries.calcula_modelos(bbdd)+1):
 
             button_name = f"ButtonAgregar{filasCambiarMod}"
             glo.btt_editModelos[button_name] = ctk.CTkButton(master=self.frameModelosInterior,text="Editar", font=textoBajo,
@@ -82,7 +82,7 @@ class ContenidoModelos():
         ################## LABEL DE MODELOS #########################
         #############################################################
         #Lee los nombres desde la BBDD y los almacena en variables
-        for filasModelos, textos in zip(range(1, BBDD.calcula_modelos(bbdd)+1), BBDD.leer_modelos(bbdd)):                 
+        for filasModelos, textos in zip(range(1, BDqueries.calcula_modelos(bbdd)+1), BDqueries.leer_modelos(bbdd)):                 
             label_name_modelo = f"labelVehiculo{filasModelos}"
             print(label_name_modelo, textos[1], textos[2])
             # Crear etiquetas para vehículos con nombres segun BD
@@ -96,7 +96,7 @@ class ContenidoModelos():
         #############################################################
 
         # CREAR LOS LABEL PARA ID DE PROCESOS
-        dfTiempos = BBDD.leer_tiempos_modelos_df(bbdd)
+        dfTiempos = BDqueries.leer_tiempos_modelos_df(bbdd)
         print(dfTiempos)
         titlesDf = dfTiempos.columns.tolist()
         print(titlesDf)
@@ -114,8 +114,8 @@ class ContenidoModelos():
             glo.lbl_modelProcesos[label_proceso_modelo].grid(row=0, column=1+columnaProceso, sticky="nsew")
 
         # Excluir los procesos que no tienen registros de vehiculos
-        nombresProcesos = BBDD.leer_procesos(bbdd)                                               #lee los noombres de los procesos
-        infoProcesos = BBDD.leer_procesos_completo(bbdd)                                         #lee toda la información de los procesos
+        nombresProcesos = BDqueries.leer_procesos_nombres(bbdd)                                               #lee los noombres de los procesos
+        infoProcesos = BDqueries.leer_procesos_completo(bbdd)                                         #lee toda la información de los procesos
         idsProcesos = [proceso[0] for proceso in infoProcesos if proceso[0] in titlesDf]         #crea unalista con ids de acuerdo al primer elemento de la lista infoProcesos
         nombresProcesos = [proceso[1] for proceso in infoProcesos if proceso[0] in titlesDf]     #crea una lista solo con los nombres de los procesos cuyos ids aparecen en el dataframe
         nombresProcesos.sort()
@@ -123,7 +123,7 @@ class ContenidoModelos():
         print(nombresProcesos, cantidadProcesos)
 
         #Crea los campos con los tiempos de proceso
-        cantidadModelos = BBDD.calcula_modelos(bbdd)
+        cantidadModelos = BDqueries.calcula_modelos(bbdd)
         for columnastimes, proceso in zip(range (1, cantidadProcesos+1), nombresProcesos):
 
             for filastimes in range (1, cantidadModelos+1):
@@ -149,7 +149,7 @@ class ContenidoModelos():
         ############################################################
 
         self.button_variables_agregMod = {}
-        for filasAgregarVH in range (1, BBDD.calcula_modelos(bbdd)+1):
+        for filasAgregarVH in range (1, BDqueries.calcula_modelos(bbdd)+1):
             button_name = f"ButtonAgregar{filasAgregarVH}"
             self.button_variables_agregMod[button_name] = ctk.CTkButton(master=self.frameModelosInterior,text="Añadir a Pedido", font=textoBajo, fg_color=grisAzuladoOscuro, width=40, corner_radius=20,
                                                             command=lambda varBoton=button_name:controller.agregar_vehiculo(varBoton, bbdd))

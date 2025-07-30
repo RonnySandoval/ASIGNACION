@@ -1,4 +1,5 @@
 import tkinter as tk
+
 from view.estilos import grisOscuro, blancoCalido
 import menu.submenu_nuevo  as subNuevo
 import menu.submenu_editar as subEditar

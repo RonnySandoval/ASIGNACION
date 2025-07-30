@@ -1,23 +1,24 @@
 import re
 import pandas as pd
 import tkinter as tk
+import os
+import datetime
 from tkinter.filedialog import askopenfilename
-import database.BDcrear as BDcrear
-import database.BBDD as BBDD
+
+import database.BDcreate as BDcreate
+import database.BDqueries as BDqueries
 import controller.glo as glo
+import controller.exception_manejar as e
 import menu.stepsNuevaPlanta as steps_nueva_planta
 import menu.ventanaNuevaPlanta as ventanaNuevaPlanta
-import view.ventanas_topLevel as ventanas_topLevel
-import view.ventanas_emergentes as ventanas_emergentes
 import model.model_classPlant    as model_classPlant
 import model.model_instancePlant as model_instancePlant
 import model.model_callGantt     as model_callGantt
 import model.model_datetime      as model_datetime
 import model.model_gantt         as model_gantt
+import view.ventanas_topLevel as ventanas_topLevel
+import view.ventanas_emergentes as ventanas_emergentes
 from view.estilos import *
-import os
-import datetime
-import controller.exception_manejar as e
 
 #################################################################################################################################
 ######################### EVENTOS PARA PLANTA #############################################################################
@@ -107,23 +108,23 @@ def crear_plantaBD(dataframes, name, description, iniciaAM, terminaAM, iniciaPM,
     print(df_modelos)
     print(df_referencias)
     print(df_tiempos_modelos)
-    base_datos = BDcrear.crea_BBDD(nombre = name)
+    base_datos = BDcreate.crea_BBDD(nombre = name)
     if base_datos == "existe":
         return
     
-    BBDD.insertar_info_planta(bbdd = base_datos,
+    BDqueries.insertar_info_planta(bbdd = base_datos,
                               nombre = name,
                               descripcion = description,
                               iniciaAM = iniciaAM,
                               terminaAM = terminaAM,
                               iniciaPM = iniciaPM,
                               terminaPM = terminaPM)
-    ins_proce  = BBDD.insertar_procesos_df(bbdd = base_datos, dataframe=df_procesos)
-    ins_tecni  = BBDD.insertar_tecnicos_df(bbdd = base_datos, dataframe=df_tecnicos)
-    ins_tecpr  = BBDD.insertar_tecnicos_procesos_df(bbdd = base_datos, dataframe=df_tecnicos_procesos)
-    ins_model  = BBDD.insertar_modelos_df(bbdd = base_datos, dataframe=df_modelos)  
-    ins_refer  = BBDD.insertar_referencias_df(bbdd = base_datos, dataframe=df_referencias)
-    ins_timod  = BBDD.insertar_tiempos_modelos_df(bbdd = base_datos, dataframe=df_tiempos_modelos)
+    ins_proce  = BDqueries.insertar_procesos_df(bbdd = base_datos, dataframe=df_procesos)
+    ins_tecni  = BDqueries.insertar_tecnicos_df(bbdd = base_datos, dataframe=df_tecnicos)
+    ins_tecpr  = BDqueries.insertar_tecnicos_procesos_df(bbdd = base_datos, dataframe=df_tecnicos_procesos)
+    ins_model  = BDqueries.insertar_modelos_df(bbdd = base_datos, dataframe=df_modelos)  
+    ins_refer  = BDqueries.insertar_referencias_df(bbdd = base_datos, dataframe=df_referencias)
+    ins_timod  = BDqueries.insertar_tiempos_modelos_df(bbdd = base_datos, dataframe=df_tiempos_modelos)
 
     no_insertados = []
     if ins_proce is False:
@@ -209,7 +210,7 @@ def editar_planta_BD(ventana, bbdd):
     terminaPM   = ventana.varTermina_PM.get()
     ventana.rootAux.destroy()
 
-    BBDD.actualizar_planta_info(bbdd, nombre, descripcion , iniciaAM, terminaAM , iniciaPM, terminaPM)
+    BDqueries.actualizar_planta_info(bbdd, nombre, descripcion , iniciaAM, terminaAM , iniciaPM, terminaPM)
     ventanas_emergentes.messagebox.showinfo("Planta Actualizada", "Se ha actualizado la información básica de la Planta")
     glo.actualizar_todo()
 
@@ -235,15 +236,15 @@ def guardar_modelo_nuevo(ventana, bbdd):
     
     #OBTENEMOS ID DE MODELOS Y PROCESOS
     id_modelo = f"{datos[0]}-{datos[1]}"
-    id_procesos = BBDD.obtener_id_procesos(bbdd)
+    id_procesos = BDqueries.obtener_id_procesos(bbdd)
     id_procesos.sort()
     #Insertamos en la tabla de modelos
-    BBDD.insertar_modelo(bbdd, id_modelo, datos[0], datos[1])
+    BDqueries.insertar_modelo(bbdd, id_modelo, datos[0], datos[1])
 
     #insertamos en la tabla de timepos modelos
     for id_proceso, tiempo in zip(id_procesos, tiempos):
         proc_model = f"{id_proceso}-{datos[0]}-{datos[1]}"
-        BBDD.insertar_tiempo_modelo(bbdd,
+        BDqueries.insertar_tiempo_modelo(bbdd,
                                     proc_model, 
                                     id_proceso,
                                     id_modelo,
@@ -264,8 +265,8 @@ def recoger_datos_modelo(filaBoton, bbdd):
     print(f"marca={marca} modelo={modelo}")         
     
     tiempos={}
-    nombresProcesos = BBDD.leer_procesos(bbdd)                                               #lee los noombres de los procesos
-    infoProcesos = BBDD.leer_procesos_completo(bbdd)                                         #lee toda la información de los procesos
+    nombresProcesos = BDqueries.leer_procesos_nombres(bbdd)                                               #lee los noombres de los procesos
+    infoProcesos = BDqueries.leer_procesos_completo(bbdd)                                         #lee toda la información de los procesos
     idsProcesos = [proceso[0] for proceso in infoProcesos]         #crea unalista con ids de acuerdo al primer elemento de la lista infoProcesos
     nombresProcesos = [proceso[1] for proceso in infoProcesos]  #crea una lista solo con los nombres de los procesos cuyos ids aparecen en el dataframe
     nombresProcesos.sort()
@@ -306,17 +307,17 @@ def guardar_modelo_actualizado(ventana, datos_iniciales, bbdd):
 
 
     idModelo = f"{datos[0]}-{datos[1]}"                     # OBTENEMOS ID DE MODELOS Y PROCESOS
-    id_procesos = BBDD.obtener_id_procesos(bbdd)            # leemos en la base de datos los IDS de los procesos
+    id_procesos = BDqueries.obtener_id_procesos(bbdd)            # leemos en la base de datos los IDS de los procesos
     id_procesos.sort()                                      # ordenamos la lista de id's procesos
 
-    BBDD.actualizar_modelo(bbdd         = bbdd,             # Insertamos en la tabla de modelos
+    BDqueries.actualizar_modelo(bbdd         = bbdd,             # Insertamos en la tabla de modelos
                            id_anterior  = id_modelo_actual, 
                            marca        = datos[0],
                            modelo       = datos[1],
                            id_nuevo     = idModelo)
 
 
-    registroTiemposProcesos = BBDD.leer_ids_proceso_modelo(bbdd, id_modelo_actual)      # leemos los registros de tiempos para el modelo (una lista de tuplas con los ids de procesos y modelos)
+    registroTiemposProcesos = BDqueries.leer_ids_proceso_modelo(bbdd, id_modelo_actual)      # leemos los registros de tiempos para el modelo (una lista de tuplas con los ids de procesos y modelos)
     idProcesosConTiempo = [registro[1] for registro in registroTiemposProcesos]         # recolectamos solo los id's de procesos que tienen registro de tiempo en la BBDD
     idProcesosConTiempo.sort()                                                          # ordenamos la lista de id's de procesos con tiempos
     ids_proceso_modelo  = [registro[0] for registro in registroTiemposProcesos]         # recolectamos los los id's proceso_modelo que tienen registro de tiempo
@@ -335,7 +336,7 @@ def guardar_modelo_actualizado(ventana, datos_iniciales, bbdd):
 
     for idProceso in ids_procesos_sinTiempos:                                         #insertamos un tiempo = 0 para aquel proceso sin registor de tiempos del modelo
         procModelo = f"{idProceso}-{datos[1]}"
-        BBDD.insertar_tiempo_modelo(bbdd        = bbdd,
+        BDqueries.insertar_tiempo_modelo(bbdd        = bbdd,
                                     procmodel   = procModelo, 
                                     id_proceso  = idProceso,
                                     id_modelo   = idModelo,
@@ -344,7 +345,7 @@ def guardar_modelo_actualizado(ventana, datos_iniciales, bbdd):
     # actualizamos enla tabla de tiempos_modelos
     for idProceso, time, proceso_modelo in zip(id_procesos, tiempos, ids_proceso_modelo):
         procModelo = f"{idProceso}-{datos[1]}"
-        BBDD.actualizar_tiempo_modelo(bbdd       =   bbdd,
+        BDqueries.actualizar_tiempo_modelo(bbdd       =   bbdd,
                                       procmodel  =   procModelo, 
                                       id_proceso =   idProceso,
                                       id_modelo  =   idModelo,
@@ -372,7 +373,7 @@ def aceptar_agregar_vehiculo(ventana, bbdd):
     for clave, valor in glo.strVar_nuevosTiemposVeh.items():    
         tiempos.append(valor.get())
     
-    id_modelo=BBDD.obtener_id_modelo(bbdd, ventana.varModelo.get())
+    id_modelo=BDqueries.obtener_id_modelo(bbdd, ventana.varModelo.get())
 
     datos.extend([id_modelo,
                 ventana.varColor.get(),
@@ -383,14 +384,14 @@ def aceptar_agregar_vehiculo(ventana, bbdd):
 
     for dato in datos:
         print (dato)
-    BBDD.insertar_vehiculo(bbdd,*datos)
+    BDqueries.insertar_vehiculo(bbdd,*datos)
 
-    id_procesos = BBDD.obtener_id_procesos(bbdd)
+    id_procesos = BDqueries.obtener_id_procesos(bbdd)
     id_procesos.sort()
     #insertamos en la tabla de tiempos_vehiculoss
     for id_proceso, tiempo in zip(id_procesos, tiempos):
         proc_chasis = f"{id_proceso}-{datos[0]}"
-        BBDD.insertar_tiempo_vehiculo(bbdd,
+        BDqueries.insertar_tiempo_vehiculo(bbdd,
                                     proc_chasis, 
                                     id_proceso,
                                     datos[0],
@@ -405,11 +406,11 @@ def aceptar_agregar_vehiculo(ventana, bbdd):
 @e.manejar_errores("---Eliminar Modelo. Abriendo una ventana para eliminar un modelo y sus tiempos y guardar cambios en base de datos---")
 def eliminar_modelo_BD(ventana, bbdd):
     modeloDelete = ventana.varItem.get()
-    vehiCoinciden = BBDD.leer_vehiculo_por_modelo(bbdd, modeloDelete)
+    vehiCoinciden = BDqueries.leer_vehiculo_por_modelo(bbdd, modeloDelete)
     if ventanas_emergentes.msg_eliminar_mod(modelo = modeloDelete, vehiculos = vehiCoinciden) == "Aceptar":
-        BBDD.eliminar_modelo_completo(bbdd, modelo = modeloDelete)          # usar el método de la BD para eliminar
+        BDqueries.eliminar_modelo_completo(bbdd, modelo = modeloDelete)          # usar el método de la BD para eliminar
         for vehiculo in vehiCoinciden:
-            BBDD.eliminar_vehiculo_completo(bbdd, chasis = vehiculo[0])
+            BDqueries.eliminar_vehiculo_completo(bbdd, chasis = vehiculo[0])
         ventana.rootAux.destroy()                                         # cerrar la ventana toplevel
 
 #####################################################################################################################
@@ -429,7 +430,7 @@ def guardar_referencia_nueva(ventana, bbdd):
     datos = (ventana.varReferencia.get(),       #recogemos los datos de la ventana
              ventana.varMarcaModelo.get())
     
-    BBDD.insertar_referencia(bbdd, *datos)
+    BDqueries.insertar_referencia(bbdd, *datos)
     ventana.rootAux.destroy()   #cerramos la ventana auxiliar
     
     #actualizamos el frame de modelos en la ventana
@@ -464,7 +465,7 @@ def guardar_referencia_actualizada(ventana, ref_inicial, bbdd):
              ventana.varMarcaModelo.get())
     print(datos, ref_inicial)
 
-    BBDD.actualizar_referencia(bbdd, *datos, ref_inicial)
+    BDqueries.actualizar_referencia(bbdd, *datos, ref_inicial)
     ventana.rootAux.destroy()   #cerramos la ventana auxiliar
     
     #actualizamos el frame de modelos en la ventana
@@ -478,7 +479,7 @@ def eliminar_referencia_BBDD(botonPulsado, bbdd):
     modelo     = datos["marca_modelo"]
      
     if ventanas_emergentes.msg_eliminar_ref(referencia, modelo) == "Aceptar":
-        BBDD.eliminar_referencia(bbdd, referencia)          # usar el método de la BD para eliminar
+        BDqueries.eliminar_referencia(bbdd, referencia)          # usar el método de la BD para eliminar
 #####################################################################################################################
 ################### EVENTOS PARA SECCION TÉCNICOS ###################################################################
 #####################################################################################################################
@@ -502,9 +503,9 @@ def guardar_tecnico_actualizado(id_anterior, ventana, bbdd):
     ventana.rootAux.destroy()
 
     id_tecnico_nuevo = genera_idTecnico(nombre, apellido, documento)
-    BBDD.actualizar_tecnico(bbdd, id_tecnico_nuevo, nombre, apellido, documento, especialidad, id_anterior)
+    BDqueries.actualizar_tecnico(bbdd, id_tecnico_nuevo, nombre, apellido, documento, especialidad, id_anterior)
     
-    df_tecnProc = BBDD.leer_tecnicos_procesos_df(bbdd)
+    df_tecnProc = BDqueries.leer_tecnicos_procesos_df(bbdd)
 
     df_tecnProc_anterior = df_tecnProc[df_tecnProc['ID_PROCESO'] == id_anterior]
 
@@ -515,7 +516,7 @@ def guardar_tecnico_actualizado(id_anterior, ventana, bbdd):
         nuevo_id_tecnProc = f"{id_tecnico_nuevo}{id_proceso}"
         ids_tecnProc_nuevo.append(nuevo_id_tecnProc)
 
-    BBDD.actualizar_tecnicos_proceso_many(bbdd, ids_tecnProc_anterior, ids_tecnProc_nuevo, id_tecnico_nuevo)
+    BDqueries.actualizar_tecnicos_proceso_many(bbdd, ids_tecnProc_anterior, ids_tecnProc_nuevo, id_tecnico_nuevo)
 
     ventanas_emergentes.messagebox.showinfo("Tecnico actualizado",
                                             f"Tecnico {id_anterior} actualizado con éxito.")
@@ -541,7 +542,7 @@ def guardar_tecnico_nuevo(ventana, bbdd):
              ventana.varEspecialidad.get())
     ventana.rootAux.destroy()
 
-    ids_procesos = BBDD.leer_procesos_completo(bbdd)
+    ids_procesos = BDqueries.leer_procesos_completo(bbdd)
     ids_procesos = {nombre:id for id, nombre, desc, secue in ids_procesos}
     ParteDoc = datos[2][-6:] if len(datos[3]) >= 6 else datos[2]                    # extraer las ultimos 4 numeros del documento
     id_proc = ids_procesos[datos[3]]                                              # extramos el id del proceso
@@ -550,15 +551,15 @@ def guardar_tecnico_nuevo(ventana, bbdd):
     print(datos)
     print(proc_espec, idTecnico, id_proc)
 
-    BBDD.insertar_tecnico(bbdd, idTecnico, *datos)                                  # insertar el registro del técnico en BD
-    BBDD.insertar_tecnico_proceso(bbdd, proc_espec, idTecnico, id_proc)             # insertar el registro del técnico_proceso en BD
+    BDqueries.insertar_tecnico(bbdd, idTecnico, *datos)                                  # insertar el registro del técnico en BD
+    BDqueries.insertar_tecnico_proceso(bbdd, proc_espec, idTecnico, id_proc)             # insertar el registro del técnico_proceso en BD
 
 @e.manejar_errores("---Eliminar Tecnico. Recogiendo datos de técnico a eliminar y actualizando en base de datos---")
 def eliminar_tecnico_BD(ventana, bbdd):
     nombreTecnico = ventana.varItem.get()        # obtener el técnico seleccionado
     idTecnico = ventana.ids_items.get(nombreTecnico) # obtiene la clave con el id de acuerdo al valor con nombre completo de técnico
     if ventanas_emergentes.msg_eliminar_tec(id_tecnico = idTecnico, nombre = nombreTecnico) == "Aceptar":
-        BBDD.eliminar_tecnico_completo(bbdd, idTecnico)          # usar el método de la BD para eliminar
+        BDqueries.eliminar_tecnico_completo(bbdd, idTecnico)          # usar el método de la BD para eliminar
         ventana.rootAux.destroy()                                # cerrar la ventana toplevel
 
 #####################################################################################################################
@@ -581,10 +582,10 @@ def guardar_proceso_actualizado(id_anterior, ventana, bbdd):
     secuencia = ventana.varSecuencia.get()
     ventana.rootAux.destroy()
 
-    BBDD.actualizar_proceso(bbdd, id_proceso_nuevo, nombre, descripcion, secuencia, id_anterior)
+    BDqueries.actualizar_proceso(bbdd, id_proceso_nuevo, nombre, descripcion, secuencia, id_anterior)
     
-    df_timeMode = BBDD.leer_procesos_modelos_df(bbdd)
-    df_tecnProc = BBDD.leer_tecnicos_procesos_df(bbdd)
+    df_timeMode = BDqueries.leer_procesos_modelos_df(bbdd)
+    df_tecnProc = BDqueries.leer_tecnicos_procesos_df(bbdd)
 
     df_timeMode_anterior = df_timeMode[df_timeMode['ID_PROCESO'] == id_anterior]
     df_tecnProc_anterior = df_tecnProc[df_tecnProc['ID_PROCESO'] == id_anterior]
@@ -602,8 +603,8 @@ def guardar_proceso_actualizado(id_anterior, ventana, bbdd):
         nuevo_id_tecnProc = f"{id_tecnico}{id_proceso_nuevo}"
         ids_tecnProc_nuevo.append(nuevo_id_tecnProc)
 
-    BBDD.actualizar_proceso_modelos_many(bbdd, ids_timeMode_anterior, ids_timeMode_nuevo, id_proceso_nuevo)
-    BBDD.actualizar_tecnicos_proceso_many(bbdd, ids_tecnProc_anterior, ids_tecnProc_nuevo, id_proceso_nuevo)
+    BDqueries.actualizar_proceso_modelos_many(bbdd, ids_timeMode_anterior, ids_timeMode_nuevo, id_proceso_nuevo)
+    BDqueries.actualizar_tecnicos_proceso_many(bbdd, ids_tecnProc_anterior, ids_tecnProc_nuevo, id_proceso_nuevo)
 
     ventanas_emergentes.messagebox.showinfo("Proceso actualiado",
                                             f"Proceso {id_anterior} actualizado con éxito.")
@@ -617,20 +618,20 @@ def guardar_proceso_nuevo(ventana, bbdd):
 
 
     #PREPARAR DATAFRAME DE TIEMPOS MODELOS
-    ids_modelos = [modelo[0] for modelo in BBDD.leer_modelos(bbdd)]
+    ids_modelos = [modelo[0] for modelo in BDqueries.leer_modelos(bbdd)]
     df_procesos_modelos = pd.DataFrame([{'PROCESO_MODELO': f"{id_proceso}-{id_modelo}",
                                          'ID_PROCESO': id_proceso,
                                          'ID_MODELO': id_modelo,
                                          'TIEMPO': 0}  for id_modelo in ids_modelos])
     #PREPARAR DATAFRAME DE TIEMPOS VEHICULOS
-    chasises = [vehiculo[0] for vehiculo in BBDD.leer_vehiculos(bbdd)]
+    chasises = [vehiculo[0] for vehiculo in BDqueries.leer_vehiculos(bbdd)]
     df_procesos_chasises = pd.DataFrame([{'PROCESO_CHASIS': f"{id_proceso}-{chasis}",
                                          'ID_PROCESO': id_proceso,
                                          'CHASIS': chasis,
                                          'TIEMPO': 0}  for chasis in chasises])
 
     #PREPARAR DATAFRAME DE TECNICOS PROCESOS
-    ids_tecnicos = [tecnico[0] for tecnico in BBDD.leer_tecnicos(bbdd)]
+    ids_tecnicos = [tecnico[0] for tecnico in BDqueries.leer_tecnicos(bbdd)]
     df_tecnicos_procesos = pd.DataFrame([{'TEC_PROC': f"{id_tecnico}{id_proceso}",
                                          'ID_PROCESO': id_proceso,
                                          'ID_TECNICO': id_tecnico}  for id_tecnico in ids_tecnicos])
@@ -640,21 +641,22 @@ def guardar_proceso_nuevo(ventana, bbdd):
     print(df_procesos_chasises)
     print(df_tecnicos_procesos)
 
-    BBDD.insertar_proceso(bbdd, id_proceso, nombre_proceso, descripcion, secuencia)
-    BBDD.insertar_tiempos_modelos_df(bbdd, df_procesos_modelos)
-    BBDD.insertar_tiempos_vehiculos_df(bbdd, df_procesos_chasises)
-    BBDD.insertar_tecnicos_procesos_df(bbdd, df_tecnicos_procesos)
+    BDqueries.insertar_proceso(bbdd, id_proceso, nombre_proceso, descripcion, secuencia)
+    BDqueries.insertar_tiempos_modelos_df(bbdd, df_procesos_modelos)
+    BDqueries.insertar_tiempos_vehiculos_df(bbdd, df_procesos_chasises)
+    BDqueries.insertar_tecnicos_procesos_df(bbdd, df_tecnicos_procesos)
 
     ventana.rootAux.destroy()
     ventanas_emergentes.messagebox.showinfo("Proceso creado",
                                             f"Proceso {id_proceso} creado con éxito."
                                             "Se actualizaron las tablas de tiempos de modelos, tiempos de vehiculos y tecnicos procesos.")  
+
 @e.manejar_errores("---Eliminar Proceso. Recogiendo datos de proceso a eliminar y actualizando en base de datos---")
 def eliminar_proceso_BD(ventana, bbdd):
     nombreProceso = ventana.varItem.get()        # obtener el técnico seleccionado
     idProceso = ventana.ids_items.get(nombreProceso) # obtiene la clave con el id de acuerdo al valor con nombre completo de técnico
     if ventanas_emergentes.msg_eliminar_proc(nombre = nombreProceso) == "Aceptar":
-        BBDD.eliminar_proceso_completo(bbdd, idProceso)          # usar el método de la BD para eliminar
+        BDqueries.eliminar_proceso_completo(bbdd, idProceso)          # usar el método de la BD para eliminar
         ventana.rootAux.destroy()                                # cerrar la ventana toplevel
 
 
@@ -663,19 +665,19 @@ def eliminar_proceso_BD(ventana, bbdd):
 #####################################################################################################################
 @e.manejar_errores("---Leer datos Vehiculo. Recogiendo datos de vehiculo  en base de datos---")
 def recoger_datos_vehiculo(chasis, bbdd):
-    return BBDD.leer_vehiculo(bbdd, chasis)
+    return BDqueries.leer_vehiculo(bbdd, chasis)
 
 @e.manejar_errores("---Modificar Vehiculo. Recogiendo datos de tiempos e histórico de vehiculo y abriendo ventana para modificarlos---")
 def modificar_datos_vehiculo(chasis_anterior, bbdd):
 
     datos = list(recoger_datos_vehiculo(chasis_anterior, bbdd))                     #LEER DE LA BASE DATOS EL VEHICULO
     print(datos)
-    marcamodelo = list(BBDD.leer_modelo(bbdd, datos[2]))
+    marcamodelo = list(BDqueries.leer_modelo(bbdd, datos[2]))
     datos.pop(2)
     datos.insert(2, marcamodelo[1])
     datos.insert(2, marcamodelo[2])
-    tiempos    = BBDD.leer_tiempos_vehiculo(bbdd, chasis_anterior)                     #LEER LOS TIEMPOS DEL VEHICULO
-    historicos = BBDD.leer_historico_chasis(bbdd, chasis_anterior)
+    tiempos    = BDqueries.leer_tiempos_vehiculo(bbdd, chasis_anterior)                     #LEER LOS TIEMPOS DEL VEHICULO
+    historicos = BDqueries.leer_historico_chasis(bbdd, chasis_anterior)
     print("Los datos en el modulo eventos son: ", datos)
     print("Los tiempos en el modulo eventos son: ", tiempos)
     ventana = ventanas_topLevel.VentanaGestionaVehiculos("MODIFICAR", bbdd)       #CREAR LA VENTANA EMERGENTE PARA EDITAR EL VEHICULO
@@ -690,7 +692,7 @@ def modificarVH_en_BBDD(ventana, chasis_anterior, bbdd):
         tiempos.append(glo.strVar_nuevosTiemposVeh[clave].get())
     
 
-    id_modelo = BBDD.leer_vehiculo(bbdd, chasis_anterior)[2]
+    id_modelo = BDqueries.leer_vehiculo(bbdd, chasis_anterior)[2]
     datos = (
         ventana.varChasis.get(),
         ventana.varFecha.get(),
@@ -707,15 +709,15 @@ def modificarVH_en_BBDD(ventana, chasis_anterior, bbdd):
         print (dato)
     print(tiempos)
     #Modifica el registro en la base de datos
-    BBDD.actualizar_vehiculo(bbdd, *datos, chasis_anterior)
+    BDqueries.actualizar_vehiculo(bbdd, *datos, chasis_anterior)
 
-    id_procesos = BBDD.obtener_id_procesos(bbdd)
+    id_procesos = BDqueries.obtener_id_procesos(bbdd)
     id_procesos.sort()
     #insertamos en la tabla de tiempos_vehiculoss
     for id_proceso, tiempo in zip(id_procesos, tiempos):
         proc_chasis_anterior = f"{id_proceso}-{chasis_anterior}"
         proc_chasis = f"{id_proceso}-{datos[0]}"
-        BBDD.actualizar_tiempo_vehiculo(bbdd,
+        BDqueries.actualizar_tiempo_vehiculo(bbdd,
                                         proc_chasis, 
                                         id_proceso,
                                         datos[0],
@@ -727,15 +729,15 @@ def modificarVH_en_BBDD(ventana, chasis_anterior, bbdd):
 @e.manejar_errores("---Eliminar Vehiculo. Actualizando cambios en base de datos---")
 def eliminar_VH_pedido(chasis):
     if ventanas_emergentes.msg_eliminar_veh(chasis) == "Aceptar":
-        BBDD.eliminar_vehiculo(chasis)
+        BDqueries.eliminar_vehiculo(chasis)
 
 @e.manejar_errores("---Mostrar info de Vehiculo. Recogiendo datos de vehiculo en base de datos, tiempos e sus históricos y abriendo ventana para mostrarlos---")
 def ventana_infoVehiculo(chasisVh, bbdd):
-    lecturaRegistros = BBDD.leer_historico_chasis(bbdd, chasisVh)
-    datosVehiculo = BBDD.leer_vehiculo(bbdd, chasisVh)
+    lecturaRegistros = BDqueries.leer_historico_chasis(bbdd, chasisVh)
+    datosVehiculo = BDqueries.leer_vehiculo(bbdd, chasisVh)
 
     nombresTecnicos = {}
-    for tecnico in  BBDD.leer_tecnicos_modificado(bbdd):
+    for tecnico in  BDqueries.leer_tecnicos_modificado(bbdd):
         nombresTecnicos[tecnico[0]] = tecnico[1]            # Adicionar solo id y nombre al diccionario de tecnicos en base a la lectura de BBDD
 
     registros_modificados = []
@@ -784,13 +786,13 @@ def aceptar_AsignarUnVehiculo(ventana, chasisVh, bbdd):
     print(id_asig, id_proc, id_tec)
 
     inicio = model_datetime.parseDT(fecha, hora) 
-    tiempo = BBDD.leer_tiempo_vehiculo(bbdd, chasisVh, id_proc)
+    tiempo = BDqueries.leer_tiempo_vehiculo(bbdd, chasisVh, id_proc)
     fin    = model_datetime.calcular_hora_finalDT(inicio, tiempo)
     estado = ventana.varEstado.get()
 
     print(id_asig, id_proc, id_tec, inicio, fin, tiempo)
 
-    BBDD.insertar_historico(bbdd,
+    BDqueries.insertar_historico(bbdd,
                             id_asig,
                             chasisVh,
                             id_tec,
@@ -818,17 +820,17 @@ def guardar_pedido_nuevo(ventana, bbdd):
     print(datos)
     ventana.rootAux.destroy()
 
-    consecutivo = BBDD.next_consecutivoPedido(bbdd)
+    consecutivo = BDqueries.next_consecutivoPedido(bbdd)
     id_pedido = datos[0] + "_" + str(consecutivo)
     datos_completos = tuple(list(datos) + consecutivo)
     print(datos_completos)
-    BBDD.insertar_pedido(bbdd, *datos_completos)
+    BDqueries.insertar_pedido(bbdd, *datos_completos)
 
 @e.manejar_errores("---Recoger datos Pedido. Recogiendo datos de pedido, programas e históricos en base de datos y abriendo ventana para mostrarlos---")
 def ventana_infoPedido(id_pedido, bbdd):
-    datosPedido = BBDD.leer_pedido(bbdd, id_pedido)
-    datosProgramas = BBDD.leer_programas_por_pedido(bbdd, id_pedido)
-    df_vehiculos = BBDD.leer_historicos_estados_pedido_df(bbdd, id_pedido)
+    datosPedido = BDqueries.leer_pedido(bbdd, id_pedido)
+    datosProgramas = BDqueries.leer_programas_por_pedido(bbdd, id_pedido)
+    df_vehiculos = BDqueries.leer_historicos_estados_pedido_df(bbdd, id_pedido)
     ventana = ventanas_topLevel.VentanaMuestraInfoPedi(bbdd, datosPedido, datosProgramas, df_vehiculos)
     ventana.asignafuncionBoton(funcionCerrar=ventana.rootAux.destroy)
 
@@ -860,21 +862,21 @@ def modificarPedido_en_BBDD(ventana, id_anterior, bbdd):
     print(datos)
     ventana.rootAux.destroy()   #cerramos la ventana auxiliar
 
-    consecutivo = BBDD.next_consecutivoPedido(bbdd)
+    consecutivo = BDqueries.next_consecutivoPedido(bbdd)
     id_bruto = re.sub(r'_[^_]*$', '', id_anterior)
     id_pedido = id_bruto + "_" + str(consecutivo) 
     datos_completos = (id_pedido,) + tuple(map(str, datos)) + (consecutivo,)
     print(datos_completos)
-    BBDD.actualizar_pedido(bbdd, *datos_completos, id_anterior)    # Actualizamos pedido
-    BBDD.actualizar_vehiculos_pedido(bbdd, id_anterior, id_pedido)     # Actualizamos vehiculos de pedido
-    BBDD.actualizar_programas_pedido(bbdd, id_anterior, id_pedido)     # Actualizamos programas de pedido
+    BDqueries.actualizar_pedido(bbdd, *datos_completos, id_anterior)    # Actualizamos pedido
+    BDqueries.actualizar_vehiculos_pedido(bbdd, id_anterior, id_pedido)     # Actualizamos vehiculos de pedido
+    BDqueries.actualizar_programas_pedido(bbdd, id_anterior, id_pedido)     # Actualizamos programas de pedido
 
     ventanas_emergentes.messagebox.showinfo("Registros actualizados", f"Se actualizaron los registros de programas y vehículos del pedido {id_anterior}")
 
 @e.manejar_errores("---Eliminar Pedido. Actualizando cambios en base de datos---")
 def eliminar_pedido_BD(id_pedido, bbdd):
     if ventanas_emergentes.msg_eliminar_ped(id_pedido) == "Aceptar":
-        request, incorrecta = BBDD.eliminar_pedido_cascada(bbdd, id_pedido)
+        request, incorrecta = BDqueries.eliminar_pedido_cascada(bbdd, id_pedido)
         if  incorrecta == None:
             ventanas_emergentes.messagebox.showerror("ERROR EN LA ELIMINACIÓN DE REGISTROS", f"No se eliminó ningún registros:\nError: {request}")
         elif incorrecta ==True:
@@ -887,7 +889,7 @@ def eliminar_pedido_BD(id_pedido, bbdd):
 #####################################################################################################################
 @e.manejar_errores("---Mostrar Gantt de programa. Recogiendo datos de programa y turnos en base de datos y abriendo ventana para Gantt---")
 def mostrar_gantt_programa(id_programa, bbdd):
-    df = BBDD.leer_ordenes_graficar_programa(bbdd, id_programa)
+    df = BDqueries.leer_ordenes_graficar_programa(bbdd, id_programa)
 
     # Convertir las columnas de fechas de string a datetime
     df["INICIO"] = pd.to_datetime(df["INICIO"])
@@ -895,7 +897,7 @@ def mostrar_gantt_programa(id_programa, bbdd):
     inicio_horizonte = df["INICIO"].min()    # Encontrar el valor mínimo de cada columna
     fin_horizonte    = df["FIN"].max()       # Encontrar el valor máximo de cada columna
 
-    startAM, endAM, startPM, endPM = BBDD.leer_turnos_programa(bbdd, id_programa)
+    startAM, endAM, startPM, endPM = BDqueries.leer_turnos_programa(bbdd, id_programa)
     df_con_bloques = incluir_bloques_horarios(df, startAM, endAM, startPM, endPM)
     gantt_tecnicos, gantt_vehiculos = model_gantt.generar_gantt(df_con_bloques, inicio_horizonte, fin_horizonte)
 
@@ -914,8 +916,8 @@ def ventana_infoOrdenes(id_orden, bbdd):
 @e.manejar_errores("---Eliminar Programa. Eliminado programa y sus órdenes en base de datos---")
 def eliminar_programa_BD(id_programa, bbdd):
     if ventanas_emergentes.msg_eliminar_prog(id_programa) == "Aceptar":
-        delPrograma = BBDD.eliminar_programa(bbdd, id_programa)
-        delOrdenes  = BBDD.eliminar_ordenes_por_programa(bbdd, id_programa)
+        delPrograma = BDqueries.eliminar_programa(bbdd, id_programa)
+        delOrdenes  = BDqueries.eliminar_ordenes_por_programa(bbdd, id_programa)
         print("Programa: ", delPrograma, "\n.Órdenes: ", delOrdenes)
         if delPrograma is False:
             if delOrdenes is False:
@@ -929,8 +931,8 @@ def eliminar_programa_BD(id_programa, bbdd):
 
 @e.manejar_errores("---Eliminar. Eliminando una orden de un programa en base de datos---")
 def ventana_eliminarOrden(id_orden, bbdd):
-    if BBDD.ventEmerg.msg_eliminar_ord(id_orden) == "Aceptar":
-        BBDD.eliminar_orden(bbdd, id_orden)
+    if BDqueries.ventEmerg.msg_eliminar_ord(id_orden) == "Aceptar":
+        BDqueries.eliminar_orden(bbdd, id_orden)
 #####################################################################################################################
 ################ EVENTOS PARA SECCION DE HISTÓRICOS #################################################################
 #####################################################################################################################
@@ -948,7 +950,7 @@ def ventanaCambiarEstado(id, est_anterior, bbdd):
 @e.manejar_errores("---Cambiar Estado de Histórico. Actualizando en la base de datos el estado de un histórico---")
 def aceptarCambiarEstado(ventana, id, est_anterior, bbdd):
     nuevo_estado = ventana.varEstado.get()
-    BBDD.actualizar_historico_estado(bbdd, id, nuevo_estado)
+    BDqueries.actualizar_historico_estado(bbdd, id, nuevo_estado)
     ventana.rootAux.destroy()
     ventanas_emergentes.messagebox.showinfo("Registro Actualizado",
                                             f"El histórico con código {id} cambió su estado de {est_anterior} a {nuevo_estado}")
@@ -965,15 +967,15 @@ def ventana_ObserNoved(valores):
 
 @e.manejar_errores("---Eliminar Histórico. Eliminando histórico en base de datos---")
 def ventana_eliminarHistorico(id_historico, bbdd):
-    if BBDD.ventEmerg.msg_eliminar_his(id_historico) == "Aceptar":
-        BBDD.eliminar_historico(bbdd, id_historico)
+    if BDqueries.ventEmerg.msg_eliminar_his(id_historico) == "Aceptar":
+        BDqueries.eliminar_historico(bbdd, id_historico)
 
 #####################################################################################################################
 ############ EVENTOS PARA SECCION DE GANTT HISTORICOS ################################################################
 #####################################################################################################################
 @e.manejar_errores("---Generar Gantt de Históricos. Preparando datos para diagramas de Gantt de históricos---")
 def generar_df_gantt(bbdd):
-    df = BBDD.leer_historicos_graficar(bbdd)
+    df = BDqueries.leer_historicos_graficar(bbdd)
 
     # Convertir las columnas de fechas de string a datetime
     df["INICIO"] = pd.to_datetime(df["INICIO"])
@@ -1129,7 +1131,7 @@ def guardar_HistoricosExcel_BBDD(ventana, dataframes, bbdd):
                                                                                                     concatenar_id_historico(row)),
                                                         axis = 1)
 
-        df_procesos = BBDD.leer_procesos_df(bbdd)
+        df_procesos = BDqueries.leer_procesos_df(bbdd)
         df_agrupado = pd.merge(df_agrupado, df_procesos, how='left', left_on='PROCESO', right_on='NOMBRE')
         df_agrupado.drop(columns=['PROCESO', 'NOMBRE', 'DESCRIPCION', 'SECUENCIA'], inplace=True)
 
@@ -1141,7 +1143,7 @@ def guardar_HistoricosExcel_BBDD(ventana, dataframes, bbdd):
         ventanas_emergentes.messagebox.showerror("Error al agregar históricos", f"Ocurrió un error al agregar la tabla de históricos cargada: {e}")
         return
     
-    registrosNuevos = BBDD.insertar_historicos_df(bbdd, df_agrupado)
+    registrosNuevos = BDqueries.insertar_historicos_df(bbdd, df_agrupado)
     if registrosNuevos > 0:
         ventanas_emergentes.messagebox.showinfo("Históricos agregados", f"Se agregaron correctamente los históricos cargados: total {total} registros")
 
@@ -1150,7 +1152,7 @@ def guardar_ModelosExcel_BBDD(ventana, df, bbdd):
     print(df)
     ventana.rootAux.destroy()
     try:
-        if BBDD.insertar_modelos_df(bbdd, df) is False:
+        if BDqueries.insertar_modelos_df(bbdd, df) is False:
             ventanas_emergentes.messagebox.showinfo("Error al agregar Modelos", f"Ocurrió un error al agregar la tabla de Modelos cargada") 
     
         else:
@@ -1167,7 +1169,7 @@ def guardar_PedidoExcel_BBDD(ventana, df, bbdd):
     fecha_ingreso = glo.strVar_newPedido['fecha_ingreso'].get()
     fecha_estimada = glo.strVar_newPedido['fecha_estimada'].get()
     fecha_entrega = glo.strVar_newPedido['fecha_entrega'].get()
-    consecutivo = BBDD.next_consecutivoPedido(bbdd)
+    consecutivo = BDqueries.next_consecutivoPedido(bbdd)
 
     ventana.rootAux.destroy()
     id_pedido = nombre + "_" + str(consecutivo)
@@ -1189,7 +1191,7 @@ def guardar_PedidoExcel_BBDD(ventana, df, bbdd):
         return
 
     try:
-        BBDD.insertar_pedido(bbdd = bbdd,                                       # Guardamos pedido en BBDD
+        BDqueries.insertar_pedido(bbdd = bbdd,                                       # Guardamos pedido en BBDD
                              id_pedido       = id_pedido,
                              cliente         = cliente,
                              fecha_recepcion = fecha_recepcion,
@@ -1197,9 +1199,9 @@ def guardar_PedidoExcel_BBDD(ventana, df, bbdd):
                              fecha_estimada  = fecha_estimada,
                              fecha_entrega   = fecha_entrega,
                              consecutivo     = consecutivo)
-        BBDD.insertar_vehiculos_df(bbdd,
+        BDqueries.insertar_vehiculos_df(bbdd,
                                    df_para_BBDDVehiculos)                 # Guardamos los vehiculos
-        BBDD.insertar_tiempos_vehiculos_df(bbdd,
+        BDqueries.insertar_tiempos_vehiculos_df(bbdd,
                                            df_para_BBDDtiemposVehiculos)  # Guardamos los tiempos_vehiculos
         
         ventanas_emergentes.messagebox.showinfo("Pedido Agregado", f"Se agregó correctamente el Pedido {id_pedido} y los vehículos cargados")
@@ -1212,7 +1214,7 @@ def guardar_ProcesosExcel_BBDD(ventana, df, bbdd):
     print(df)
     ventana.rootAux.destroy()
     try:
-        if BBDD.insertar_procesos_df(bbdd, df) is False:
+        if BDqueries.insertar_procesos_df(bbdd, df) is False:
             ventanas_emergentes.messagebox.showinfo("Error al agregar procesos", f"Ocurrió un error al agregar la tabla de procesos cargada") 
     
         else:
@@ -1223,21 +1225,21 @@ def guardar_ProcesosExcel_BBDD(ventana, df, bbdd):
 
 @e.manejar_errores("---Cargar(Guardar) Referencias de excel. Preparando dataframe y Guardando en base de datos el dataframe de referencias---")
 def guardar_ReferenciasExcel_BBDD(ventana, df, bbdd):
-    df_tabla_modelos = BBDD.leer_modelos_id_modelos_df(bbdd)
+    df_tabla_modelos = BDqueries.leer_modelos_id_modelos_df(bbdd)
     print(df_tabla_modelos)
     df_final = pd.merge(df, df_tabla_modelos, on="MODELO", how="left")   # Hacer un merge entre el DataFrame original y la tabla obtenida de la base de datos
     print(df_final)
     df_final = df_final[["REFERENCIA", "ID_MODELO"]]                     # Seleccionar solo las columnas requeridas
     print(df_final)
     ventana.rootAux.destroy()
-    BBDD.insertar_referencias_df(bbdd, df_final)
+    BDqueries.insertar_referencias_df(bbdd, df_final)
 
 @e.manejar_errores("---Cargar(Guardar) Técnicos de excel. Guardando en base de datos el dataframe de técnicos---")
 def guardar_TecnicosExcel_BBDD(ventana, df, bbdd):
     print(df)
     ventana.rootAux.destroy()
     try:
-        if BBDD.insertar_tecnicos_df(bbdd, df) is False:
+        if BDqueries.insertar_tecnicos_df(bbdd, df) is False:
             ventanas_emergentes.messagebox.showinfo("Error al agregar técnicos", f"Ocurrió un error al agregar la tabla de técnicos cargada") 
     
         else:
@@ -1248,7 +1250,7 @@ def guardar_TecnicosExcel_BBDD(ventana, df, bbdd):
 
 @e.manejar_errores("---Cargar(Guardar) Tiempos Modelos de excel. Preparando dataframe y Guardando en base de datos el dataframe de tiempos---")
 def guardar_TiemposModelosExcel_BBDD(ventana, df, bbdd):
-    df_marcasModelos = BBDD.leer_modelos_marcas_df(bbdd).drop(columns=["MARCA"]) # leemos los id de modelos en base de datos
+    df_marcasModelos = BDqueries.leer_modelos_marcas_df(bbdd).drop(columns=["MARCA"]) # leemos los id de modelos en base de datos
     print(df_marcasModelos)
     df_combinado = pd.merge(df, df_marcasModelos, on="MODELO", how="left")       # combinamos el dataframe de tiempos con el de id modelos
     print(df_combinado)
@@ -1260,7 +1262,7 @@ def guardar_TiemposModelosExcel_BBDD(ventana, df, bbdd):
     print(df_tiempos_modelos)
     ventana.rootAux.destroy()
     try:
-        if BBDD.insRem_tiempos_modelos_df(bbdd, df_tiempos_modelos) is False:
+        if BDqueries.insRem_tiempos_modelos_df(bbdd, df_tiempos_modelos) is False:
             ventanas_emergentes.messagebox.showinfo("Error al agregado el pedido", f"Ocurrió un error al agregar la tabla de tiempos de modelos cargada") 
     
         else:
@@ -1291,9 +1293,9 @@ def limpiar_espacios_df(df):
 
 @e.manejar_errores("---Verificar existencia pedido. Buscando en base de datos si ya existe pedido, vehiculos o tiempos---")
 def verificar_pedidos_vehiculos(bbdd, pedidoNuevo, df_vehiculos, df_tiempos):
-    consulta_pedido    = BBDD.leer_pedido(bbdd, pedidoNuevo)
-    consulta_vehiculos = BBDD.leer_vehiculos_df(bbdd)
-    consulta_tiempos   = BBDD.leer_tiempos_vehiculos_df(bbdd)
+    consulta_pedido    = BDqueries.leer_pedido(bbdd, pedidoNuevo)
+    consulta_vehiculos = BDqueries.leer_vehiculos_df(bbdd)
+    consulta_tiempos   = BDqueries.leer_tiempos_vehiculos_df(bbdd)
 
     existe = False
     coincidencias = {"pedido":"",
@@ -1334,9 +1336,9 @@ def aceptar_exportar_to_excel(ventana, df, nombreVentana):
 @e.manejar_errores("---Exportar a Excel. Seleccionando ruta y abriendo ventana para exportar tabla---")
 def exportar_tabla(ventana, id, tipo, bbdd):
     if tipo == "programa":
-        df = BBDD.leer_ordenes_graficar_programa(bbdd, id)
+        df = BDqueries.leer_ordenes_graficar_programa(bbdd, id)
     if tipo == "pedido":
-        df = BBDD.leer_vehiculos_por_pedido_df(bbdd, id)
+        df = BDqueries.leer_vehiculos_por_pedido_df(bbdd, id)
 
     ruta = nombraArchivoExcel(id)
     ventana.rootAux.destroy()
@@ -1352,7 +1354,7 @@ def generar_formatoExcel_historicos(bbdd):
         nombreArchivo = nombraArchivoExcel(re.sub(r'\..*', '', bbdd) + "_" + timestamp)
         nombreArchivo = 'plantillahistoricos_' + nombreArchivo
 
-        df = BBDD.leer_tecnicos_df(bbdd)
+        df = BDqueries.leer_tecnicos_df(bbdd)
         if df is None or df.empty:
             print("No se encontraron datos.")
             ventanas_emergentes.messagebox.showerror("Error al generar el archivo de Excel",
@@ -1470,7 +1472,7 @@ def aceptarFechayHoraProg(ventana, tipoPrograma, bbdd):
     
     ########## PREPARAR INFORMACIÓN PARA BASE DE DATOS ############
     id_programa = diccPrograma["id"]
-    id_programa_new = id_programa + "_" + str(BBDD.next_consecutivoPrograma(bbdd))
+    id_programa_new = id_programa + "_" + str(BDqueries.next_consecutivoPrograma(bbdd))
     df_previo   = diccPrograma["programa"]
     df_programa = transformar_dataframe_ordenes(df_ordenes  = df_previo,
                                                 id_programa = id_programa_new,
@@ -1494,7 +1496,7 @@ def abrirVistaPrevia_programa(pedido, diagramas, programa, df_to_BD, df_previo, 
 @e.manejar_errores("---Programar pedido. Aceptando y guardando programa en base de datos---")
 def aceptar_guardar_programa(ventana, programa, pedido, df_programa, bbdd):
     id_inicial  = programa
-    consecutivo = BBDD.next_consecutivoPrograma(bbdd)
+    consecutivo = BDqueries.next_consecutivoPrograma(bbdd)
     id_programa = id_inicial + "_" + str(consecutivo)
     ventana.rootAux.destroy()
     print(programa)
@@ -1505,8 +1507,8 @@ def aceptar_guardar_programa(ventana, programa, pedido, df_programa, bbdd):
     startPM = glo.turnos.startPM.get()
     endPM   = glo.turnos.endPM.get()
 
-    cargaOrdenes  = BBDD.insertar_ordenes_df(bbdd, df_programa)
-    cargaPrograma = BBDD.insertar_programa(bbdd, id_programa, None, consecutivo, pedido,
+    cargaOrdenes  = BDqueries.insertar_ordenes_df(bbdd, df_programa)
+    cargaPrograma = BDqueries.insertar_programa(bbdd, id_programa, None, consecutivo, pedido,
                                            startAM=startAM, endAM=endAM, startPM=startPM, endPM=endPM)
 
     if cargaOrdenes is False:
@@ -1620,7 +1622,7 @@ def transformar_dataframe_tiempos(df, ids):
 def transformar_vehiculos_pedido_cargado(df, id_pedido, fecha_ingreso, bbdd):
 
     print("___________________EJECUTANDO TRANSFORMACION___________________")
-    df_ref_idModelos = BBDD.leer_referencias_modelos_df(bbdd)           # lee las referencias en la BBDD    
+    df_ref_idModelos = BDqueries.leer_referencias_modelos_df(bbdd)           # lee las referencias en la BBDD    
     print(df)                       
     print(df_ref_idModelos.to_string())
     df_combinado1 = pd.merge(df, df_ref_idModelos, on="REFERENCIA", how="left")                 # Incluye la columna referencias con sus valores en el DF
@@ -1652,11 +1654,11 @@ def transformar_vehiculos_pedido_cargado(df, id_pedido, fecha_ingreso, bbdd):
         ventanas_emergentes.msg_registro_duplicado(registros_nulos)
         return
 
-    df_mod_idModelos = BBDD.leer_modelos_id_modelos_df(bbdd)                                       # Incluimos los id_modelos    
+    df_mod_idModelos = BDqueries.leer_modelos_id_modelos_df(bbdd)                                       # Incluimos los id_modelos    
     df_combinado2 = pd.merge(df_combinado1, df_mod_idModelos, on="ID_MODELO", how="left")
     print(df_combinado2)
 
-    tiempos_modelos = BBDD.leer_tiempos_modelos_df(bbdd)                                  # INcluimos los tiempos
+    tiempos_modelos = BDqueries.leer_tiempos_modelos_df(bbdd)                                  # INcluimos los tiempos
     df_combinado3 = pd.merge(df_combinado2, tiempos_modelos, on="MODELO", how="left")
     print(df_combinado3)
 

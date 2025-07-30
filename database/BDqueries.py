@@ -544,6 +544,7 @@ def insertar_tiempos_vehiculos_df(bbdd, df):
         request = None
         return request
 
+# COPIADA
 def insRem_tiempos_modelos_df(bbdd, dataframe):
     try:
         # Usar 'with' para asegurar el cierre de la conexión de forma automática
@@ -621,6 +622,7 @@ def insertar_vehiculos_df(bbdd, df):
 ###########################################################################
 ############################ PARA PARA LEER ###############################
 ###########################################################################
+#FALTA COPIAR
 def calcula_tecnicos(bbdd):
 
     conn = sqlite3.connect(bbdd)
@@ -632,6 +634,7 @@ def calcula_tecnicos(bbdd):
     conn.close()
     return numero_registros
 
+#FALTA COPIAR
 def calcula_modelos(bbdd):
 
     conn = sqlite3.connect(bbdd)
@@ -643,6 +646,7 @@ def calcula_modelos(bbdd):
     conn.close()
     return numero_registros
 
+#FALTA COPIAR
 def calcula_procesos(bbdd):
 
     conn = sqlite3.connect(bbdd)
@@ -664,27 +668,29 @@ def generar_consulta_historicos_estados(bbdd):
     # Construir dinámicamente la parte del CASE
     case_statements = []
     for proceso in id_procesos:
-        case_statements.append(f"MAX(CASE WHEN HISTORICOS.ID_PROCESO = '{proceso}' THEN HISTORICOS.ESTADO ELSE '-' END) AS '{proceso}'")
+        case_statements.append(f"""MAX(
+                                    CASE
+                                        WHEN HISTORICOS.ID_PROCESO = '{proceso}'
+                                        THEN HISTORICOS.ESTADO ELSE '-' END)
+                                    AS '{proceso}""")
 
     # Unir las partes para generar la consulta completa
-    consulta_sql = f"""
-    SELECT
-        VEHICULOS.CHASIS,
-        VEHICULOS.ID_MODELO,
-        VEHICULOS.COLOR,
-        {', '.join(case_statements)}
-    FROM
-        VEHICULOS
-    LEFT JOIN
-        HISTORICOS ON VEHICULOS.CHASIS = HISTORICOS.CHASIS
-    LEFT JOIN
-        PROCESOS ON PROCESOS.ID_PROCESO = HISTORICOS.ID_PROCESO
-    WHERE
-        VEHICULOS.ID_PEDIDO = ?
-    GROUP BY
-        VEHICULOS.CHASIS, VEHICULOS.ID_MODELO, VEHICULOS.COLOR
-    ORDER BY
-        PROCESOS.SECUENCIA;
+    consulta_sql = f"""SELECT VEHICULOS.CHASIS,
+                            VEHICULOS.ID_MODELO,
+                            VEHICULOS.COLOR,
+                            {', '.join(case_statements)}
+                        FROM
+                            VEHICULOS
+                        LEFT JOIN
+                            HISTORICOS ON VEHICULOS.CHASIS = HISTORICOS.CHASIS
+                        LEFT JOIN
+                            PROCESOS ON PROCESOS.ID_PROCESO = HISTORICOS.ID_PROCESO
+                        WHERE
+                            VEHICULOS.ID_PEDIDO = ?
+                        GROUP BY
+                            VEHICULOS.CHASIS, VEHICULOS.ID_MODELO, VEHICULOS.COLOR
+                        ORDER BY
+                            PROCESOS.SECUENCIA;
     """
     return consulta_sql
 
@@ -698,7 +704,7 @@ def generar_consulta_tiempos_modelos(bbdd):
     # Construir dinámicamente la parte del CASE
     case_statements = []
     for proceso in id_procesos:
-        case_statements.append(f"MAX(CASE WHEN TIEMPOS_MODELOS.ID_PROCESO = '{proceso}' THEN TIEMPOS_MODELOS.TIEMPO END) AS '{proceso}'")
+        case_statements.append(f"\n MAX(CASE WHEN TIEMPOS_MODELOS.ID_PROCESO = '{proceso}' THEN TIEMPOS_MODELOS.TIEMPO END) AS '{proceso}'")
 
     # Unir las partes para generar la consulta completa
     consulta_sql = f"""
@@ -976,8 +982,7 @@ def leer_ids_proceso_modelo(bbdd, proc_modelo):
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()          
-        cursor.execute("""
-                        SELECT *
+        cursor.execute("""SELECT *
                             FROM TIEMPOS_MODELOS
                             WHERE ID_MODELO=?""",
                             (proc_modelo,))
@@ -1354,7 +1359,7 @@ def leer_planta_info(bbdd):
         conn.close()
         return datos
 
-def leer_procesos(bbdd):
+def leer_procesos_nombres(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()          
@@ -1424,31 +1429,29 @@ def leer_procesos_secuencia(bbdd):
         conn.close()
         return registros
 
-def leer_programa(bbdd, id):
+def leer_programa(bbdd, id_programa):
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()
-        cursor.execute("""
-                        SELECT
-                            ID_PROGRAMA,
-                            ID_PEDIDO,
-                            DESCRIPCION,
-                            CONSECUTIVO,
-                            INICIA_AM,
-                            TERMINA_AM,
-                            INICIA_PM,
-                            TERMINA_PM
+        cursor.execute("""SELECT ID_PROGRAMA,
+                                 ID_PEDIDO,
+                                 DESCRIPCION,
+                                 CONSECUTIVO,
+                                 INICIA_AM,
+                                 TERMINA_AM,
+                                 INICIA_PM,
+                                 TERMINA_PM
                         FROM
                             PROGRAMAS
                         WHERE
                             ID_PROGRAMA=?""",
-                        (id,))
+                        (id_programa,))
         datos = cursor.fetchone()
 
         print(datos)
 
     except sqlite3.Error as e:
-        print(f"Error al leer el programa {id}: {e}")
+        print(f"Error al leer el programa {id_programa}: {e}")
         datos = None
 
     finally:
@@ -1508,13 +1511,11 @@ def leer_tecnicos(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()          
-        cursor.execute("""
-                        SELECT
-                            T. ID_TECNICO,
-                            T. NOMBRE,
-                            T. APELLIDO,
-                            T. DOCUMENTO,
-                            T. ESPECIALIDAD
+        cursor.execute("""SELECT T.ID_TECNICO,
+                            T.NOMBRE,
+                            T.APELLIDO,
+                            T.DOCUMENTO,
+                            T.ESPECIALIDAD
                         FROM
                             TECNICOS AS T
                         LEFT JOIN
@@ -1567,13 +1568,11 @@ def leer_tecnicos_modificado(bbdd):
 def leer_tecnicos_df(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
-        query = """
-                    SELECT
-                        TECNICOS.ID_TECNICO,
-                        TECNICOS.NOMBRE, 
-                        TECNICOS.APELLIDO,
-                        TECNICOS.DOCUMENTO,
-                        PROCESOS.NOMBRE AS PROCESO
+        query = """SELECT TECNICOS.ID_TECNICO,
+                          TECNICOS.NOMBRE, 
+                          TECNICOS.APELLIDO,
+                          TECNICOS.DOCUMENTO,
+                          PROCESOS.NOMBRE AS PROCESO
                     FROM
                         TECNICOS
                     LEFT JOIN
@@ -1601,11 +1600,19 @@ def leer_tecnicos_df(bbdd):
 def leer_tecnicos_procesos_df(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
-        query = """SELECT TP.TEC_PROC, TP.ID_TECNICO, TP.ID_PROCESO
-                       FROM TECNICOS_PROCESOS AS TP
-                       LEFT JOIN PROCESOS AS P
-                       ON P.ID_PROCESO = TP.ID_PROCESO
-                       ORDER BY P.SECUENCIA"""
+        query = """SELECT
+                        TP.TEC_PROC,
+                        TP.ID_TECNICO,
+                        TP.ID_PROCESO
+                    FROM
+                        TECNICOS_PROCESOS AS TP
+                    LEFT JOIN
+                        PROCESOS AS P
+                    ON
+                        P.ID_PROCESO = TP.ID_PROCESO
+                    ORDER BY
+                        P.SECUENCIA
+                """
         dataframe = pd.read_sql_query(query, conn)
         print(dataframe)
 
@@ -1624,9 +1631,7 @@ def leer_tecnicos_por_proceso(bbdd, id_proceso):
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()          
-        cursor.execute("""
-                    SELECT
-                       *
+        cursor.execute("""SELECT  *
                     FROM
                        TECNICOS
                     LEFT JOIN
@@ -1669,9 +1674,15 @@ def leer_tiempo_vehiculo(bbdd, chasis, id_proceso):
 
         vehiculo = chasis
         id= id_proceso
-        cursor.execute('SELECT ID_PROCESO, TIEMPO FROM TIEMPOS_VEHICULOS WHERE CHASIS=? AND ID_PROCESO = ?',
+        cursor.execute("""SELECT ID_PROCESO,
+                                TIEMPO 
+                            FROM 
+                                TIEMPOS_VEHICULOS
+                            WHERE
+                                CHASIS=? AND ID_PROCESO = ?
+                                """,
                        (vehiculo, id))
-        registro = cursor.fetchall()
+        registro = cursor.fetchone()
         print(registro[0])
 
     except sqlite3.Error as e:
@@ -1718,7 +1729,7 @@ def leer_tiempos_vehiculos(bbdd):
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()
 
-        cursor.execute('SELECT * FROM TIEMPOS_VEHICULOS')
+        cursor.execute("SELECT * FROM TIEMPOS_VEHICULOS")
         registros = cursor.fetchall()
         print(registros)
 
@@ -1736,16 +1747,14 @@ def leer_turnos_programa(bbdd, programa):
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()
 
-        cursor.execute('''
-                SELECT
-                    PROGRAMAS.INICIA_AM,
-                    PROGRAMAS.TERMINA_AM,
-                    PROGRAMAS.INICIA_PM,
-                    PROGRAMAS.TERMINA_PM
-                FROM
-                    PROGRAMAS 
-                WHERE
-                    PROGRAMAS.ID_PROGRAMA = ?''', (programa,))
+        cursor.execute("""SELECT PROGRAMAS.INICIA_AM,
+                            PROGRAMAS.TERMINA_AM,
+                            PROGRAMAS.INICIA_PM,
+                            PROGRAMAS.TERMINA_PM
+                        FROM
+                            PROGRAMAS 
+                        WHERE
+                            PROGRAMAS.ID_PROGRAMA = ?""", (programa,))
         registros = cursor.fetchone()
         print(registros)
 
@@ -1764,7 +1773,7 @@ def leer_vehiculo(bbdd, chasis):
         cursor = conn.cursor()
 
         vehiculo = chasis
-        cursor.execute('''SELECT 
+        cursor.execute("""SELECT 
                             CHASIS,
                             FECHA_INGRESO,
                             ID_MODELO,
@@ -1773,7 +1782,7 @@ def leer_vehiculo(bbdd, chasis):
                             SUBCONTRATAR,
                             ID_PEDIDO
                         FROM vehiculos
-                        WHERE CHASIS=?''', 
+                        WHERE CHASIS=?""", 
                         (vehiculo,))
         registro = cursor.fetchone()
         print(registro)
@@ -1794,27 +1803,25 @@ def leer_vehiculo_completo(bbdd, chasis):
         cursor = conn.cursor()
 
         vehiculo = chasis
-        cursor.execute('''
-                    SELECT
-                        VEHICULOS.CHASIS,
-                        VEHICULOS.ID_MODELO,
-                        VEHICULOS.COLOR,
-                        VEHICULOS.REFERENCIA,
-                        VEHICULOS.FECHA_INGRESO,
-                        VEHICULOS.NOVEDADES,
-                        VEHICULOS.SUBCONTRATAR,
-                        VEHICULOS.ID_PEDIDO,
-                        TIEMPOS_VEHICULOS.ID_PROCESO,
-                        TIEMPOS_VEHICULOS.TIEMPO
-                    FROM
-                        VEHICULOS
-                    LEFT JOIN
-                        TIEMPOS_VEHICULOS
-                    ON
-                        VEHICULOS.CHASIS = TIEMPOS_VEHICULOS.CHASIS
-                    WHERE
-                        VEHICULOS.CHASIS = ?
-                        ''', (vehiculo,))
+        cursor.execute("""SELECT VEHICULOS.CHASIS,
+                                 VEHICULOS.ID_MODELO,
+                                 VEHICULOS.COLOR,
+                                 VEHICULOS.REFERENCIA,
+                                 VEHICULOS.FECHA_INGRESO,
+                                 VEHICULOS.NOVEDADES,
+                                 VEHICULOS.SUBCONTRATAR,
+                                 VEHICULOS.ID_PEDIDO,
+                                 TIEMPOS_VEHICULOS.ID_PROCESO,
+                                 TIEMPOS_VEHICULOS.TIEMPO
+                            FROM
+                                VEHICULOS
+                            LEFT JOIN
+                                TIEMPOS_VEHICULOS
+                            ON
+                                VEHICULOS.CHASIS = TIEMPOS_VEHICULOS.CHASIS
+                            WHERE
+                                VEHICULOS.CHASIS = ?
+                        """, (vehiculo,))
         
         registros = cursor.fetchall()  # Esto puede ser None si no hay resultados
         if registros is not None:
@@ -1881,6 +1888,7 @@ def leer_vehiculos(bbdd):
 
     return registros
 
+#COALESCE COPIADA
 def leer_vehiculos_completos_df(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
@@ -1893,12 +1901,14 @@ def leer_vehiculos_completos_df(bbdd):
                         
                         -- Subconsulta para obtener el nombre del proceso o 'ninguno' si es NULL
                         COALESCE(
+                            
                             (SELECT PROCESOS.NOMBRE
                             FROM HISTORICOS
                             JOIN PROCESOS ON HISTORICOS.ID_PROCESO = PROCESOS.ID_PROCESO
                             WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
                             AND HISTORICOS.ESTADO = 'EN EJECUCION'
                             LIMIT 1),
+                            
                             (SELECT PROCESOS.NOMBRE
                             FROM HISTORICOS
                             JOIN PROCESOS ON HISTORICOS.ID_PROCESO = PROCESOS.ID_PROCESO
@@ -1907,7 +1917,10 @@ def leer_vehiculos_completos_df(bbdd):
                             AND HISTORICOS.FIN = (
                                 SELECT MAX(FIN)
                                 FROM HISTORICOS AS HIST2
-                                WHERE HIST2.CHASIS = VEHICULOS.CHASIS AND HIST2.ESTADO = 'TERMINADO'
+                                WHERE
+                                    HIST2.CHASIS = VEHICULOS.CHASIS
+                                    AND
+                                    HIST2.ESTADO = 'TERMINADO'
                             )
                             LIMIT 1),
                             'ninguno'
@@ -1968,6 +1981,7 @@ def leer_vehiculos_df(bbdd):
         conn.close()
         return dataframe
 
+#COALESCE COPIADA
 def leer_vehiculos_completos_marcamodelo(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
@@ -1983,12 +1997,14 @@ def leer_vehiculos_completos_marcamodelo(bbdd):
                             
                             -- Subconsulta para obtener el nombre del proceso o 'ninguno' si es NULL
                             COALESCE(
+                                
                                 (SELECT PROCESOS.ID_PROCESO
                                 FROM HISTORICOS
                                 JOIN PROCESOS ON HISTORICOS.ID_PROCESO = PROCESOS.ID_PROCESO
                                 WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
                                 AND HISTORICOS.ESTADO = 'EN EJECUCION'
                                 LIMIT 1),
+                                
                                 (SELECT PROCESOS.ID_PROCESO
                                 FROM HISTORICOS
                                 JOIN PROCESOS ON HISTORICOS.ID_PROCESO = PROCESOS.ID_PROCESO
@@ -2048,7 +2064,8 @@ def leer_vehiculos_completos_marcamodelo(bbdd):
         conn.close()
     
     return registros
-
+    
+#COALESCE COPIADA
 def leer_vehiculos_por_pedido_df(bbdd, pedido):
     try:
         conn = sqlite3.connect(bbdd)
@@ -2073,9 +2090,9 @@ def leer_vehiculos_por_pedido_df(bbdd, pedido):
                         WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
                         AND HISTORICOS.ESTADO = 'TERMINADO'
                         AND HISTORICOS.FIN = (
-                            SELECT MAX(FIN)
-                            FROM HISTORICOS AS HIST2
-                            WHERE HIST2.CHASIS = VEHICULOS.CHASIS AND HIST2.ESTADO = 'TERMINADO'
+                                            SELECT MAX(FIN)
+                                            FROM HISTORICOS AS HIST2
+                                            WHERE HIST2.CHASIS = VEHICULOS.CHASIS AND HIST2.ESTADO = 'TERMINADO'
                         )
                         LIMIT 1),
                         'ninguno'
@@ -2093,9 +2110,9 @@ def leer_vehiculos_por_pedido_df(bbdd, pedido):
                         WHERE HISTORICOS.CHASIS = VEHICULOS.CHASIS
                         AND HISTORICOS.ESTADO = 'TERMINADO'
                         AND HISTORICOS.FIN = (
-                            SELECT MAX(FIN)
-                            FROM HISTORICOS AS HIST2
-                            WHERE HIST2.CHASIS = VEHICULOS.CHASIS AND HIST2.ESTADO = 'TERMINADO'
+                                            SELECT MAX(FIN)
+                                            FROM HISTORICOS AS HIST2
+                                            WHERE HIST2.CHASIS = VEHICULOS.CHASIS AND HIST2.ESTADO = 'TERMINADO'
                         )
                         LIMIT 1),
                         'ninguno'
@@ -2122,6 +2139,20 @@ def leer_vehiculos_por_pedido_df(bbdd, pedido):
     
     return df
 
+def leer_tiempos_modelos(bbdd):
+    try:
+        conn = sqlite3.connect(bbdd)
+        query = "SELECT * FROM TIEMPOS_MODELOS"
+        dataframe = pd.read_sql_query(query, conn)
+        print(dataframe)
+
+    except sqlite3.Error as e:
+        print(f"Error al leer la tabla de vehiculos: {e}")
+        dataframe = None
+    finally:
+        conn.close()
+        return dataframe
+
 def leer_tiempos_modelos_df(bbdd):
     try:
         # Generar consulta SQL
@@ -2144,11 +2175,19 @@ def leer_tiempos_modelos_df(bbdd):
 def leer_procesos_modelos_df(bbdd):
     try:
         conn = sqlite3.connect(bbdd)
-        query = """SELECT TM.PROCESO_MODELO, TM.ID_PROCESO, TM.ID_MODELO, TM.TIEMPO
-                       FROM TIEMPOS_MODELOS AS TM
-                       LEFT JOIN PROCESOS AS P
-                       ON TM.ID_PROCESO = P.ID_PROCESO
-                       ORDER BY P.SECUENCIA"""
+        query = """SELECT
+                        TM.PROCESO_MODELO,
+                        TM.ID_PROCESO,
+                        TM.ID_MODELO,
+                        TM.TIEMPO
+                    FROM
+                        TIEMPOS_MODELOS AS TM
+                    LEFT JOIN
+                        PROCESOS AS P
+                    ON
+                        TM.ID_PROCESO = P.ID_PROCESO
+                    ORDER
+                        BY P.SECUENCIA"""
         dataframe = pd.read_sql_query(query, conn)
         print(dataframe)
 
@@ -2258,19 +2297,7 @@ def obtener_id_procesos_secuencia(bbdd):
 
     return id_procesos
 
-def leer_tiempos_modelos(bbdd):
-    try:
-        conn = sqlite3.connect(bbdd)
-        query = "SELECT * FROM TIEMPOS_MODELOS"
-        dataframe = pd.read_sql_query(query, conn)
-        print(dataframe)
 
-    except sqlite3.Error as e:
-        print(f"Error al leer la tabla de vehiculos: {e}")
-        dataframe = None
-    finally:
-        conn.close()
-        return dataframe
 #####################################################################
 ########################## MODIFICAR REGISTROS ######################
 def actualizar_historico_estado(bbdd, id, estado):
@@ -2379,10 +2406,14 @@ def actualizar_planta_info(bbdd, nombre, descripcion, iniciaAM, terminaAM, inici
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()          
-        insert_data_script = """
-                                UPDATE INFORMACION
-                                    SET NOMBRE_PLANTA=?, DESCRIPCION=?, INICIA_AM=?, TERMINA_AM=?, INICIA_PM=?, TERMINA_PM=?
-                                    WHERE NOMBRE_PLANTA=?
+        insert_data_script = """UPDATE INFORMACION
+                                SET NOMBRE_PLANTA=?,
+                                    DESCRIPCION=?,
+                                    INICIA_AM=?,
+                                    TERMINA_AM=?,
+                                    INICIA_PM=?,
+                                    TERMINA_PM=?
+                                WHERE NOMBRE_PLANTA=?
                             """
         cursor.execute(insert_data_script, (nombre, descripcion, iniciaAM, terminaAM, iniciaPm, terminaPM, nombre))
         conn.commit()
@@ -2401,10 +2432,14 @@ def actualizar_proceso(bbdd, id_proceso, nombre, descripcion, secuencia, id_proc
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()          
-        insert_data_script = """
-                                UPDATE PROCESOS
-                                    SET ID_PROCESO=?, NOMBRE=?, DESCRIPCION=?, SECUENCIA=?
-                                    WHERE ID_PROCESO=?
+        insert_data_script = """UPDATE PROCESOS
+                                SET
+                                    ID_PROCESO=?,
+                                    NOMBRE=?,
+                                    DESCRIPCION=?,
+                                    SECUENCIA=?
+                                WHERE
+                                    ID_PROCESO=?
                             """
         cursor.execute(insert_data_script, (id_proceso, nombre, descripcion, secuencia, id_proceso_anterior))
         conn.commit()
@@ -2427,8 +2462,7 @@ def actualizar_programa(bbdd, id_programa, descripcion, consecutivo, id_pedido, 
         # Asegurar que los valores clave no sean None
         if all(item is not None for item in (id_programa, consecutivo, id_pedido, id_programa_anterior)):
             
-            update_data_script = """UPDATE
-                                        PROGRAMAS
+            update_data_script = """UPDATE PROGRAMAS
                                     SET ID_PROGRAMA = ?,
                                         DESCRIPCION = ?,
                                         CONSECUTIVO = ?,
@@ -2458,8 +2492,7 @@ def actualizar_programas_pedido(bbdd, id_pedido, id_pedido_anterior):
         # Asegurar que los valores clave no sean None
         if all(item is not None for item in (id_pedido, id_pedido_anterior)):
             
-            update_data_script = """UPDATE
-                                        PROGRAMAS
+            update_data_script = """UPDATE PROGRAMAS
                                     SET
                                         ID_PEDIDO = ?
                                     WHERE
@@ -2502,19 +2535,16 @@ def actualizar_proceso_modelos_many(bbdd, ids_anteriores, ids_nuevos, id_proceso
         cursor = conn.cursor()
 
         # Construir consulta SQL con parámetros preparados
-        consulta_sql = """
-            UPDATE TIEMPOS_MODELOS
-            SET 
-                PROCESO_MODELO = CASE
-        """
+        consulta_sql = """UPDATE TIEMPOS_MODELOS
+                        SET 
+                        PROCESO_MODELO = CASE
+                        """
         for id_antes, id_nuevo in zip(ids_anteriores, ids_nuevos):
-            consulta_sql += f"    WHEN PROCESO_MODELO = ? THEN ?\n"
-        consulta_sql += """
-                ELSE PROCESO_MODELO
-            END,
-                ID_PROCESO = ?
-            WHERE PROCESO_MODELO IN ({});
-        """.format(",".join("?" for _ in ids_anteriores))
+            consulta_sql += f"""WHEN PROCESO_MODELO = ? THEN ?
+                        """
+        consulta_sql += """ELSE PROCESO_MODELO END,
+                             ID_PROCESO = ?
+                        WHERE PROCESO_MODELO IN ({});\n""".format(",".join("?" for _ in ids_anteriores))
         
         # Construir parámetros de la consulta
         parametros = []
@@ -2522,7 +2552,8 @@ def actualizar_proceso_modelos_many(bbdd, ids_anteriores, ids_nuevos, id_proceso
             parametros.extend([id_antes, id_nuevo])
         parametros.append(id_proceso_nuevo)
         parametros.extend(ids_anteriores)
-
+        print(consulta_sql, parametros)
+        return
         # Ejecutar la consulta
         cursor.execute(consulta_sql, parametros)
         conn.commit()
@@ -2544,9 +2575,7 @@ def actualizar_referencia(bbdd, referencia_nueva, id_modelo, referencia_anterior
         # Asegurar que los valores clave no sean None
         if all(item is not None for item in (referencia_nueva, id_modelo)):
             
-            update_data_script = """
-                                    UPDATE
-                                        MODELOS_REFERENCIAS
+            update_data_script = """UPDATE MODELOS_REFERENCIAS
                                     SET
                                         REFERENCIA = ?, ID_MODELO = ?
                                     WHERE
@@ -2570,10 +2599,13 @@ def actualizar_tecnico(bbdd, id_tecnico, nombre, apellido, documento, especialid
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()          
-        insert_data_script = """
-                                UPDATE PROCESOS
-                                    SET ID_TECNICO=?, NOMBRE=?, APELLIDO=?, DOCUMENTO=?, ESPECIALIDAD=?
-                                    WHERE ID_PROCESO=?
+        insert_data_script = """UPDATE PROCESOS
+                                SET ID_TECNICO=?,
+                                    NOMBRE=?,
+                                    APELLIDO=?,
+                                    DOCUMENTO=?,
+                                    ESPECIALIDAD=?
+                                WHERE ID_PROCESO=?
                             """
         cursor.execute(insert_data_script, (id_tecnico, nombre, apellido, documento, especialidad))
         conn.commit()
@@ -2706,10 +2738,9 @@ def actualizar_tiempo_modelo(bbdd, procmodel, id_proceso, id_modelo, tiempo, pro
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()          
-        insert_data_script = """
-                                UPDATE TIEMPOS_MODELOS
-                                    SET  PROCESO_MODELO=?, ID_PROCESO=?, ID_MODELO=?, TIEMPO=?
-                                    WHERE PROCESO_MODELO=?
+        insert_data_script = """UPDATE TIEMPOS_MODELOS
+                                SET  PROCESO_MODELO=?, ID_PROCESO=?, ID_MODELO=?, TIEMPO=?
+                                WHERE PROCESO_MODELO=?
                             """
         cursor.execute(insert_data_script, (procmodel, id_proceso, id_modelo, tiempo, procmodelo_anterior))
         conn.commit()
@@ -2805,14 +2836,12 @@ def actualizar_vehiculos_pedido(bbdd, id_anterior, id_nuevo):
         cursor = conn.cursor()
 
         # Consulta SQL para actualizar los registros
-        update_query = """
-            UPDATE
-                VEHICULOS
-            SET
-                ID_PEDIDO = ?
-            WHERE
-                ID_PEDIDO = ?
-        """
+        update_query = """UPDATE VEHICULOS
+                        SET
+                            ID_PEDIDO = ?
+                        WHERE
+                            ID_PEDIDO = ?
+                        """
         cursor.execute(update_query, (id_nuevo, id_anterior))
         conn.commit()
         actualizados = cursor.rowcount
@@ -2858,6 +2887,7 @@ def eliminar_modelo(bbdd, modelo):
     finally:
         conn.close()
 
+#COPIADA... EN CASCADA
 def eliminar_modelo_completo(bbdd, modelo):
     eliminar_tiempo_modelo(bbdd, modelo)   #eliminar primero el registro con clave foranea
     eliminar_modelo(bbdd, modelo)          #eliminar después el registro con clave primaria
@@ -2924,18 +2954,19 @@ def eliminar_pedido(bbdd, id):
 
     return request
 
+#CPIADA...CON MUCHOS CASOS
 def eliminar_pedido_cascada(bbdd, id_pedido):
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()
 
         # Ejecutar las consultas de eliminación
-        delPedidos = cursor.execute("DELETE FROM PEDIDOS WHERE ID_PEDIDO=?", (id_pedido,))
+        delPedidos   = cursor.execute("DELETE FROM PEDIDOS WHERE ID_PEDIDO=?", (id_pedido,))
         delVehiculos = cursor.execute("DELETE FROM VEHICULOS WHERE ID_PEDIDO=?", (id_pedido,))
         delTiempos = cursor.execute("DELETE FROM TIEMPOS_VEHICULOS WHERE CHASIS IN (SELECT CHASIS FROM VEHICULOS WHERE ID_PEDIDO = ?)", (id_pedido,))
         delProgramas = cursor.execute("DELETE FROM PROGRAMAS WHERE ID_PEDIDO=?", (id_pedido,))
         delOrdenes = cursor.execute("DELETE FROM ORDENES WHERE ID_PROGRAMA IN (SELECT ID_PROGRAMA FROM PROGRAMAS WHERE ID_PEDIDO = ?)", (id_pedido,))
-
+    
         # Obtener la cantidad de registros afectados
         delRow_pedidos = delPedidos.rowcount
         delRow_vehiculos = delVehiculos.rowcount
@@ -2950,7 +2981,7 @@ def eliminar_pedido_cascada(bbdd, id_pedido):
                         'programas' : delRow_programas, 
                         'ordenes'   : delRow_ordenes}
             
-
+        
         print(request)
         # Evaluar condiciones con match-case       (LAS CONDICIONES REPRESENTAN LA OCURRENCIA DE UNA TRANSACCIÓN INCORRECTA)
         incorrecta = False
@@ -3030,6 +3061,7 @@ def eliminar_proceso(bbdd, id):
         cursor.execute("DELETE FROM PROCESOS WHERE ID_PROCESO=?", (id,))
         conn.commit()
         print(f"El proceso {id} se eliminó correctamente de la tabla PROCESOS")
+        print(cursor.rowcount)
 
     except sqlite3.Error as e:
         print(f"Error al eliminar el proceso {id}: {e}")
@@ -3037,6 +3069,7 @@ def eliminar_proceso(bbdd, id):
     finally:
         conn.close()
 
+#COPIADA... EN CASCADA
 def eliminar_proceso_completo(bbdd, id_proceso):
     eliminar_proceso(bbdd, id_proceso)
     eliminar_tecnico_proceso_byProceso(bbdd, id_proceso)
@@ -3144,25 +3177,33 @@ def eliminar_tecnico(bbdd, id):
     finally:
         conn.close()
 
+#COPIADA... EN CASCADA
 def eliminar_tecnico_completo(bbdd, id):
     eliminar_tecnico_proceso(bbdd, id)   #eliminar primero el registro con clave foranea
     eliminar_tecnico(bbdd, id)          #eliminar después el registro con clave primaria
 
 def eliminar_tecnico_proceso(bbdd, id_tecnico, id_proceso):
-
     try:
         conn = sqlite3.connect(bbdd)
         cursor = conn.cursor()
-        
-        cursor.execute("DELETE FROM TECNICOS_PROCESOS WHERE ID_TECNICO=? AND ID_PROCESO=?", (id_tecnico, id_proceso))
+
+        sql = "DELETE FROM TECNICOS_PROCESOS WHERE ID_TECNICO=?"
+        params = [id_tecnico]
+
+        if id_proceso is not None:
+            sql += " AND ID_PROCESO=?"
+            params.append(id_proceso)
+
+        cursor.execute(sql, params)
         conn.commit()
-        print(f"El tecnico {id_tecnico} se eliminó correctamente de la tabla TECNICOS_PROCESOS")
+        print(f"El técnico {id_tecnico} se eliminó correctamente de la tabla TECNICOS_PROCESOS")
 
     except sqlite3.Error as e:
-        print(f"Error al eliminar el tecnico {id_tecnico}: {e}")
+        print(f"Error al eliminar el técnico {id_tecnico}: {e}")
 
     finally:
         conn.close()
+
 
 def eliminar_tecnico_proceso_byProceso(bbdd, id_proceso):
 
@@ -3176,20 +3217,6 @@ def eliminar_tecnico_proceso_byProceso(bbdd, id_proceso):
 
     except sqlite3.Error as e:
         print(f"Error al eliminar el proceso {id_proceso}: {e}")
-
-    finally:
-        conn.close()
-
-def eliminar_todos_registros(bbdd):
-    try:
-        conn = sqlite3.connect(bbdd)
-        cursor = conn.cursor()
-        
-        cursor.execute("DELETE FROM TECNICOS_PROCESOS_PRUEBA")
-        conn.commit()
-
-    except sqlite3.Error as e:
-        print(f"Error al eliminar ")
 
     finally:
         conn.close()
@@ -3232,6 +3259,7 @@ def eliminar_vehiculos_por_pedido(bbdd, id_pedido):
             print(f"No se eliminaron los vehiculos el pedido {id_pedido}")
         return request
 
+#COPIADA....ELIMINAR CON SUBCONSULTA
 def eliminar_vehiculos_tiempos_por_pedido(bbdd, id_pedido):
     try:
         conn = sqlite3.connect(bbdd)
@@ -3260,6 +3288,7 @@ def eliminar_vehiculos_tiempos_por_pedido(bbdd, id_pedido):
             print(f"No se eliminaron los vehiculos el pedido {id_pedido}")
         return request
 
+#COPIADA... EN CASCADA
 def eliminar_vehiculo_completo(bbdd, chasis):
     eliminar_tiempo_vehiculo(bbdd, chasis)   #eliminar primero el registro con clave foranea
     eliminar_vehiculo(bbdd, chasis)          #eliminar después el registro con clave primaria
@@ -3304,7 +3333,6 @@ def next_consecutivoPrograma(bbdd):
     finally:
         conn.close()
         return nuevo_consec
-
 
 
 

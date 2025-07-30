@@ -1,6 +1,6 @@
 import tkinter as tk
 import customtkinter as ctk
-import database.BBDD as BBDD
+import database.BDqueries as BDqueries
 import controller.glo as glo
 from view.estilos import *
 
@@ -47,7 +47,7 @@ class ContenidoTecnicos:
         self.frameTecnicosInterior.grid_columnconfigure(1, weight=0)  # NOMBRE
         self.frameTecnicosInterior.grid_columnconfigure(2, weight=0)  # ÁREA
 
-        self.personal = BBDD.leer_tecnicos_modificado(bbdd)
+        self.personal = BDqueries.leer_tecnicos_modificado(bbdd)
         # Lee los nombres desde la BBDD y los almacena en variables
         fila = 0
         for filasTecnicos in self.personal:
