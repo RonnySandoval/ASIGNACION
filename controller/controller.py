@@ -1454,6 +1454,10 @@ def aceptarFechayHoraProg(ventana, tipoPrograma, bbdd):
                                            bbdd       = glo.base_datos)
         horizonte_calculado = model_classPlant.calcular_horizonte(pedido_a_programar)
         print(f"el horizonte es {horizonte_calculado}")
+
+    
+    
+    
     
     ########## GRAFICAR PROGRAMACIÓN EN GANTT ##########
     inicio = datetime.datetime.strptime(fecha + " " + hora, "%Y-%m-%d %H:%M:%S")

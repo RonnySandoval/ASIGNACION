@@ -142,7 +142,8 @@ class HistoricosCrud(man.Crud):
                             'TECNICOS': 'TECNICOS.ID_TECNICO = HISTORICOS.ID_TECNICO',
                             'PROCESOS': 'PROCESOS.ID_PROCESO = HISTORICOS.ID_PROCESO',
                             'PEDIDOS': 'PEDIDOS.ID_PEDIDO = VEHICULOS.ID_PEDIDO'
-                        })
+                        }
+                    )
                         
     def insertar_historico(self, codigo, chasis, tec, proc, observ, start, end, delta, estado):
         return self.insert(columns=self.fields,
@@ -370,7 +371,8 @@ class OrdenesCrud(man.Crud):
                                 'PROCESOS': 'PROCESOS.ID_PROCESO = ORDENES.ID_PROCESO',
                                 'PEDIDOS': 'PEDIDOS.ID_PEDIDO = PROGRAMAS.ID_PEDIDO'
                             },
-                            where={'PROGRAMAS.ID_PROGRAMA': programa})
+                            where={'PROGRAMAS.ID_PROGRAMA': programa},
+                            as_dataframe=True)
 
     def insertar_ordenes_df(self, dataframe):
         return self.insert_dataframe(dataframe=dataframe)
@@ -593,26 +595,22 @@ class ProgramasCrud(man.Crud):
                         'TERMINA_PM']
         
     def leer_programa(self, id_programa):
-        return self.select(where={"ID": id_programa},
+        return self.select(where={"ID_PROGRAMA": id_programa},
                     fetch="one", 
-                    fields='''
-                            ID_PROGRAMA,
-                            ID_PEDIDO,
-                            DESCRIPCION,
-                            CONSECUTIVO,
-                            INICIA_AM,
-                            TERMINA_AM,
-                            INICIA_PM,
-                            TERMINA_PM
-                            ''')
+                    fields=['ID_PROGRAMA',
+                            'ID_PEDIDO',
+                            'DESCRIPCION',
+                            'CONSECUTIVO',
+                            'INICIA_AM',
+                            'TERMINA_AM,'
+                            'INICIA_PM',
+                            'TERMINA_PM'])
         
     def leer_programas(self):
-        return self.select(fields='''
-                            ID_PROGRAMA,
-                            ID_PEDIDO,
-                            DESCRIPCION,
-                            CONSECUTIVO
-                            ''')
+        return self.select(fields=[ 'ID_PROGRAMA',
+                                    'ID_PEDIDO',
+                                    'DESCRIPCION',
+                                    'CONSECUTIVO'])
 
     def leer_programas_por_pedido(self, id_pedido):
         return self.select(where = {'ID_PEDIDO': id_pedido},
@@ -1287,12 +1285,13 @@ class VehiculosCrud(man.Crud):
 
 
 with man.Database('planta_con_ensamble1.db') as db:
+    pass
     #crud_TV = TiemposVehiculosCrud(db)
     #rud_TV.actualizar_tiempo_vehiculo('COD-7405NL9458200', 'COD', '7405NL9458200', 12, 'COD-7405NL9458200')
-    pass
-    #obj = crud_programas = ProgramasCrud(db)
-    #print(crud_programas.next_consecutivoPrograma())
-    
+   
+    #crud_ordenes = OrdenesCrud(db)
+    #df_ordenes = crud_ordenes.leer_ordenes_graficar_programa('procesosPDISIMULADO2_2_4')
+    #print(df_ordenes.to_string())
     
     
 

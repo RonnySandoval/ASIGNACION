@@ -10,6 +10,7 @@ class Query:
         :param fetch: 'one', 'all' o 'none' dependiendo del tipo de resultado esperado.
         """
         self.query_string = query_string
+        self.last_columns = None
         self.params = params or ()
         self.fetch = fetch
         self.as_dict = as_dict
@@ -36,6 +37,7 @@ class Query:
                 row = cursor.fetchone()
                 result = dict(row) if row and self.as_dict else row
             elif self.fetch == 'all':
+                self.last_columns = [desc[0] for desc in cursor.description] if cursor.description else []
                 rows = cursor.fetchall()
                 result = [dict(row) for row in rows] if self.as_dict else rows
             else:
@@ -169,10 +171,15 @@ class Crud:
             as_list = False
             
             if not results:
+                
                 print(f"No se encontraron registros en la tabla {self.table}")
-                return pd.DataFrame(columns=fields.split(", ") if fields != "*" else [])
+                columns=query.last_columns
+                df_empty = pd.DataFrame(columns=columns if columns != "*" else [])
+                df_empty = df_empty.assign(**{col: None for col in ["Item", "Task", "Filter1", "Filter2", "Inicio", "Fin"]})
+                return df_empty
             
             columns = results[0].keys()
+            print("LAS COLUMNAS SON:", columns)
             return pd.DataFrame(results, columns=columns)
         
         # CONVERTIR A LISTA DE TUPLAS
