@@ -43,7 +43,7 @@ class HistoricosCrud(man.Crud):
         return self.select(fields=[
                                     'HISTORICOS.CODIGO_ASIGNACION',
                                     'HISTORICOS.CHASIS',
-                                    'TECNICOS.NOMBRE AS NOMBRE_PROCESO',
+                                    'TECNICOS.NOMBRE AS NOMBRE_TECNICO',
                                     'PROCESOS.NOMBRE AS NOMBRE_PROCESO',
                                     'VEHICULOS.ID_MODELO',
                                     'VEHICULOS.COLOR',
@@ -62,6 +62,31 @@ class HistoricosCrud(man.Crud):
                                     'VEHICULOS': 'HISTORICOS.CHASIS = VEHICULOS.CHASIS'
                                 },
                                 distinct=True)
+
+    def leer_historicos_completo_df(self):
+        return self.select(fields=[
+                                    'HISTORICOS.CODIGO_ASIGNACION',
+                                    'HISTORICOS.CHASIS',
+                                    'TECNICOS.NOMBRE AS NOMBRE_TECNICO',
+                                    'PROCESOS.NOMBRE AS NOMBRE_PROCESO',
+                                    'VEHICULOS.ID_MODELO',
+                                    'VEHICULOS.COLOR',
+                                    'HISTORICOS.INICIO',
+                                    'HISTORICOS.FIN',
+                                    'HISTORICOS.DURACION',
+                                    'HISTORICOS.ESTADO',
+                                    'VEHICULOS.NOVEDADES',
+                                    'HISTORICOS.OBSERVACIONES',
+                                    'VEHICULOS.SUBCONTRATAR',
+                                    'VEHICULOS.ID_PEDIDO'
+                                ],
+                            joins={
+                                    'PROCESOS': 'HISTORICOS.ID_PROCESO = PROCESOS.ID_PROCESO',
+                                    'TECNICOS': 'HISTORICOS.ID_TECNICO = TECNICOS.ID_TECNICO',
+                                    'VEHICULOS': 'HISTORICOS.CHASIS = VEHICULOS.CHASIS'
+                                },
+                                distinct=True,
+                                as_dataframe=True)
 
     def leer_historico_completo(self, chasis):
         return self.select(fields=[
@@ -144,7 +169,40 @@ class HistoricosCrud(man.Crud):
                             'PEDIDOS': 'PEDIDOS.ID_PEDIDO = VEHICULOS.ID_PEDIDO'
                         }
                     )
-                        
+ 
+    def leer_historicos_graficar_df(self):
+        return self.select(fields=[
+                            'HISTORICOS.CODIGO_ASIGNACION',
+                            'HISTORICOS.CHASIS',
+                            'VEHICULOS.ID_MODELO',
+                            'VEHICULOS.REFERENCIA',
+                            'VEHICULOS.COLOR',
+                            'HISTORICOS.ID_TECNICO',
+                            'TECNICOS.NOMBRE || TECNICOS.APELLIDO AS TECNICO',
+                            'HISTORICOS.ID_PROCESO',
+                            'PROCESOS.NOMBRE AS PROCESO',
+                            'HISTORICOS.INICIO',
+                            'HISTORICOS.FIN',
+                            'HISTORICOS.DURACION',
+                            'HISTORICOS.OBSERVACIONES',
+                            'VEHICULOS.NOVEDADES',
+                            'VEHICULOS.SUBCONTRATAR',
+                            'VEHICULOS.ID_PEDIDO',
+                            'PEDIDOS.CLIENTE',
+                            'PEDIDOS.FECHA_RECEPCION',
+                            'PEDIDOS.FECHA_INGRESO',
+                            'PEDIDOS.ENTREGA_ESTIMADA',
+                            'PEDIDOS.FECHA_ENTREGA'
+                        ],
+                        joins={
+                            'VEHICULOS': 'VEHICULOS.CHASIS = HISTORICOS.CHASIS',
+                            'TECNICOS': 'TECNICOS.ID_TECNICO = HISTORICOS.ID_TECNICO',
+                            'PROCESOS': 'PROCESOS.ID_PROCESO = HISTORICOS.ID_PROCESO',
+                            'PEDIDOS': 'PEDIDOS.ID_PEDIDO = VEHICULOS.ID_PEDIDO'
+                        },
+                    as_dataframe=True
+                    )
+                              
     def insertar_historico(self, codigo, chasis, tec, proc, observ, start, end, delta, estado):
         return self.insert(columns=self.fields,
                            vals = [codigo, chasis, tec, proc, observ, start, end, delta, estado])
@@ -196,7 +254,10 @@ class ModelosCrud(man.Crud):
                     fields = 'ID_MODELO, MARCA, MODELO, ESPECIFICACION')
     
     def leer_modelos(self):
-        return self.select(fields = 'ID_MODELO, MARCA, MODELO, ESPECIFICACION')
+        return self.select(fields = ['ID_MODELO', 'MARCA', 'MODELO', 'ESPECIFICACION'])
+    
+    def leer_modelos_df(self):
+        return self.select(fields = ['ID_MODELO', 'MARCA', 'MODELO'], as_dataframe=True)
     
     def leer_modelos_marcas(self):
         return self.select(fields = 'ID_MODELO, MARCA')
@@ -683,10 +744,10 @@ class ReferenciasCrud(man.Crud):
         return self.update(columns = self.fields,
                            vals = [referencia_nueva, id_modelo],
                            where_col = 'REFERENCIA',
-                           params = id_modelo)
+                           params = referencia_anterior)
         
     def eliminar_referencia(self, referencia):
-        return self.delete(where_col='REFERENCIA', where_val = referencia)
+        return self.delete(where_cols='REFERENCIA', where_vals = referencia)
 
 class TecnicosCrud(man.Crud):
     def __init__(self, db: man.Database):
@@ -835,7 +896,8 @@ class TiemposModelosCrud(man.Crud):
                                 'TIEMPOS_MODELOS.TIEMPO'
                             ],
                             joins    = {'PROCESOS': 'TIEMPOS_MODELOS.ID_PROCESO = PROCESOS.ID_PROCESO'},
-                            order_by = 'PROCESOS.SECUENCIA')
+                            order_by = 'PROCESOS.SECUENCIA',
+                            as_dataframe=True)
 
     def obtener_id_proceso(self, proceso):
         return self.select(fields=['ID_PROCESO'],
@@ -1286,6 +1348,20 @@ class VehiculosCrud(man.Crud):
 
 with man.Database('planta_con_ensamble1.db') as db:
     pass
+    #crud_Proce=ProcesosCrud(db)
+    #crud_Proce.actualizar_proceso(id_proceso='CAL',
+    #                              nombre='CALIDAD',
+    #                              descripcion='revision general',
+    #                              secuencia=7, id_proceso_anterior='CAL')
+    
+    
+    #crud_R=ReferenciasCrud(db)
+    #crud_R.insertar_referencia(referencia='NX-55-P',  id_modelo='BAIC-NX55',)
+    #crud_R.eliminar_referencia(referencia='',)
+    #crud_R.insertar_referencia(referencia='MG ZS AC ',  id_modelo='MG-ZS',)
+    #crud_R.insertar_referencia(referencia='NX-55-E',  id_modelo='BAIC-NX55',)
+
+
     #crud_TV = TiemposVehiculosCrud(db)
     #rud_TV.actualizar_tiempo_vehiculo('COD-7405NL9458200', 'COD', '7405NL9458200', 12, 'COD-7405NL9458200')
    

@@ -3,6 +3,7 @@ import math
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from plotly.express.colors import qualitative
 from dash import Dash, dcc, html, Input, Output
 from database import BDcrud, BDmanage as man
     
@@ -208,54 +209,78 @@ def plot_gantt(df, items, tasks, filter1, filter2):
         bars = resize(datos)
         h_plot, num_bar = bars["h_plot"], bars["num_bar"]
         
-        fig = px.timeline(datos,
-                          x_start="Inicio",
-                          x_end="Fin",
-                          y="Item",
-                          color="Filter1",
-                          text="Text",
-                          hover_data=None,
-                          custom_data=[datos["Item"],
-                                       datos["Task"],
-                                       datos["Filter1"],
-                                       datos["Filter2"],
-                                       datos["Inicio"],
-                                       datos["Fin"] ] )
-        
-        
-        fig.update_yaxes(autorange="reversed")
-            
-        fig.update_layout(margin={"l": 40, "r": 20, "t": 40, "b": 40},
-                          height=h_plot if h_plot!=0 else 150,
-                          legend_title=f"filter1",
-                          template="plotly_dark",
-                          plot_bgcolor="black",
-                          paper_bgcolor="black",
-                          xaxis=dict(fixedrange=False),
-                          yaxis=dict(fixedrange=True),
-                          yaxis_title=f"{items}" )
+        # Paleta de colores por categoría
+        valores_unicos = datos["Filter1"].unique()
+        colores_categoria = {
+            valor: qualitative.Plotly[i % len(qualitative.Plotly)]
+            for i, valor in enumerate(valores_unicos)
+}
+        fig = make_subplots(
+            rows=2, cols=1,
+            shared_xaxes=True,
+            vertical_spacing=0.02,
+            row_heights=[0.1, 0.9]
+        )
 
-        
-        fig.update_traces(marker_line_color='white',
-                          marker_line_width=1.5,
-                          textposition='inside',
-                          insidetextanchor='middle',
-                          textfont_size=12,)
-        
-        fig.update_traces(hovertemplate= f"{items}"   +  " : %{customdata[0]}<br>" +
-                                         f"{tasks}"   +  " : %{customdata[1]}<br>" +
-                                         f"{filter1}" +  " : %{customdata[2]}<br>" +
-                                         f"{filter2}" +  " : %{customdata[3]}<br>"  +
-                                         f"Inicio"    +  " : %{customdata[4]}<br>" +
-                                         f"Fin"       +  " : %{customdata[5]}<extra></extra>")
-        
-        fig.add_annotation(text=f"Total: {bars["num_items"]} {items}",
-                           xref="paper",
-                           yref="paper",
-                           x=0.01, y=1.01,
-                           showarrow=False,
-                           font=dict(size=14, color="gray") )
-        
+        # ---------- Fila 2: Gantt con barras ----------
+        for _, row in datos.iterrows():
+            fig.add_trace(go.Bar(
+                x=[row["Fin"] - row["Inicio"]],
+                y=[row["Item"]],
+                base=row["Inicio"],
+                orientation="h",
+                marker_color=colores_categoria[row["Filter1"]],
+                hovertemplate=(
+                    f"{items}: {row['Item']}<br>"
+                    f"{tasks}: {row['Task']}<br>"
+                    f"{filter1}: {row['Filter1']}<br>"
+                    f"{filter2}: {row['Filter2']}<br>"
+                    f"Inicio: {row['Inicio']}<br>"
+                    f"Fin: {row['Fin']}<extra></extra>"
+                ),
+                text=row["Text"],
+                textposition="inside"
+            ), row=2, col=1)
+
+        # ---------- Fila 1: Eje X como "línea de tiempo" ----------
+        fig.add_trace(go.Scatter(
+            x=datos["Inicio"].tolist() + datos["Fin"].tolist(),
+            y=[None]*len(datos["Inicio"].tolist() + datos["Fin"].tolist()),
+            mode="markers",
+            marker=dict(opacity=0),
+            showlegend=False
+        ), row=1, col=1)
+
+        # ---------- Layout ----------
+        fig.update_yaxes(
+            autorange="reversed",
+            fixedrange=True,
+            row=2, col=1
+        )
+
+        fig.update_xaxes(
+            tickformat="%Y-%m-%d",
+            row=1, col=1
+        )
+
+        fig.update_layout(
+            height=h_plot + 60,
+            margin={"l": 40, "r": 20, "t": 40, "b": 40},
+            showlegend=False,
+            template="plotly_dark",
+            plot_bgcolor="black",
+            paper_bgcolor="black"
+        )
+
+        # ---------- Anotación total ----------
+        fig.add_annotation(
+            text=f"Total: {bars['num_items']} {items}",
+            xref="paper", yref="paper",
+            x=0.01, y=1.08,
+            showarrow=False,
+            font=dict(size=14, color="gray")
+        )
+
         return fig
         
     def resize(df):  

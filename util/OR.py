@@ -103,6 +103,7 @@ class modelOR:
                  procesos_trabajos: dict,
                  precedencias_por_trabajo: dict,
                  pesos_trabajo = {},
+                 max_horizonte: int = None,
                  jobs_sched: list = None, 
                  opers_sched:list = None,
                  procs_sched:list = None):
@@ -111,13 +112,13 @@ class modelOR:
         self.procesos_operarios = procesos_operarios
         self.trabajos = trabajos
         self.procesos_trabajos = procesos_trabajos
-        self.precedencias_por_trabajo = self.__preced_flat__(precedencias=precedencias_por_trabajo)
+        self.precedencias_por_trabajo = self.__preced_flat__(precedencias_por_trabajo)
         self.pesos_trabajo = pesos_trabajo
         self.jobs_sched  = jobs_sched, 
         self.opers_sched = opers_sched,
         self.procs_sched = procs_sched
         self.tareas = self.__taks_flat_or__()
-        self.max_horizonte = sum(t["duracion"] for t in self.tareas)  # tiempo total posible 
+        self.max_horizonte = sum(t["duracion"] for t in self.tareas) if max_horizonte is not None else max_horizonte
         self.tareas_finales = self.__final_tasks__()
         self.tareas_asignadas = {}
         self.tareas_asignadas_df = None
@@ -149,9 +150,19 @@ class modelOR:
 
 
         for trabajo_id in self.trabajos:
+            print(self.procesos_trabajos)
+            print(self.trabajos)
+            
+            no_en_diccionario = [elem for elem in self.trabajos if elem not in self.procesos_trabajos]
+            print("NO EN DICCIONARIO:  ", no_en_diccionario)
+            
+            no_en_lista = [clave for clave in self.procesos_trabajos if clave not in self.trabajos]
+            print("NO EN LISTA:  ", no_en_lista)
+    
+
             lista_procesos = self.procesos_trabajos[trabajo_id]
             for orden, (proceso, duracion) in enumerate(lista_procesos):
-                if duracion == 0 or proceso not in self.procs_sched:
+                if duracion == 0 or self.procs_sched is None or proceso not in self.procs_sched:
                     continue  # No crear tarea si la duración es 0
                 
                 # Buscar operarios calificados
@@ -226,9 +237,6 @@ class modelOR:
     def __add_constr_jobs__(self):
         """ 
         Añade restricciones de precedencia entre tareas de diferentes trabajos en el modelo.
-        param model: Modelo de programación por restricciones.
-        param tareas: Lista de tareas (diccionarios) con información necesaria para OR-Tools.
-        param precedencias_por_trabajo: Diccionario que relaciona trabajos con sus precedencias
         return: Modifica el modelo añadiendo restricciones de precedencia entre tareas de diferentes trabajos.
         """
         #print('PRECEDENCIAS POR TRABAJO:', self.precedencias_por_trabajo)

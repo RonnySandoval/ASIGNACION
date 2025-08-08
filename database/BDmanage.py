@@ -19,6 +19,7 @@ class Query:
     def execute_query(self, db, type_query, table):
         cursor = db.connection.cursor()
         
+        print(self.query_string, self.params)
         try:
             if type_query == 'INSERT_OR REPLACE':
                 cursor.executemany(self.query_string, self.params)
@@ -93,11 +94,9 @@ class Crud:
         self.table = table_name
 
     def __execute_changes__(self, sql, params, type_query) -> int:
-        
         query = Query(query_string = sql, params = params, fetch="none")
         query.execute_query(self.db, type_query, self.table)
         return query.affected_rows
-
 
     def select(self,
                 fields: list[str] = "*",
@@ -139,7 +138,7 @@ class Crud:
         # SELECT, CAMPOS, DISTINCT, CASES
         select_clause = "SELECT "
         select_clause += "DISTINCT "     if distinct else ""
-        select_clause += ", ".join(self.format_coalesce(f) for f in fields)
+        select_clause += ", ".join(self.__format_coalesce__(f) for f in fields)
         select_clause += f", {cases} "   if cases else ""
                
         # FROM
@@ -207,6 +206,7 @@ class Crud:
         cols_str = ", ".join(columns)
         placeholders = ", ".join(["?"] * len(columns))
         sql = f"INSERT INTO {self.table} ({cols_str}) VALUES ({placeholders})"
+        
         return self.__execute_changes__(sql        = sql,
                                         params     = vals,
                                         type_query ='INSERT')
@@ -263,7 +263,7 @@ class Crud:
             
             
         print(f"SQL:\n {sql} \n Params:\n {parameters}")
-        self.__execute_changes__(sql    = sql,
+        return self.__execute_changes__(sql    = sql,
                                         params = parameters,
                                         type_query = 'UPDATE')
 
@@ -307,10 +307,8 @@ class Crud:
         sql = f"DELETE FROM {self.table} WHERE {where_clause}"
 
         return self.__execute_changes__(sql=sql,
-                                        params=params,
+                                        params=tuple(params,),
                                         type_query=type_query)
-
-
 
     def case_string(self,
                     table : str,
@@ -398,7 +396,7 @@ class Crud:
 
         return f"{select_from} {join_clauses} {where_clause} {limit_clause}"
 
-    def format_coalesce(self, field):
+    def __format_coalesce__(self, field):
         if isinstance(field, dict):
             # Solo toma el primer par clave-valor
             key, val = next(iter(field.items()))
