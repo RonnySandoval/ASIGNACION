@@ -290,8 +290,8 @@ def plot_gantt(df, items, tasks, filter1, filter2):
            tasks="PROCESO",
            filter1="TECNICO",
            filter2="ID_MODELO")"""
-plot_gantt(df   =df_historicos,
+"""plot_gantt(df   =df_historicos,
            items="TECNICO",
            tasks="ID_MODELO",
            filter1="PROCESO",
-           filter2="CHASIS")
+           filter2="CHASIS")"""

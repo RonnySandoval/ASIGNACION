@@ -15,6 +15,7 @@ class Plant():
                 'Historicos'        : BDcrud.HistoricosCrud(db)}
         
         self.df_operarios = crud['Tecnicos'].leer_tecnicos_df()
+        self.df_trabajos  = crud['Vehiculos'].leer_vehiculos_df()
         self.df_procesos  = crud['Procesos'].leer_procesos_df()
         self.df_proc_oper = crud['TecnicosProcesos'].leer_tecnicos_procesos_df()
         self.df_referencias = crud['Referencias'].leer_referencias_modelos_df()

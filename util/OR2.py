@@ -190,6 +190,7 @@ class modelOR:
         self.__clean_procc_prece__()
         self.__flat_predec_task__()
         self.model  = self.__create_model__()
+        self.const_count = -1
         self.__add_constr_jobs__()
         self.__add_constr_oper__()
         self.current_objetive = None
@@ -243,66 +244,125 @@ class modelOR:
     
     def __create_model__(self):
         model = cp_model.CpModel()
+        self.var_index_map = {}  # Diccionario: índice interno ORTools -> (nombre_var, tarea_id)
+
         for tarea in self.tareas:
+            # Crear variables
             tarea["start_var"] = model.NewIntVar(0, self.max_horizonte, f'start_{tarea["id"]}')
-            tarea["end_var"]   = model.NewIntVar(0, self.max_horizonte, f'end_{tarea["id"]}')
+            tarea["end_var"] = model.NewIntVar(0, self.max_horizonte, f'end_{tarea["id"]}')
             tarea["presente"] = model.NewBoolVar(f'presente_t{tarea["id"]}')
-            tarea["op_var"] = model.NewIntVarFromDomain(
-                cp_model.Domain.FromValues(tarea["operarios_idx"]),
-                f'op_{tarea["id"]}'
-            )
+            tarea["op_var"] = model.NewIntVarFromDomain(cp_model.Domain.FromValues(tarea["operarios_idx"]),
+                                                        f'op_{tarea["id"]}' )
+
+            self.var_index_map[tarea["start_var"].Index()] = ("start_var", tarea["id"])
+            self.var_index_map[tarea["end_var"].Index()] = ("end_var", tarea["id"])
+            self.var_index_map[tarea["presente"].Index()] = ("presente", tarea["id"])
+            self.var_index_map[tarea["op_var"].Index()] = ("op_var", tarea["id"])
+
+        # Log con información adicional
+        with open('log_variables.txt', "w", encoding="utf-8") as log:
+            for idx, (var_name, tarea_id) in sorted(self.var_index_map.items()):
+                tarea = next((t for t in self.tareas if t["id"] == tarea_id), None)
+                if tarea:
+                    proceso = tarea.get("proceso", "N/A")
+                    duracion = tarea.get("duracion", "N/A")
+                    trabajo = tarea.get("trabajo", "N/A")
+                    log.write(f"{idx} : Tarea ID {tarea_id} (Proceso={proceso}, Duracion={duracion}, Trabajo={trabajo}), Variable: {var_name}\n")
+
         return model
-    
+
+
     def __add_constr_jobs__(self):
-        for trabajo, deps_dict in self.precedencias_por_trabajo.items():
-            tareas_trabajo = [t for t in self.tareas if t["trabajo"] == trabajo]
-            tareas_dict = {t["proceso"]: t for t in tareas_trabajo}
-            for proc_suc, lista_pre in deps_dict.items():
-                if proc_suc not in tareas_dict:
+        log_lines = []
+        # Organizar tareas por trabajo y por id para búsqueda rápida
+        tareas_por_trabajo = {}
+        for tarea in self.tareas:
+            tareas_por_trabajo.setdefault(tarea["trabajo"], {})
+            tareas_por_trabajo[tarea["trabajo"]][tarea["id"]] = tarea
+
+        for tarea in self.tareas:
+            trabajo = tarea["trabajo"]
+            predecesoras_ids = tarea.get("predecesoras", [])
+            for id_pre in predecesoras_ids:
+                # Obtener tarea predecesora por id
+                tarea_pre = tareas_por_trabajo[trabajo].get(id_pre)
+                if tarea_pre is None:
+                    # Predecesora no encontrada, ignorar
                     continue
-                tarea_suc = tareas_dict[proc_suc]
-                for proc_pre in lista_pre:
-                    if proc_pre not in tareas_dict:
-                        continue
-                    tarea_pre = tareas_dict[proc_pre]
-                    # Restricción de precedencia (Regla de "menor que" combinada a presencia de valor lógico)
-                    self.model.Add(tarea_pre["end_var"] <= tarea_suc["start_var"]).OnlyEnforceIf(
-                        [tarea_pre["presente"], tarea_suc["presente"]]
-                    )
-                    # Si la sucesora está presente, el predecesor también
-                    self.model.AddImplication(tarea_suc["presente"], tarea_pre["presente"])
-
-
-    
+                
+                # Restricción precedencia
+                id_constrain = f"R{self.next_iconst}jo "
+                self.model.Add(tarea_pre["end_var"] <= tarea["start_var"]).OnlyEnforceIf(
+                    [tarea_pre["presente"], tarea["presente"]]).WithName(id_constrain)
+                log_lines.append(id_constrain + f"[Trabajo {trabajo}] ({tarea_pre['proceso']} → {tarea['proceso']}) " +
+                                 f":   end({tarea_pre['id']})   <=    start({tarea['id']}) " +
+                                 f"[OnlyIf: presente({tarea_pre['id']}), presente({tarea['id']})]" )
+                
+                if self.const_count == 12:
+                    print(f"Creando restricción {id_constrain} para tareas {tarea_pre['id']} y {tarea['id']}")
+                    print(f"  Condición: presente({tarea_pre['id']}) ⇒ presente({tarea['id']})")
+                    print(f"  Duraciones: tarea {tarea_pre['id']}={tarea_pre['duracion']}, tarea {tarea['id']}={tarea['duracion']}")
+                
+                # Implicación presencia
+                id_constrain = f"R{self.next_iconst}jo "
+                self.model.AddImplication(tarea["presente"], tarea_pre["presente"]).WithName(id_constrain)
+                log_lines.append(id_constrain + f"[Trabajo {trabajo}] ({tarea_pre['proceso']} → {tarea['proceso']}) " +
+                                 f" : presente({tarea_pre['id']}) ⇒ presente({tarea['id']}) [Implication]"  )
+                
+                if self.const_count == 12:
+                    print(f"Creando restricción {id_constrain} para tareas {tarea_pre['id']} y {tarea['id']}")
+                    print(f"  Condición: presente({tarea['id']}) ⇒ presente({tarea_pre['id']})")
+                    print(f"  Duraciones: tarea {tarea_pre['id']}={tarea_pre['duracion']}, tarea {tarea['id']}={tarea['duracion']}")
+                        
+        with open("log_constrains.txt", "w", encoding="utf-8") as f:
+            f.write("\n=== RESTRICCIONES DE PROCESOS ===\n")
+            f.write("\n".join(log_lines))
+            
     def __add_constr_oper__(self):
+        log_lines = []
+        log_lines.append("=== RESTRICCIONES DE OPERARIOS ===")
+
         for t in self.tareas:
-            # Lista de variables bool para cada operario posible de la tarea
             presente_operarios = []
             t["presente_operarios_vars"] = {}
+            trabajo = t["trabajo"]
+            proceso = t["proceso"]
+
             for op_idx in range(len(self.operarios)):
+                op_nombre = self.operarios[op_idx]
                 if op_idx in t["operarios_idx"]:
                     presente_op = self.model.NewBoolVar(f'presente_t{t["id"]}_op{op_idx}')
                     t["presente_operarios_vars"][op_idx] = presente_op
                     presente_operarios.append(presente_op)
-                    
-                    # Si asignado a ese operario implica tarea presente
+
                     self.model.AddImplication(presente_op, t["presente"])
-                    
-                    # Op_var == op_idx si presente_op == True
+                    log_lines.append(f"R{self.next_iconst}op "+
+                                     f"[Implication] Tarea {t['id']} [Trabajo: {trabajo}, Proceso: {proceso}, Operario: {op_nombre} (op{op_idx})] asignada ⇒ tarea presente")
+
                     self.model.Add(t["op_var"] == op_idx).OnlyEnforceIf(presente_op)
+                    log_lines.append(f"R{self.next_iconst}op "+
+                                     f"[EnforceIf] Tarea {t['id']} [Trabajo: {trabajo}, Proceso: {proceso}, Operario: {op_nombre} (op{op_idx})] Presente  ⇒ op_var = {op_idx}")
+
                     self.model.Add(t["op_var"] != op_idx).OnlyEnforceIf(presente_op.Not())
+                    log_lines.append(f"R{self.next_iconst}op "+
+                                     f"[EnforceIf] Tarea {t['id']} [Trabajo: {trabajo}, Proceso: {proceso}, Operario: {op_nombre} (op{op_idx})] NO presente ⇒ op_var ≠ {op_idx}")
+
                 else:
-                    # Para operarios no posibles, aseguramos que la variable booleana esté en falso (opcional)
                     t["presente_operarios_vars"][op_idx] = self.model.NewBoolVar(f'presente_t{t["id"]}_op{op_idx}')
                     self.model.Add(t["presente_operarios_vars"][op_idx] == 0)
-            # Si la tarea está presente, exactamente un operario debe estar asignado
+                    log_lines.append(f"R{self.next_iconst}op "+
+                                     f"[Inhabilitado] Tarea {t['id']} [Trabajo: {trabajo}, Proceso: {proceso}, Operario: {op_nombre} (op{op_idx})] no puede asignarse ⇒ var = 0")
+
             self.model.Add(sum(presente_operarios) <= 1)
             self.model.Add(sum(presente_operarios) == 1).OnlyEnforceIf(t["presente"])
             self.model.Add(sum(presente_operarios) == 0).OnlyEnforceIf(t["presente"].Not())
 
+            log_lines.append(f"R{self.next_iconst}op " + f"[Max 1] Tarea {t['id']} con máximo 1 operario asignado")
+            log_lines.append(f"R{self.next_iconst}op " + f"[Exactamente 1] Tarea {t['id']} presente ⇒ exactamente un operario asignado")
+            log_lines.append(f"R{self.next_iconst}op " + f"[Ninguno] Tarea {t['id']} no presente ⇒ 0 operarios asignados")
 
-        # Añadir restricción de no solapamiento para cada operario
         for op_idx in range(len(self.operarios)):
+            op_nombre = self.operarios[op_idx]
             intervalos_op = []
             for t in self.tareas:
                 presente_op = t["presente_operarios_vars"][op_idx]
@@ -311,29 +371,32 @@ class modelOR:
                     f'int_opt_t{t["id"]}_op{op_idx}')
                 intervalos_op.append(intervalo_op)
             self.model.AddNoOverlap(intervalos_op)
+            log_lines.append(f"R{self.next_iconst}op " +
+                             f"[No Overlap] Operario: {op_nombre} (op{op_idx}) ⇒ sin traslape entre tareas")
 
+
+        with open("log_constrains.txt", "a", encoding="utf-8") as log:
+            log.write("\n".join(log_lines) + "\n")
+        return log_lines
+            
     def __obj_max_num_task__(self, time_limit=None):
-        """
-        Maximiza la cantidad de tareas programadas dentro del horizonte o de un límite dado.
-        Si una tarea no entra en el límite, sus sucesoras tampoco se programan.
-        """
-        print("   ---LIMITE DE HORIZONTE---: ", time_limit)
-        [print(tarea) for tarea in self.__check_end_earliest_times__(time_limit=time_limit)]
+        validaciones = self.__validate_end_earliest_times__(time_limit=time_limit)
+        print(f"------ LIMITE DE HORIZONTE: {time_limit}------")
         
+        
+        log_lines = []
+        for tarea in validaciones:
+            print(f"Validación tarea {tarea['id']}: Fin mínimo {tarea['tiempo_fin_min']}, ¿cumple límite? {tarea['cumple']}")
+
         self.is_scheduled_vars = {}
-        # Si no se pasó un límite de tiempo, usamos el horizonte máximo
-        #limite = getattr(self, "time_limit", self.max_horizonte)
-        
-        # Crear variables y restricciones por tarea
         for tarea in self.tareas:
-            # Variable booleana: 1 si la tarea se programa, 0 si no
             tarea["is_scheduled"] = self.model.NewBoolVar(f'scheduled_{tarea["id"]}')
             self.is_scheduled_vars[tarea["id"]] = tarea["is_scheduled"]
 
-            # conectar con la variable "presente" usada por el resto del modelo
-            self.model.Add(tarea["presente"] == tarea["is_scheduled"])
-            
-            # Intervalo opcional
+            id_constrain = f"R{self.next_iconst}ad "
+            self.model.Add(tarea["presente"] == tarea["is_scheduled"]).WithName(id_constrain)
+            log_lines.append(id_constrain + f"Restricción: presente({tarea['id']}) == scheduled_{tarea['id']}")
+
             tarea["interval_var"] = self.model.NewOptionalIntervalVar(
                 tarea["start_var"],
                 tarea["duracion"],
@@ -342,19 +405,36 @@ class modelOR:
                 f'interval_{tarea["id"]}'
             )
 
-            # Restricciones de límite de tiempo
             limite = time_limit if time_limit is not None else self.max_horizonte
-            self.model.Add(tarea["start_var"] < limite).OnlyEnforceIf(tarea["is_scheduled"])
-            self.model.Add(tarea["end_var"] <= limite).OnlyEnforceIf(tarea["is_scheduled"])
+            id_constrain = f"R{self.next_iconst}ad "
+            self.model.Add(tarea["start_var"] < limite).OnlyEnforceIf(tarea["is_scheduled"]).WithName(id_constrain)
+            
+            id_constrain = f"R{self.next_iconst}ad "
+            self.model.Add(tarea["end_var"] <= limite).OnlyEnforceIf(tarea["is_scheduled"]).WithName(id_constrain)
+            
+            log_lines.append(id_constrain + f"[EnforceIf] Límite de tiempo de tarea {tarea['id']}. Inicio < {limite}")
+            log_lines.append(id_constrain + f"[EnforceIf] Límite de tiempo de tarea {tarea['id']}. Final <= {limite}")
 
-        # Restricción en cascada: si una tarea no se programa, sus sucesoras tampoco
         if time_limit is not None:
             for tarea in self.tareas:
                 for sucesora in tarea.get("sucesoras", []):
-                    self.model.AddImplication(tarea["is_scheduled"].Not(),  sucesora["is_scheduled"].Not())
+                    id_constrain = f"R{self.next_iconst}ad "
+                    self.model.AddImplication(tarea["is_scheduled"].Not(), sucesora["is_scheduled"].Not()).WithName(id_constrain)
+                    log_lines.append(id_constrain  +  f"[Implication] Si tarea {tarea['id']} NO programada, sucesora {sucesora['id']} NO programada")
 
-        # Función objetivo: maximizar el número de tareas programadas
+                for pred_id in tarea.get("predecesoras", []):
+                    id_constrain = f"R{self.next_iconst}ad "
+                    self.model.AddImplication(self.is_scheduled_vars[pred_id].Not(),tarea["is_scheduled"].Not()).WithName(id_constrain)
+                    log_lines.append(id_constrain  +  f"[Implication] Si predecesora {pred_id} NO programada, tarea {tarea['id']} NO programada")
+
         self.model.Maximize(sum(self.is_scheduled_vars.values()))
+        log_lines.append(f"FO{self.next_iconst}ad " + f"Función objetivo: maximizar suma de tareas programadas: {len(self.is_scheduled_vars)} variables")
+
+        with open("log_constrains.txt", "a", encoding="utf-8") as f:
+            f.write("\n=== RESTRICCIONES DE LIMITE DE TIEMPO ===\n")
+            f.write("\n".join(log_lines))
+
+        return log_lines
 
     def __obj_min_makespan__(self):
         fin_sum = []
@@ -376,8 +456,7 @@ class modelOR:
         self.model.Minimize(sum(fin_ponderados))
         print("🎯 Objetivo: Minimizar Makespan ponderado")
 
-    
-    def __validate_model__(self):
+    def __validate_operators__(self):
         print(f"Total tareas: {len(self.tareas)}, max horizonte: {self.max_horizonte}, time limit: {self.time_limit}")
         print("Duraciones de tareas:", [t['duracion'] for t in self.tareas])
 
@@ -387,7 +466,32 @@ class modelOR:
                 task_not_oper.append(tarea["proceso"])
         if task_not_oper:
             raise ValueError(f"No hay operarios para el proceso {list(set(task_not_oper))}")
-    
+
+    def __validate_end_earliest_times__(self, time_limit):
+        resultados = []
+        # Mapeo rápido de id_tarea -> duración
+        duraciones = {t["id"]: t["duracion"] for t in self.tareas}
+
+        for tarea in self.tareas:
+            # Sumar duraciones de las predecesoras
+            tiempo_predecesoras = sum(duraciones[pid] for pid in tarea["predecesoras"])
+
+            # Tiempo mínimo de finalización
+            tiempo_fin_min = tiempo_predecesoras + tarea["duracion"]
+
+            # Comparar con horizonte
+            cumple = tiempo_fin_min <= time_limit
+
+            resultados.append({
+                "id": tarea["id"],
+                "trabajo": tarea["trabajo"],
+                "proceso": tarea["proceso"],
+                "tiempo_fin_min": tiempo_fin_min,
+                "cumple": cumple
+            })
+
+        return resultados 
+
     def objective_function(self, type_objective: str, time_limit: int = None):
         if time_limit is not None:
             self.time_limit = time_limit
@@ -395,7 +499,7 @@ class modelOR:
         try:
             funcion = self._functions[type_objective]
             self.current_objetive = type_objective
-            funcion(time_limit=self.time_limit)  # <- lo pasamos aquí
+            funcion(time_limit=self.time_limit)
         except KeyError:
             raise ValueError(f"Función Objetivo no reconocida: {type_objective}")
     
@@ -420,18 +524,21 @@ class modelOR:
         
         print("--- Fin de verificación ---\n")
 
-    def solve_model(self, tiempo_max=5, debug = False):
+    def solve_model(self, tiempo_max=5, check = False):
         try:
-            self.__validate_model__()
+            self.__validate_operators__()
         except ValueError as e:
             print(f"¡¡MODELO INVÁLIDO!!: No se intentó resolver el modelo: {e}")
             return {}, None
         
         solver = cp_model.CpSolver()
+        solver.parameters.cp_model_probing_level = 2
         solver.parameters.log_search_progress = True
         solver.parameters.max_time_in_seconds = tiempo_max
         status = solver.Solve(self.model)
         print("Tiempo de solución:", solver.WallTime(), "segundos")
+        print(solver.ResponseStats())
+
 
         if status == cp_model.INFEASIBLE:
             print("MODELO NO RESUELTO: Es infactible.")
@@ -442,7 +549,7 @@ class modelOR:
         elif status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
             type_solution = 'OPTIMAL' if status == cp_model.OPTIMAL else 'FEASIBLE'
             print(f"Solución {type_solution} encontrada:")
-            self.__debug_check_solution__(solver) if debug == True else None
+            self.__check_times_solver__(solver) if check == True else None
 
             tareas_asignadas = {}
             for tarea in self.tareas:
@@ -472,44 +579,6 @@ class modelOR:
             makespan = max(solver.Value(t["end_var"]) for t in self.tareas if solver.Value(t["presente"]) == 1)
             self.tareas_asignadas_df = pd.DataFrame(tareas_asignadas).T
             return tareas_asignadas, makespan
-
-    def __check_end_earliest_times__(self, time_limit):
-        resultados = []
-        # Mapeo rápido de id_tarea -> duración
-        duraciones = {t["id"]: t["duracion"] for t in self.tareas}
-
-        for tarea in self.tareas:
-            # Sumar duraciones de las predecesoras
-            tiempo_predecesoras = sum(duraciones[pid] for pid in tarea["predecesoras"])
-
-            # Tiempo mínimo de finalización
-            tiempo_fin_min = tiempo_predecesoras + tarea["duracion"]
-
-            # Comparar con horizonte
-            cumple = tiempo_fin_min <= time_limit
-
-            resultados.append({
-                "id": tarea["id"],
-                "trabajo": tarea["trabajo"],
-                "proceso": tarea["proceso"],
-                "tiempo_fin_min": tiempo_fin_min,
-                "cumple": cumple
-            })
-
-        return resultados
-        print("\n--- TAREAS ASIGNADAS ---")
-        if not self.tareas_asignadas:
-            print("(No hay tareas asignadas aún)")
-            return
-
-        for tarea_id, tarea in self.tareas_asignadas.items():
-            trabajo = tarea.get("trabajo", "N/A")
-            proceso = tarea.get("proceso", "N/A")
-            inicio = tarea.get("inicio", "N/A")
-            fin = tarea.get("fin", "N/A")
-            presente = "Sí" if tarea.get("presente", 0) else "No"
-            operario = tarea.get("operario_asignado", "N/A")
-            print(f"[{tarea_id:>3}] Trabajo: {trabajo:<6} | Proceso: {proceso:<10} | Inicio: {inicio:<3} | Fin: {fin:<3} | Presente: {presente:<2} | Operario: {operario}")
 
     def __clean_procc_prece__(self):
         for trabajo, procesos in self.procesos_trabajos.items():
@@ -600,3 +669,72 @@ class modelOR:
             ops = ", ".join(tarea.get("operarios_posibles", [])) or "Ninguno"
             print(f"[{id_tarea:>3}] Trabajo: {trabajo:<6} | Proceso: {proceso:<10} | Duración: {duracion:<3} | Ops posibles: {ops}")
 
+        print("\n--- TAREAS ASIGNADAS ---")
+        if not self.tareas_asignadas:
+            print("(No hay tareas asignadas aún)")
+            return
+
+        for tarea_id, tarea in self.tareas_asignadas.items():
+            trabajo = tarea.get("trabajo", "N/A")
+            proceso = tarea.get("proceso", "N/A")
+            inicio = tarea.get("inicio", "N/A")
+            fin = tarea.get("fin", "N/A")
+            presente = "Sí" if tarea.get("presente", 0) else "No"
+            operario = tarea.get("operario_asignado", "N/A")
+            print(f"[{tarea_id:>3}] Trabajo: {trabajo:<6} | Proceso: {proceso:<10} | Inicio: {inicio:<3} | Fin: {fin:<3} | Presente: {presente:<2} | Operario: {operario}")
+
+    @property
+    def next_iconst(self):
+        self.const_count += 1
+        return f"{self.const_count:07d}"
+    
+    def validate_consistency(self, time_limit=None):
+        errores = []
+        tareas = self.tareas
+        
+        # 1. Validar límite de horizonte y tareas presentes
+        for tarea in tareas:
+            fin_minimo = tarea.get("fin_minimo", None)
+            id_tarea = tarea["id"]
+            esta_presente = tarea.get("presente_valor", True)
+            
+            if fin_minimo is not None and time_limit is not None:
+                if fin_minimo > time_limit and esta_presente:
+                    errores.append(f"Tarea {id_tarea} tiene fin mínimo {fin_minimo} > límite {time_limit} pero está marcada como presente.")
+            
+        # 2. Validar coherencia en predecesoras y sucesoras según presencia
+        id_a_tarea = {t["id"]: t for t in tareas}
+        for tarea in tareas:
+            id_tarea = tarea["id"]
+            esta_presente = tarea.get("presente_valor", True)
+            # Si la tarea está presente, todas sus predecesoras deben poder estar presentes
+            for pred_id in tarea.get("predecesoras", []):
+                tarea_pred = id_a_tarea.get(pred_id)
+                if tarea_pred is None:
+                    errores.append(f"Tarea {id_tarea} tiene predecesora desconocida {pred_id}")
+                    continue
+                pred_presente = tarea_pred.get("presente_valor", True)
+                if esta_presente and not pred_presente:
+                    errores.append(f"Tarea {id_tarea} está presente pero su predecesora {pred_id} NO está presente.")
+            # Si la tarea no está presente, sus sucesoras tampoco deberían estar presentes
+            if not esta_presente:
+                for suc in tarea.get("sucesoras", []):
+                    tarea_suc = id_a_tarea.get(suc)
+                    if tarea_suc and tarea_suc.get("presente_valor", True):
+                        errores.append(f"Tarea {id_tarea} NO está presente pero su sucesora {suc} está presente.")
+                        
+        # 3. Validar asignación posible de operarios
+        for tarea in tareas:
+            operarios_validos = tarea.get("operarios_idx", [])
+            if tarea.get("presente_valor", True) and len(operarios_validos) == 0:
+                errores.append(f"Tarea {tarea['id']} está presente pero NO tiene operarios habilitados.")
+                
+        
+        if errores:
+            print("### Errores de consistencia detectados:")
+            for e in errores:
+                print(" -", e)
+            return False
+        else:
+            print("Validación previa: no se detectaron errores de consistencia.")
+            return True

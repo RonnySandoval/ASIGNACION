@@ -6,13 +6,14 @@ import datetime as dt
 from database import BDmanage as man
 from . import entities as entid
 from . import OR2
-from . import OR
+from model import gantt_pruebas2 as gantt
 
 path_db = 'C:/NUEVO_PORTATIL/GITHUB/ASIGNACION/planta_con_ensamble1.db'
 with man.Database(path_db) as db:
     plant = entid.Plant(db=db)
     df_referencias = plant.df_referencias
-    df_modelos_df = plant.df_modelos_df
+    df_vehiculos = plant.df_trabajos
+    df_modelos = plant.df_modelos_df
     df_tiempos_modelos = plant.df_tiempos_modelos
     df_procesos = plant.df_procesos
     df_dispatch = pd.read_excel('C:/NUEVO_PORTATIL/GITHUB/ASIGNACION/DESPACHOS_2024.xlsx')
@@ -196,14 +197,28 @@ model_init = OR2.modelOR(operarios                = plant_simulate.operarios,
 
 #model_init.objective_function(model_init.OBJ_MAX_NUM_TASK, time_limit=200)
 #model_init.objective_function(model_init.OBJ_MIN_MAKESPAN_SIMPLE)
+
 model_init.resume()
 [print (trabajo, procesos) for trabajo, procesos in model_init.procesos_trabajos.items()]
-[print (trabajo, precedencia) for trabajo, precedencia in model_init.precedencias_por_trabajo.items()]
-model_init.resume()
-[print (trabajo, procesos) for trabajo, procesos in model_init.procesos_trabajos.items()]
-[print (trabajo, precedencia) for trabajo, precedencia in model_init.precedencias_por_trabajo.items()]
-[print (tarea["id"], tarea["predecesoras"]) for tarea in model_init.tareas]
-model_init.objective_function(model_init.OBJ_MAX_NUM_TASK, time_limit=300)
+#[print (trabajo, precedencia) for trabajo, precedencia in model_init.precedencias_por_trabajo.items()]
+#[print (tarea["id"], tarea["predecesoras"]) for tarea in model_init.tareas]
+model_init.objective_function(model_init.OBJ_MAX_NUM_TASK, time_limit=1500)
+model_init.solve_model(check=True)
+df_tareas = model_init.tareas_asignadas_df
+df_tareas = df_tareas.rename(columns={'trabajo': 'CHASIS',
+                                      'proceso': 'PROCESO',
+                                      'inicio': 'INICIO',
+                                      'fin': 'FIN',
+                                      'operario_asignado': 'TECNICO'})
+df_merged = df_tareas.merge(pedido_simulado['vehiculos_iniciales'][['CHASIS', 'ID_MODELO']], on='CHASIS', how='left')
+print(df_merged)
+gantt.plot_gantt(df   =df_merged,
+           items="TECNICO",
+           tasks="ID_MODELO",
+           filter1="PROCESO",
+           filter2="CHASIS")
+
+
 """model_init.tareas_asignadas, makespan = model_init.solve_model(tiempo_max=5, debug=True)
 [print(tarea) for tarea in model_init.tareas_asignadas.values()]
 print(makespan)
@@ -213,5 +228,4 @@ print(model_init.tareas_asignadas_df)
 #                   plant.procesos_operarios,
 #                   plant.trabajos,
 #                   plant.procesos_trabajos,
-#                   plant.precedencias_trabajos)
-OR.dibujar_gantt(list(model_init.tareas_asignadas.values()))"""
+#                   plant.precedencias_trabajos)"""
