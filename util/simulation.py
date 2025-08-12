@@ -5,6 +5,7 @@ import string
 import datetime as dt
 from database import BDmanage as man
 from . import entities as entid
+from . import OR2
 from . import OR
 
 path_db = 'C:/NUEVO_PORTATIL/GITHUB/ASIGNACION/planta_con_ensamble1.db'
@@ -16,7 +17,7 @@ with man.Database(path_db) as db:
     df_procesos = plant.df_procesos
     df_dispatch = pd.read_excel('C:/NUEVO_PORTATIL/GITHUB/ASIGNACION/DESPACHOS_2024.xlsx')
     
-SEED = random.seed(104)
+SEED = random.seed(106)
 def choice_one(df: pd.DataFrame, columns: list[str], locator: str):
     ident = random.choice(list(df[locator]))
     row = df[df[locator] == ident][columns].iloc[0]
@@ -137,18 +138,14 @@ def simular_iniciales(n: int,
 
     df_tiempos_not_cero = df_tiempos[df_tiempos['TIEMPO'] != 0]
 
-    print(f"\n-----DF TIEMPOS SIN CERO      (longitud = {(len(set(df_tiempos_not_cero['CHASIS'].to_list())))}) :\n",df_tiempos_not_cero)
+    #print(f"\n-----DF TIEMPOS SIN CERO      (longitud = {(len(set(df_tiempos_not_cero['CHASIS'].to_list())))}) :\n",df_tiempos_not_cero)
+
+    elecciones = dict(df_tiempos_not_cero.groupby("CHASIS")["ID_PROCESO"].apply(lambda s: random.choice(s.unique())))    # Diccionario {chasis: proceso_aleatorio_existente}
+
+    df_tiempos_unique = df_tiempos_not_cero[ df_tiempos_not_cero.apply(lambda r: r["ID_PROCESO"] == elecciones[r["CHASIS"]], axis=1)]    # Filtrar usando el mapeo anterior
     
-    df_tiempos_unique = df_tiempos_not_cero[df_tiempos_not_cero.apply(
-        lambda p: p['ID_PROCESO'] == choice_procces_one(procces), axis=1)]
     
-    for _ in range(100):  # hasta 100 intentos
-        elegido = choice_procces_one(procces)
-        df_tiempos_unique = df_tiempos_not_cero[df_tiempos_not_cero['ID_PROCESO'] == elegido]
-        if not df_tiempos_unique.empty:
-            break
-    
-    print(f"\n-----DF TIEMPOS UNIQUE     (longitud = {(len(set(df_tiempos_unique['CHASIS'].to_list())))}) :\n",  df_tiempos_unique)
+    #print(f"\n-----DF TIEMPOS UNIQUE     (longitud = {(len(set(df_tiempos_unique['CHASIS'].to_list())))}) :\n",  df_tiempos_unique)
     return df_vehiculos, df_tiempos, df_tiempos_unique
 
 def simular_pedido_inciales(n_jobs: int,
@@ -171,9 +168,9 @@ def simular_pedido_inciales(n_jobs: int,
                                       df_references = df_references,
                                       df_tm = df_tm)
 
-    print('vehiculos_iniciales','\n', vh_init)
-    print('procesos_unicos','\n', proc_init)
-    print('tiempos_iniciales','\n', tm_init)
+    #print('vehiculos_iniciales','\n', vh_init)
+    #print('procesos_unicos','\n', proc_init)
+    #print('tiempos_iniciales','\n', tm_init)
     return {'vehiculos_iniciales':vh_init,
             'tiempos_iniciales':tm_init,
             'procesos_unicos':proc_init,
@@ -181,7 +178,7 @@ def simular_pedido_inciales(n_jobs: int,
             'tiempos_pedido':tm_pedi}
 
 pedido_simulado = simular_pedido_inciales(n_jobs = 50,
-                        n_init = 30,
+                        n_init = 10,
                         date = dt.datetime.now().date,
                         df_dispatch = df_dispatch,
                         df_references = df_referencias,
@@ -191,17 +188,30 @@ with man.Database(path_db) as db:
     plant_simulate = entid.Plant(db, simul = pedido_simulado)
     #plant_simulate.resume(completed=True)
 
-model_init = OR.modelOR(operarios                = plant_simulate.operarios,
+model_init = OR2.modelOR(operarios                = plant_simulate.operarios,
                         procesos_operarios       = plant_simulate.procesos_operarios,
                         trabajos                 = plant_simulate.trabajos_inic,
                         procesos_trabajos        = plant_simulate.procesos_trabajos_inic,
                         precedencias_por_trabajo = plant_simulate.precedencias_trabajos)
 
-model_init.solve_model()
-
-model = OR.modelOR(plant.operarios,
-                   plant.procesos_operarios,
-                   plant.trabajos,
-                   plant.procesos_trabajos,
-                   plant.precedencias_trabajos)
-
+#model_init.objective_function(model_init.OBJ_MAX_NUM_TASK, time_limit=200)
+#model_init.objective_function(model_init.OBJ_MIN_MAKESPAN_SIMPLE)
+model_init.resume()
+[print (trabajo, procesos) for trabajo, procesos in model_init.procesos_trabajos.items()]
+[print (trabajo, precedencia) for trabajo, precedencia in model_init.precedencias_por_trabajo.items()]
+model_init.resume()
+[print (trabajo, procesos) for trabajo, procesos in model_init.procesos_trabajos.items()]
+[print (trabajo, precedencia) for trabajo, precedencia in model_init.precedencias_por_trabajo.items()]
+[print (tarea["id"], tarea["predecesoras"]) for tarea in model_init.tareas]
+model_init.objective_function(model_init.OBJ_MAX_NUM_TASK, time_limit=300)
+"""model_init.tareas_asignadas, makespan = model_init.solve_model(tiempo_max=5, debug=True)
+[print(tarea) for tarea in model_init.tareas_asignadas.values()]
+print(makespan)
+model_init.resume()
+print(model_init.tareas_asignadas_df)
+#model = OR.modelOR(plant.operarios,
+#                   plant.procesos_operarios,
+#                   plant.trabajos,
+#                   plant.procesos_trabajos,
+#                   plant.precedencias_trabajos)
+OR.dibujar_gantt(list(model_init.tareas_asignadas.values()))"""

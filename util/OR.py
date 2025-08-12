@@ -1,5 +1,5 @@
 # DATOS
-"""
+
 operarios = ["ninguno", "op1", "op2", "op3", "op4", "op5", "op6", "op7", "op8", "op9", "op10"]
 
 procesos_operarios = {"op1": ["TEL",  "PDI"],
@@ -86,7 +86,6 @@ pesos_trabajo = {
     "tra9": 10,
     "tra10": 10,
 }
-"""
 
 
 from ortools.sat.python import cp_model
@@ -118,7 +117,7 @@ class modelOR:
         self.opers_sched = opers_sched,
         self.procs_sched = procs_sched
         self.tareas = self.__taks_flat_or__()
-        self.max_horizonte = sum(t["duracion"] for t in self.tareas) if max_horizonte is not None else max_horizonte
+        self.max_horizonte = sum(t["duracion"] for t in self.tareas) if max_horizonte is None else max_horizonte
         self.tareas_finales = self.__final_tasks__()
         self.tareas_asignadas = {}
         self.tareas_asignadas_df = None
@@ -128,9 +127,10 @@ class modelOR:
         self.current_objetive = None
         self.OBJ_MIN_MAKESPAN_PONDERADO = "MIN_MAKESPAN_PONDERADO"
         self.OBJ_MIN_MAKESPAN_SIMPLE = "MIN_MAKESPAN_SIMPLE"
+        self.OBJ_MAX_NUM_TASK = "MAX_NUM_TASK"
         self._functions = { "MIN_MAKESPAN_PONDERADO": self.__obj_min_makespan_pondered__,
-                             "MIN_MAKESPAN_SIMPLE": self.__obj_min_makespan__,}
-
+                             "MIN_MAKESPAN_SIMPLE": self.__obj_min_makespan__}
+        
     def __taks_flat_or__(self):
         """
         Aplana la lista de tareas para OR-Tools.
@@ -150,19 +150,18 @@ class modelOR:
 
 
         for trabajo_id in self.trabajos:
-            print(self.procesos_trabajos)
-            print(self.trabajos)
+            #print(trabajo_id)
             
-            no_en_diccionario = [elem for elem in self.trabajos if elem not in self.procesos_trabajos]
-            print("NO EN DICCIONARIO:  ", no_en_diccionario)
+            #no_en_diccionario = [elem for elem in self.trabajos if elem not in self.procesos_trabajos]
+            #print("NO EN DICCIONARIO:  ", no_en_diccionario)
             
-            no_en_lista = [clave for clave in self.procesos_trabajos if clave not in self.trabajos]
-            print("NO EN LISTA:  ", no_en_lista)
+            #no_en_lista = [clave for clave in self.procesos_trabajos if clave not in self.trabajos]
+            #print("NO EN LISTA:  ", no_en_lista)
     
 
             lista_procesos = self.procesos_trabajos[trabajo_id]
             for orden, (proceso, duracion) in enumerate(lista_procesos):
-                if duracion == 0 or self.procs_sched is None or proceso not in self.procs_sched:
+                if (duracion == 0) or (self.procs_sched is not None and proceso not in self.procs_sched):
                     continue  # No crear tarea si la duración es 0
                 
                 # Buscar operarios calificados
@@ -216,6 +215,7 @@ class modelOR:
             # Crear variables de tiempo
             tarea["start_var"] = model.NewIntVar(0, self.max_horizonte, f'start_{tarea["id"]}')
             tarea["end_var"]   = model.NewIntVar(0, self.max_horizonte, f'end_{tarea["id"]}')
+            tarea["presente"] = model.NewBoolVar(f'presente_t{tarea["id"]}')
             
             # Crear intervalo
             tarea["interval_var"] = model.NewIntervalVar(start = tarea["start_var"],
@@ -246,8 +246,8 @@ class modelOR:
             tareas_trabajo = [t for t in self.tareas if t["trabajo"] == trabajo]             # Filtrar las tareas para obtener solo las que pertenecen a un trabajo específico. 
             tareas_dict = {t["proceso"]: t for t in tareas_trabajo}                          # crear un dicc de tareas para el trabajo actual, donde la clave es el nombre del LAVeso y el valor es la tarea (diccionario) correspondiente.
             
-            for t_dic in tareas_dict.items():
-                print(t_dic)
+            #for t_dic in tareas_dict.items():
+            #    print(t_dic)
             
             for proc_sucesor, lista_predecesores in deps_dict.items():
                 if proc_sucesor not in tareas_dict: 
@@ -319,6 +319,24 @@ class modelOR:
         self.model.Minimize(sum(fin_ponderados))  # Minimizar la suma de los tiempos ponderados de finalización
         print("🎯 Objetivo: Minimizar Makespan ponderado")
 
+    def obj_max_num_task(self, time_limit=None):
+        if time_limit is None:
+            time_limit = self.max_horizonte
+
+        for tarea in self.tareas:        # Restringir todas las tareas para que terminen antes o en time_limit
+            self.model.Add(tarea["end_var"] <= time_limit)
+
+        makespan = self.model.NewIntVar(0, time_limit, "makespan")        # Variable makespan: representa la finalización máxima dentro del límite
+
+        for tarea in self.tareas:        # Hacer que makespan sea mayor o igual que la finalización de cada tarea
+            self.model.Add(tarea["end_var"] <= makespan)
+
+
+        self.model.Minimize(makespan)        # Minimizar el makespan
+
+        print(f"🎯 Restricción: Todas las tareas terminan antes de {time_limit}. Minimizar makespan.")
+
+    
     def __validate_model__(self):
         """
         Lanza excepción si alguna tarea no tiene operario con la especialidad requerida.
@@ -375,7 +393,7 @@ class modelOR:
             
             tareas_asignadas = {}
             for tarea in self.tareas:
-                operario_asignado = self.operarios.iloc[solver.Value(tarea["op_var"])] if solver.Value(tarea["op_var"]) >= 0 else "Ninguno"
+                operario_asignado = self.operarios[solver.Value(tarea["op_var"])] if solver.Value(tarea["op_var"]) >= 0 else "Ninguno"
 
                 tareas_asignadas[tarea["id"]] = {
                     'id':       tarea["id"],
@@ -391,16 +409,22 @@ class modelOR:
             self.tareas_asignadas_df = pd.DataFrame(tareas_asignadas).T
             return tareas_asignadas, makespan
 
-"""
-model = modelOR(operarios, procesos_operarios, trabajos, procesos_trabajos, precedencias_trabajos, pesos_trabajo)
-model.obj_min_makespan_pondered()
+    def resume(self):
+        print("---TAREAS APLANADAS---")
+        for tarea in self.tareas:
+            print(tarea)
+        print("---TAREAS ASIGNADAS---")
+        [print(tarea) for tarea in self.tareas_asignadas.values()]
+
+"""model = modelOR(operarios, procesos_operarios, trabajos, procesos_trabajos, precedencias_trabajos, pesos_trabajo)
+model.objective_function(model.OBJ_MIN_MAKESPAN_SIMPLE)
 model.tareas_asignadas, makespan = model.solve_model(tiempo_max=5)
     
 [print(tarea) for tarea in model.tareas_asignadas.values()]
-print(makespan)
-"""
+print(makespan)"""
+
  
-"""
+
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 def dibujar_gantt(tareas_asignadas):
@@ -438,9 +462,8 @@ def dibujar_gantt(tareas_asignadas):
     plt.tight_layout()
     plt.show()
 
-dibujar_gantt(list(model.tareas_asignadas.values()))
-"""
- 
+#dibujar_gantt(list(model.tareas_asignadas.values()))
+
  
  
  

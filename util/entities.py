@@ -90,29 +90,27 @@ class Plant():
                             
             self.procesos_trabajos_inic[trab] = time_list
             
-        print(f"-------TOTAL PROCESOS_TRABAJOS_INIC:   {len(self.procesos_trabajos_inic)}----------")
-        print("self.procesos_trabajos_inic:\n" + "\n".join(
-                                                        map(lambda item: f"{item[0]}: {item[1]}",
-                                                            self.procesos_trabajos_inic.items())))
+        #print(f"-------TOTAL PROCESOS_TRABAJOS_INIC:   {len(self.procesos_trabajos_inic)}----------")
+        #print("self.procesos_trabajos_inic:\n" + "\n".join(map(lambda item: f"{item[0]}: {item[1]}", self.procesos_trabajos_inic.items())))
 
-        print(f"-------TOTAL TRABAJOS_INIC:   {len(set(self.trabajos_inic))}----------")
-        print("self.trabajos_inic:\n" + "\n".join(map(str, self.trabajos_inic)))
+        #print(f"-------TOTAL TRABAJOS_INIC:   {len(set(self.trabajos_inic))}----------")
+        #print("self.trabajos_inic:\n" + "\n".join(map(str, self.trabajos_inic)))
 
-        print(f"-------TOTAL TRABAJOS_UNIQ:   {len(set(self.trabajos_uniq))}----------")
-        print("self.trabajos_uniq:\n" + "\n".join(map(str, self.trabajos_uniq)))
+        #print(f"-------TOTAL TRABAJOS_UNIQ:   {len(set(self.trabajos_uniq))}----------")
+        #print("self.trabajos_uniq:\n" + "\n".join(map(str, self.trabajos_uniq)))
             
     def __filter_jobs_opers_procs__(self):
         # Filtra trabajos
         if self.jobs_sched is not None:
             trabajos = self.df_trabajos[self.df_trabajos["CHASIS"].isin(self.jobs_sched)]["CHASIS"].drop_duplicates()
         else:
-            trabajos = self.df_trabajos["CHASIS"]
+            trabajos = list(self.df_trabajos["CHASIS"])
 
         # Filtra operarios
         if self.oper_sched is not None:
             operarios = self.df_operarios[self.df_operarios["ID_TECNICO"].isin(self.oper_sched)]["ID_TECNICO"].drop_duplicates()
         else:
-            operarios = self.df_operarios["ID_TECNICO"]
+            operarios = list(self.df_operarios["ID_TECNICO"])
 
         # Filtra procesos
         if self.proc_sched is not None:
@@ -261,13 +259,13 @@ class PlantFlat():
         if self.jobs_sched is not None:
             trabajos = self.df_trabajos[self.df_trabajos["CHASIS"].isin(self.jobs_sched)]["CHASIS"].drop_duplicates()
         else:
-            trabajos = self.df_trabajos["CHASIS"]
+            trabajos = list(self.df_trabajos["CHASIS"])
 
         # Filtra operarios
         if self.oper_sched is not None:
             operarios = self.df_operarios[self.df_operarios["ID_TECNICO"].isin(self.oper_sched)]["ID_TECNICO"].drop_duplicates()
         else:
-            operarios = self.df_operarios["ID_TECNICO"]
+            operarios = list(self.df_operarios["ID_TECNICO"])
 
         # Filtra procesos
         if self.proc_sched is not None:
