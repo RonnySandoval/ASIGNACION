@@ -1,5 +1,5 @@
 from datetime import datetime
-import database.BDqueries as BDqueries
+import database.BDqueries_before as BDqueries_before
 import model.model_datetime as model_datetime
 import controller.glo as glo
 import pandas as pd
@@ -18,15 +18,15 @@ listaOrdenes = []
 def obtiene_datos_iniciales():
     global nombres_procesos, id_procesos, orden_procesos, modelos, tiempos, tiemposVH
 
-    nombres_procesos = BDqueries.leer_procesos_secuencia(glo.base_datos)
-    id_procesos = BDqueries.obtener_id_procesos_secuencia(glo.base_datos)
+    nombres_procesos = BDqueries_before.leer_procesos_secuencia(glo.base_datos)
+    id_procesos = BDqueries_before.obtener_id_procesos_secuencia(glo.base_datos)
     orden_procesos = ['ninguno'] + id_procesos + ['DESPACHO', 'ENTREGADO']
     print("orden de procesos : " , orden_procesos)
 
     # Modelos de vehículos agrupados por marcas
-    modelos = list(map(lambda modelo_marca: modelo_marca[2], BDqueries.leer_modelos(glo.base_datos)))
-    tiempos = BDqueries.leer_tiempos_modelos_df(glo.base_datos)
-    tiemposVH = BDqueries.leer_tiempos_vehiculos_df(glo.base_datos)
+    modelos = list(map(lambda modelo_marca: modelo_marca[2], BDqueries_before.leer_modelos(glo.base_datos)))
+    tiempos = BDqueries_before.leer_tiempos_modelos_df(glo.base_datos)
+    tiemposVH = BDqueries_before.leer_tiempos_vehiculos_df(glo.base_datos)
     print(tiempos)
 
 def buscar_tiempo(modelo, proceso):
@@ -192,7 +192,7 @@ class Vehiculo(VehiculoBase):               #Es cada vehiculo único que pasa po
         return buscar_tiempoVH(self.id_chasis, proceso)
 
     def obtener_historicos(self, bbdd, chasis):
-        lectura = BDqueries.leer_historico_completo(bbdd, chasis)            #Leer el registro de historicos del vehiculo
+        lectura = BDqueries_before.leer_historico_completo(bbdd, chasis)            #Leer el registro de historicos del vehiculo
         historicos = [(registro[3],                                     #Generar una tupla con cada registro de acuerdo al formato del objeto vheiculo
                     model_datetime.datetime.strptime(registro[6], "%Y-%m-%d %H:%M:%S"),
                     model_datetime.datetime.strptime(registro[7], "%Y-%m-%d %H:%M:%S"),
@@ -499,17 +499,19 @@ def programa_inmediato(pedido, tecnicos, horizonte, fechaStart, horaStart):
 
             asignado = False
             maximaAsignacion = model_datetime.momentoEnd(model_datetime.programa_bloques(fechaStart,
-                                                                               horaStart,
-                                                                               horizonte ,
-                                                                               am   =   (glo.turnos.startAM.get(), glo.turnos.endAM.get()),
-                                                                               pm   =   (glo.turnos.startPM.get(), glo.turnos.endPM.get())))
+                                                                                         horaStart,
+                                                                                         horizonte ,
+                                                                                         am   =   (glo.turnos.startAM.get(), glo.turnos.endAM.get()),
+                                                                                         pm   =   (glo.turnos.startPM.get(), glo.turnos.endPM.get())
+                                                                                         )
+                                                         )
             terminaAsignacion = model_datetime.momentoEnd(model_datetime.programa_bloques(fecha_inicio = str(times.date()),
-                                                                                hora_inicio  = str(times.time()),
-                                                                                duracion     = tiempo_neto,
-                                                                                am   = (glo.turnos.startAM.get(), glo.turnos.endAM.get()),
-                                                                                pm   = (glo.turnos.startPM.get(), glo.turnos.endPM.get())
-                                                                                )
-                                                    )
+                                                                                          hora_inicio  = str(times.time()),
+                                                                                          duracion     = tiempo_neto,
+                                                                                          am   = (glo.turnos.startAM.get(), glo.turnos.endAM.get()),
+                                                                                          pm   = (glo.turnos.startPM.get(), glo.turnos.endPM.get())
+                                                                                          )
+                                                        )
             print(f"****Se asignará : {times} + {tiempo_neto} = {terminaAsignacion}")
 
             if terminaAsignacion <= maximaAsignacion:                                              #verificamos que el tiempo asignado no supere el horizonte
@@ -725,8 +727,8 @@ def programar_procesos(pedido, tecnicos, procesos, horizonte, fechaStart, horaSt
     #vehiculos_por_programar = [vehiculo for vehiculo in vehiculos_por_programar     # Filtrar vehiculos de acuerdo a, si el primer elemento (el estado) de     
     #                            if vehiculo.historico_estados[0] in procesos]       # historico_estados se encuentra en la lista de procesos
      
-    todos_los_procesos = list(BDqueries.obtener_id_procesos(bbdd))                       # leer los ids de procesos en BD
-    todos_los_tiempos = BDqueries.leer_tiempos_vehiculos_df(bbdd)                  # obtener un dataframe con los tiempos por vehiculo
+    todos_los_procesos = list(BDqueries_before.obtener_id_procesos(bbdd))                       # leer los ids de procesos en BD
+    todos_los_tiempos = BDqueries_before.leer_tiempos_vehiculos_df(bbdd)                  # obtener un dataframe con los tiempos por vehiculo
     print(todos_los_tiempos)
 
     contador = 0

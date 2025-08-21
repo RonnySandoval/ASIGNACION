@@ -1,119 +1,92 @@
 import controller.glo as glo
 import pandas as pd
-from datetime import datetime, timedelta
-import database.BDqueries as BDqueries
+from datetime import datetime, timedelta, date, time
+import database.BDqueries_before as BDqueries_before
 
 ###############################################################################
 ###############################################################################
-from datetime import datetime, timedelta
-
-def parseDT(stringFecha, stringHora):
+def parseDT(stringFecha:str, stringHora:str)-> datetime:
     fecha_hora_inicio = f"{stringFecha} {stringHora}"                   # Concatenar fecha y hora para crear una cadena completa de fecha y hor
     #print("prueba", datetime.strptime(fecha_hora_inicio, "%Y-%m-%d %H:%M"))
     return datetime.strptime(fecha_hora_inicio, "%Y-%m-%d %H:%M:%S")       # Convertir la fecha y hora de inicio a un objeto datetime
 
-def calcular_hora_final(fecha_inicio, hora_inicio, duracion):
-
+def calcular_hora_final(fecha_inicio:str, hora_inicio:str, duracion:int)-> tuple[datetime, timedelta]:
     fecha_hora_inicio = f"{fecha_inicio} {hora_inicio}"                 # Concatenar fecha y hora para crear una cadena completa de fecha y hora
     inicio = datetime.strptime(fecha_hora_inicio, "%Y-%m-%d %H:%M:%S")   # Convertir la fecha y hora de inicio a un objeto datetime
     tiempo_final = inicio + timedelta(minutes=duracion)                 # Sumar los minutos a la hora de inicio
     return inicio, tiempo_final                                         # Retornar ambos objetos datetime
 
-def calcular_hora_finalDT(date_time, duracion):
-
+def calcular_hora_finalDT(date_time:datetime, duracion:int)->timedelta:
     inicio = date_time                                    # Asignar datatime al inicio
     tiempo_final = inicio + timedelta(minutes=duracion)   # Sumar los minutos a la hora de inicio
     return tiempo_final                           # Retornar ambos objetos datetime
 
-def separar_fecha_hora(cadena):
+def separar_fecha_hora(cadena:str)->tuple[date, time]:
     # Convertir la cadena en un objeto datetime
-    dt_obj = datetime.strptime(cadena, "%Y-%m-%d %H:%M:%S")
-    
-    # Extraer la fecha y la hora
-    fecha = dt_obj.date()
-    hora = dt_obj.time()
-    
-    return fecha, hora
+    dt_obj = datetime.strptime(cadena, "%Y-%m-%d %H:%M:%S")    
+    return dt_obj.date(), dt_obj.time()
 
 ###############################################################################
 ###############################################################################
-def obtener_dia_semana(fecha):
-
-    dias_semana = {
-        "Monday"   : "Lunes",
-        "Tuesday"  : "Martes",
-        "Wednesday": "Miercoles",
-        "Thursday" : "Jueves",
-        "Friday"   : "Viernes",
-        "Saturday" : "Sabado",
-        "Sunday"   : "Domingo"
-    }
-
+def obtener_dia_semana(fecha:datetime)->str:
+    dias_semana = { "Monday"   : "Lunes",
+                    "Tuesday"  : "Martes",
+                    "Wednesday": "Miercoles",
+                    "Thursday" : "Jueves",
+                    "Friday"   : "Viernes",
+                    "Saturday" : "Sabado",
+                    "Sunday"   : "Domingo"}
     #fecha_obj = datetime.strptime(fecha, "%Y-%m-%d")    # Convertir la cadena de fecha en un objeto datetime
-    dia_semana_ingles = fecha.date().strftime("%A")        # Obtener el nombre del día de la semana en inglés
-    return dias_semana[dia_semana_ingles]                           # Retornar la traducción al español
+    dia_semana_ingles = fecha.date().strftime("%A")      # Obtener el nombre del día de la semana en inglés
+    return dias_semana[dia_semana_ingles]                # Retornar la traducción al español
 
-def siguiente_dia(fecha):
+def siguiente_dia(fecha:date)-> date:
     return fecha  +1
 
 ###############################################################################
 ###############################################################################
-def horas_no_laborables(fecha):
+def horas_no_laborables(fecha:str)->datetime:
     if pd.isna(fecha):
         fecha_ahora = str(datetime.now().date())
     else:
         fecha_ahora = fecha
     # Crear tuplas de cadenas con formato 'YYYY-MM-DD HH:MM:SS'
-    madrugada = (
-        datetime.strptime(f"{fecha_ahora} 00:00:00", "%Y-%m-%d %H:%M:%S"),
-        datetime.strptime(f"{fecha_ahora} {glo.turnos.startAM.get()}:00", "%Y-%m-%d %H:%M:%S")
-        )
+    madrugada = ( datetime.strptime(f"{fecha_ahora} 00:00:00", "%Y-%m-%d %H:%M:%S"),
+                  datetime.strptime(f"{fecha_ahora} {glo.turnos.startAM.get()}:00","%Y-%m-%d %H:%M:%S") )
 
-    mediodia  = (
-        datetime.strptime(f"{fecha_ahora} {glo.turnos.endAM.get()}:00", "%Y-%m-%d %H:%M:%S"),
-        datetime.strptime(f"{fecha_ahora} {glo.turnos.startPM.get()}:00", "%Y-%m-%d %H:%M:%S")
-        )
+    mediodia  = ( datetime.strptime(f"{fecha_ahora} {glo.turnos.endAM.get()}:00", "%Y-%m-%d %H:%M:%S"),
+                  datetime.strptime(f"{fecha_ahora} {glo.turnos.startPM.get()}:00", "%Y-%m-%d %H:%M:%S") )
 
-    noche     = (
-        datetime.strptime(f"{fecha_ahora} {glo.turnos.endPM.get()}:00", "%Y-%m-%d %H:%M:%S"),
-        datetime.strptime(f"{fecha_ahora} 23:59:00", "%Y-%m-%d %H:%M:%S")
-        )
+    noche     = ( datetime.strptime(f"{fecha_ahora} {glo.turnos.endPM.get()}:00", "%Y-%m-%d %H:%M:%S"),
+                  datetime.strptime(f"{fecha_ahora} 23:59:00", "%Y-%m-%d %H:%M:%S") )
 
-    return {
-        "madrugada": madrugada, 
-        "mediodia": mediodia, 
-        "noche": noche
-    }
+    return { "madrugada": madrugada, 
+             "mediodia" : mediodia, 
+             "noche"    : noche }
 
-def horas_laborables(fecha):
+def horas_laborables(fecha:str)->datetime:
     if pd.isna(fecha):
         fecha_ahora = str(datetime.now().date())
     else:
         fecha_ahora = fecha
 
     # Crear tuplas de cadenas con formato 'YYYY-MM-DD HH:MM:SS'
-    manana = (
-        datetime.strptime(f"{fecha_ahora} {glo.turnos.startAM.get()}:00", "%Y-%m-%d %H:%M:%S"),
-        datetime.strptime(f"{fecha_ahora} {glo.turnos.endAM.get()}:00", "%Y-%m-%d %H:%M:%S")
-        )
+    manana = ( datetime.strptime(f"{fecha_ahora} {glo.turnos.startAM.get()}:00", "%Y-%m-%d %H:%M:%S"),
+               datetime.strptime(f"{fecha_ahora} {glo.turnos.endAM.get()}:00", "%Y-%m-%d %H:%M:%S") )
 
-    tarde  = (
-        datetime.strptime(f"{fecha_ahora} {glo.turnos.startPM.get()}:00", "%Y-%m-%d %H:%M:%S"), 
-        datetime.strptime(f"{fecha_ahora} {glo.turnos.endPM.get()}:00", "%Y-%m-%d %H:%M:%S")
-        )
+    tarde  = ( datetime.strptime(f"{fecha_ahora} {glo.turnos.startPM.get()}:00", "%Y-%m-%d %H:%M:%S"), 
+               datetime.strptime(f"{fecha_ahora} {glo.turnos.endPM.get()}:00", "%Y-%m-%d %H:%M:%S") )
 
-    return {
-        "manana": manana, 
-        "tarde": tarde
-    }
+    return { "manana": manana, 
+             "tarde": tarde }
 
-def define_franja(fecha_hora):
+def define_franja(fecha_hora:str)->dict:
     franjas ={
-        glo.turnos.cero           :horas_no_laborables(fecha_hora)["madrugada"][0],
-        glo.turnos.startAM.get()  :horas_laborables(fecha_hora)["manana"][0],
-        glo.turnos.endAM.get()    :horas_no_laborables(fecha_hora)["mediodia"][0],
-        glo.turnos.startPM.get()  :horas_laborables(fecha_hora)["tarde"][0],
-        glo.turnos.endPM.get()    :horas_no_laborables(fecha_hora)["noche"][0]
+        glo.turnos.cero           : horas_no_laborables(fecha_hora)["madrugada"][0],
+        glo.turnos.startAM.get()  : horas_laborables(fecha_hora)["manana"][0],
+        glo.turnos.endAM.get()    : horas_no_laborables(fecha_hora)["mediodia"][0],
+        glo.turnos.startPM.get()  : horas_laborables(fecha_hora)["tarde"][0],
+        glo.turnos.endPM.get()    : horas_no_laborables(fecha_hora)["noche"][0]
         }
     
     return franjas
@@ -121,7 +94,7 @@ def define_franja(fecha_hora):
 ###############################################################################
 ###############################################################################
 
-def progBloqueMadrugada(inicio, duracion, am, pm, bloques):
+def progBloqueMadrugada(inicio:datetime, duracion:int, am: tuple[int,int], pm: tuple[int,int], bloques:list)->int:
 
     fecha_inicio = str(inicio.date())
     fin = calcular_hora_finalDT(inicio, duracion)
@@ -136,7 +109,7 @@ def progBloqueMadrugada(inicio, duracion, am, pm, bloques):
     bloques.append((inicio1,fin1))
     return duracion-240
 
-def progBloqueManana(inicio, duracion, am, pm, bloques):
+def progBloqueManana(inicio:datetime, duracion:int, am: tuple[int,int], pm: tuple[int,int], bloques:list)->int:
 
     fecha_inicio = str(inicio.date())
     fin = calcular_hora_finalDT(inicio, duracion)
@@ -151,7 +124,7 @@ def progBloqueManana(inicio, duracion, am, pm, bloques):
     min_asignados=(int((fin1-inicio1).total_seconds()))/60
     return duracion-min_asignados
 
-def progBloqueMediodia(inicio, duracion, am, pm, bloques):
+def progBloqueMediodia(inicio:datetime, duracion:int, am: tuple[int,int], pm: tuple[int,int], bloques:list)->int:
 
     fecha_inicio = str(inicio.date())
     inicio = define_franja(fecha_inicio)[pm[0]]
@@ -167,7 +140,7 @@ def progBloqueMediodia(inicio, duracion, am, pm, bloques):
     min_asignados=(int((fin1-inicio1).total_seconds()))/60
     return duracion-min_asignados
 
-def progBloqueTarde(inicio, duracion, am, pm, bloques):
+def progBloqueTarde(inicio:datetime, duracion:int, am: tuple[int,int], pm: tuple[int,int], bloques:list)->int:
     fecha_inicio = str(inicio.date())
     fin = calcular_hora_finalDT(inicio, duracion)
 
@@ -181,12 +154,12 @@ def progBloqueTarde(inicio, duracion, am, pm, bloques):
     bloques.append((inicio1,fin1))
     return duracion-min_asignados
 
-def progBloqueNoche(inicio, duracion, am, pm, bloques):
+def progBloqueNoche(inicio:datetime, duracion:int, am: tuple[int,int], pm: tuple[int,int], bloques:list)->int:
     next_dia = inicio + timedelta(days=1)
     new_inicio = define_franja(next_dia.date())[am[0]]
     return progBloqueMadrugada(new_inicio, duracion, am, pm, bloques)
 
-def programa_bloques(fecha_inicio, hora_inicio, duracion, am, pm):
+def programa_bloques(fecha_inicio:str, hora_inicio:str, duracion:int, am: tuple[int,int], pm: tuple[int,int])->list[tuple[int,int]]:
     bloques = []
     duracionFaltante = duracion
     dia = fecha_inicio
@@ -263,15 +236,15 @@ def programa_bloques(fecha_inicio, hora_inicio, duracion, am, pm):
                 #print("retornó en CASO DESPUES DE 6PM")                
                 return bloques
 
-def momentoEnd (bloques):
+def momentoEnd (bloques:list[tuple[int,int]])->int:
     #print("***************final de horizonte: ", bloques[-1][-1], obtener_dia_semana(bloques[-1][-1]) )
     return bloques[-1][-1]
 
 ###############################################################################
 
-def definir_bloques(startAM, endAM, startPM, endPM, inicio, fin):
+def definir_bloques(startAM:time, endAM:time, startPM:time, endPM:time, inicio:datetime, fin:datetime)->list[tuple[int,int]]:
     initDT   = inicio #datetime.datetime.strptime(inicio, "%Y-%m-%d %H:%M:%S")
-    finishDT = fin #datetime.datetime.strptime(fin, "%Y-%m-%d %H:%M:%S")
+    finishDT = fin    #datetime.datetime.strptime(fin, "%Y-%m-%d %H:%M:%S")
     fecha_inicio = initDT.date()
     hora_inicio  = initDT.time()
     fecha_fin    = finishDT.date()
@@ -450,7 +423,7 @@ def definir_bloques(startAM, endAM, startPM, endPM, inicio, fin):
 
     return bloques
 
-def concatenar_datetime(lista_tiempos, fecha):
+def concatenar_datetime(lista_tiempos:list[time], fecha:date)->list[datetime]:
     """
     Convierte una lista de objetos time y un objeto date en objetos datetime.
 
@@ -472,30 +445,30 @@ class Horarios:
         self.cero    = "00:00"
     
     def set_times(self):
-        __, __, self.startAM, self.endAM, self.startPM, self.endPM = BDqueries.leer_planta_info(glo.base_datos)
-        self.no_AM   = self.no_laboral("no_AM")
-        self.no_ME   = self.no_laboral("no_ME")
-        self.no_PM   = self.no_laboral("no_PM")
+        __, __, self.startAM, self.endAM, self.startPM, self.endPM = BDqueries_before.leer_planta_info(glo.base_datos)
+        self.no_AM  = self.no_laboral("no_AM")
+        self.no_ME  = self.no_laboral("no_ME")
+        self.no_PM  = self.no_laboral("no_PM")
 
-    def no_laboral(self, bloque):
+    def no_laboral(self, bloque:str)->str:
         if bloque == "no_AM":
             start_am_td = timedelta(hours=datetime.strptime(self.startAM, "%H:%M").hour,
                                     minutes=datetime.strptime(self.startAM, "%H:%M").minute)
             midnight_td = timedelta(hours=0, minutes=0)
-            self.no_AM = str(start_am_td - midnight_td)
+            return str(start_am_td - midnight_td)
 
         if bloque == "no_ME":
             end_am_td = timedelta(hours=datetime.strptime(self.endAM, "%H:%M").hour,
                                   minutes=datetime.strptime(self.endAM, "%H:%M").minute)
             start_am_td = timedelta(hours=datetime.strptime(self.startAM, "%H:%M").hour,
                                     minutes=datetime.strptime(self.startAM, "%H:%M").minute)
-            self.no_ME = str(end_am_td - start_am_td)
+            return str(end_am_td - start_am_td)
 
         if bloque == "no_PM":
             end_pm_td = timedelta(hours=datetime.strptime(self.endPM, "%H:%M").hour,
                                   minutes=datetime.strptime(self.endPM, "%H:%M").minute)
             midnight_td = timedelta(hours=24, minutes=0)  # Representa el final del día
-            self.no_PM = str(midnight_td - end_pm_td)
+            return str(midnight_td - end_pm_td)
 
 glo.turnos = Horarios()
 

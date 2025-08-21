@@ -1,22 +1,239 @@
 import pandas as pd
 import math
+from datetime import datetime as dt
+from datetime import timedelta as td
 import plotly.express as px
 import plotly.graph_objects as go
+from typing import Tuple
 from plotly.subplots import make_subplots
 from dash import Dash, dcc, html, Input, Output
 from database import BDcrud, BDmanage as man
     
 with man.Database('planta_con_ensamble1.db') as db:
-    crud_historicos = BDcrud.HistoricosCrud(db)
-    df_historicos = crud_historicos.leer_historicos_graficar_df()
+    #crud_historicos = BDcrud.HistoricosCrud(db)
+    #df_historicos = crud_historicos.leer_historicos_graficar_df()
     
     #crud_historicos = BDcrud.OrdenesCrud(db)
     #df_historicos = crud_historicos.leer_ordenes_graficar_programa('inmediato_NISSAN4_4_3')
     #print(df_historicos.to_string())
     pass
+def flat_df_gantt(df_data, items, tasks, filter1, filter2, as_intX=False):
+
+    df = df_data[["CHASIS", "TECNICO", "PROCESO", "ID_MODELO", "INICIO", "FIN"]].copy()
+    
+    if as_intX==False:
+        base = dt.now()
+        print("FECHA_HORA ACTUAL:", base)
+        df["Inicio"] = df["INICIO"].apply(lambda x: base + td(minutes=int(x)))
+        df["Fin"] = df["FIN"].apply(lambda x: base + td(minutes=int(x)))
+    else:
+        df["Inicio"] = pd.to_datetime(df["INICIO"])
+        df["Fin"] = pd.to_datetime(df["FIN"])
+    
+    df["Item"] = df [items]    
+    df["Task"] = df [tasks]    
+    df["Filter1"] = df[filter1]
+    df["Filter2"] = df[filter2]
+    df = df[["Item", "Task", "Filter1", "Filter2", "Inicio", "Fin"]]
+    if as_intX:
+        ref = df["Inicio"].min()
+        df["Inicio"] = (df["Inicio"] - ref).dt.total_seconds().astype(int)
+        df["Fin"] = (df["Fin"] - ref).dt.total_seconds().astype(int)//60
+    #print(df[["Inicio", "Fin"]].head(10))
+    return df
+
+def plot_gantt(df, items, tasks, filter1, filter2, as_intX=False) -> Tuple[Dash, str]:
+    df_data = flat_df_gantt(df, items, tasks, filter1, filter2, as_intX)
+    
+    app = Dash(__name__)    # App Dash
+    app.layout = html.Div([
+        html.H2("Diagrama de Gantt - HISTÓRICOS"),
+
+        html.Div([
+            html.Label(f"Filtrar por {filter1}:"),
+            dcc.Dropdown(
+                id="dropdown-Filter1",
+                options=[{"label": t, "value": t} for t in sorted(df_data["Filter1"].unique())],
+                value=[], multi=True, placeholder=f"Selecciona {filter1}"
+            ),
+        ], style={"width": "20%", "display": "inline-block", "margin-right": "2%"}),
+
+        html.Div([
+            html.Label(f"Filtrar por {filter2}:"),
+            dcc.Dropdown(
+                id="dropdown-Filter2",
+                options=[{"label": t, "value": t} for t in sorted(df_data["Filter2"].unique())],
+                value=[], multi=True, placeholder=f"Selecciona {filter2}"
+            ),
+        ], style={"width": "20%", "display": "inline-block", "margin-right": "2%"}),
+
+        html.Div([
+            html.Label(f"Filtrar por {tasks}:"),
+            dcc.Dropdown(
+                id="dropdown-Task",
+                options=[{"label": o, "value": o} for o in sorted(df_data["Task"].unique())],
+                value=[], multi=True, placeholder=f"Selecciona {tasks}"
+            ),
+        ], style={"width": "20%", "display": "inline-block", "margin-right": "2%"}),
+
+        html.Div([
+            html.Label(f"Filtrar por {items}:"),
+            dcc.Dropdown(
+                id="dropdown-Item",
+                options=[{"label": o, "value": o} for o in sorted(df_data["Item"].unique())],
+                value=[], multi=True, placeholder=f"Selecciona {items}"
+            ),
+        ], style={"width": "20%", "display": "inline-block", "margin-right": "2%"}),
+
+        html.Div([
+            dcc.Graph(id="gantt-grafico")
+        ], style={
+            "overflowX": "auto",
+            "overflowY": "auto",
+            "whiteSpace": "nowrap",
+            "border": "2px solid gray",
+            "padding": "10px",
+            "minHeight": "300px"
+        }),
+    ])
+
+    @app.callback(Output("gantt-grafico", "figure"),
+                  Input("dropdown-Filter1", "value"),
+                  Input("dropdown-Filter2", "value"),
+                  Input("dropdown-Task", "value"),
+                  Input("dropdown-Item", "value"))
+    def actualizar_gantt(filtro_Filter1, filtro_Filter2, filtro_Task, filtro_Item):
+        datos = df_data.copy()
+        datos["Text"] = datos["Filter2"] + "<br>" + datos["Task"]
+
+        if filtro_Filter1:
+            datos = datos[datos["Filter1"].isin(filtro_Filter1)]
+        if filtro_Filter2:
+            datos = datos[datos["Filter2"].isin(filtro_Filter2)]
+        if filtro_Task:
+            datos = datos[datos["Task"].isin(filtro_Task)]
+        if filtro_Item:
+            datos = datos[datos["Item"].isin(filtro_Item)]
+            
+        bars = resize(datos)
+        h_plot, num_bar = bars["h_plot"], bars["num_bar"]
+
+        fig = px.timeline(datos,
+                          x_start="Inicio",
+                          x_end="Fin",
+                          y="Item",
+                          color="Filter1",
+                          text="Text",
+                          hover_data=None,
+                          custom_data=[datos["Item"],
+                                       datos["Task"],
+                                       datos["Filter1"],
+                                       datos["Filter2"],
+                                       datos["Inicio"],
+                                       datos["Fin"] ] )
+        
+        fig.update_yaxes(autorange="reversed")
+
+        fig.update_layout(margin={"l": 40, "r": 20, "t": 40, "b": 40},
+                          height=h_plot if h_plot!=0 else 150,
+                          legend_title=f"filter1",
+                          template="plotly_dark",
+                          plot_bgcolor="black",
+                          paper_bgcolor="black",
+                          xaxis=dict(fixedrange=False),
+                          yaxis=dict(fixedrange=True),
+                          yaxis_title=f"{items}" )
+
+        
+        fig.update_traces(marker_line_color='white',
+                          marker_line_width=1.5,
+                          textposition='inside',
+                          insidetextanchor='middle',
+                          textfont_size=12,)
+        
+        fig.update_traces(hovertemplate= f"{items}"   +  " : %{customdata[0]}<br>" +
+                                         f"{tasks}"   +  " : %{customdata[1]}<br>" +
+                                         f"{filter1}" +  " : %{customdata[2]}<br>" +
+                                         f"{filter2}" +  " : %{customdata[3]}<br>"  +
+                                         f"Inicio"    +  " : %{customdata[4]}<br>" +
+                                         f"Fin"       +  " : %{customdata[5]}<extra></extra>")
+        
+        fig.add_annotation(text=f"Total: {bars['num_items']} {items}",
+                           xref="paper",
+                           yref="paper",
+                           x=0.01, y=1.01,
+                           showarrow=False,
+                           font=dict(size=14, color="gray") )
+        
+        return fig
+        
+    def resize(df):  
+        h_disp = 700
+        num_items = len(df["Item"].unique())
+
+        if num_items == 0:
+            h_plot = 150  # Altura mínima si no hay datos
+        elif num_items == 1:
+            h_plot = 150  # Altura más cómoda para un solo ítem
+        elif num_items <= 5:
+            h_plot = num_items * 90
+        elif num_items <= 10:
+            h_plot = num_items * 70
+        elif num_items <= 15:
+            h_plot = num_items * 60
+        else:
+            h_plot = num_items * 50  # Para muchos ítems, más compacto
+
+        return {
+            "h_plot": h_plot,
+            "num_bar": h_disp / 50,  # Esto ahora es solo informativo
+            "num_items": num_items
+    }
+
+    host = "127.0.0.1"
+    port = 8050
+    url = f"http://{host}:{port}/"
+    print(f"Servidor Dash iniciado en: {url}")
+    app.run(debug=True, host=host, port=port)
+    return app, url
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""plot_gantt(df   =df_historicos,
+           items="CHASIS",
+           tasks="PROCESO",
+           filter1="TECNICO",
+           filter2="ID_MODELO")"""
+"""plot_gantt(df   =df_historicos,
+           items="TECNICO",
+           tasks="ID_MODELO",
+           filter1="PROCESO",
+           filter2="CHASIS")"""
+
+
 
 # Datos random
-df_random = pd.DataFrame([
+"""df_random = pd.DataFrame([
     # Chasis001
     dict(Item="Chasis001", Task="Juan",   Filters="Ensamble",    Inicio="2024-08-01 08:00", Fin="2024-08-01 08:30"),
     dict(Item="Chasis001", Task="Kevin",  Filters="Telequinox",  Inicio="2024-08-01 08:30", Fin="2024-08-01 10:00"),
@@ -118,180 +335,4 @@ df_random = pd.DataFrame([
     dict(Item="Chasis013", Task="David",  Filters="Codigos",     Inicio="2024-08-01 14:15", Fin="2024-08-01 15:40"),
     dict(Item="Chasis013", Task="Juan",   Filters="Calidad",     Inicio="2024-08-01 15:50", Fin="2024-08-01 17:05"),
 ])
-
-def flat_df_gantt(df_data, items, tasks, filter1, filter2):
-
-    df = df_data[["CHASIS", "TECNICO", "PROCESO", "ID_MODELO", "INICIO", "FIN"]].copy()
-    df["Item"] = df [items]    
-    df["Task"] = df [tasks]    
-    df["Filter1"] = df[filter1]
-    df["Filter2"] = df[filter2]
-    df["Inicio"] = pd.to_datetime(df["INICIO"])
-    df["Fin"] = pd.to_datetime(df["FIN"])
-    df = df[["Item", "Task", "Filter1", "Filter2", "Inicio", "Fin"]]
-    
-    return df
-
-def plot_gantt(df, items, tasks, filter1, filter2):
-    df_data = flat_df_gantt(df, items, tasks, filter1, filter2)
-    
-    app = Dash(__name__)    # App Dash
-    app.layout = html.Div([
-        html.H2("Diagrama de Gantt - HISTÓRICOS"),
-
-        html.Div([
-            html.Label(f"Filtrar por {filter1}:"),
-            dcc.Dropdown(
-                id="dropdown-Filter1",
-                options=[{"label": t, "value": t} for t in sorted(df_data["Filter1"].unique())],
-                value=[], multi=True, placeholder=f"Selecciona {filter1}"
-            ),
-        ], style={"width": "20%", "display": "inline-block", "margin-right": "2%"}),
-        
-        html.Div([
-            html.Label(f"Filtrar por {filter2}:"),
-            dcc.Dropdown(
-                id="dropdown-Filter2",
-                options=[{"label": t, "value": t} for t in sorted(df_data["Filter2"].unique())],
-                value=[], multi=True, placeholder=f"Selecciona {filter2}"
-            ),
-        ], style={"width": "20%", "display": "inline-block", "margin-right": "2%"}),
-
-        html.Div([
-            html.Label(f"Filtrar por {tasks}:"),
-            dcc.Dropdown(
-                id="dropdown-Task",
-                options=[{"label": o, "value": o} for o in sorted(df_data["Task"].unique())],
-                value=[], multi=True, placeholder=f"Selecciona {tasks}"
-            ),
-        ], style={"width": "20%", "display": "inline-block", "margin-right": "2%"}),
-
-        html.Div([
-            html.Label(f"Filtrar por {items}:"),
-            dcc.Dropdown(
-                id="dropdown-Item",
-                options=[{"label": o, "value": o} for o in sorted(df_data["Item"].unique())],
-                value=[], multi=True, placeholder=f"Selecciona {items}"
-            ),
-        ], style={"width": "20%", "display": "inline-block", "margin-right": "2%"}),
-
-        html.Div([
-            dcc.Graph(id="gantt-grafico")
-        ], style={
-            "overflowX": "auto",
-            "overflowY": "auto",
-            "whiteSpace": "nowrap",
-            "border": "2px solid gray",
-            "padding": "10px",
-            "minHeight": "300px"
-        }),
-    ])
-
-    @app.callback(Output("gantt-grafico", "figure"),
-                  Input("dropdown-Filter1", "value"),
-                  Input("dropdown-Filter2", "value"),
-                  Input("dropdown-Task", "value"),
-                  Input("dropdown-Item", "value"))
-    def actualizar_gantt(filtro_Filter1, filtro_Filter2, filtro_Task, filtro_Item):
-        datos = df_data.copy()
-        datos["Text"] = datos["Filter2"] + "<br>" + datos["Task"]
-
-        if filtro_Filter1:
-            datos = datos[datos["Filter1"].isin(filtro_Filter1)]
-        if filtro_Filter2:
-            datos = datos[datos["Filter2"].isin(filtro_Filter2)]
-        if filtro_Task:
-            datos = datos[datos["Task"].isin(filtro_Task)]
-        if filtro_Item:
-            datos = datos[datos["Item"].isin(filtro_Item)]
-            
-        bars = resize(datos)
-        h_plot, num_bar = bars["h_plot"], bars["num_bar"]
-        
-        fig = px.timeline(datos,
-                          x_start="Inicio",
-                          x_end="Fin",
-                          y="Item",
-                          color="Filter1",
-                          text="Text",
-                          hover_data=None,
-                          custom_data=[datos["Item"],
-                                       datos["Task"],
-                                       datos["Filter1"],
-                                       datos["Filter2"],
-                                       datos["Inicio"],
-                                       datos["Fin"] ] )
-        
-        
-        fig.update_yaxes(autorange="reversed")
-            
-        fig.update_layout(margin={"l": 40, "r": 20, "t": 40, "b": 40},
-                          height=h_plot if h_plot!=0 else 150,
-                          legend_title=f"filter1",
-                          template="plotly_dark",
-                          plot_bgcolor="black",
-                          paper_bgcolor="black",
-                          xaxis=dict(fixedrange=False),
-                          yaxis=dict(fixedrange=True),
-                          yaxis_title=f"{items}" )
-
-        
-        fig.update_traces(marker_line_color='white',
-                          marker_line_width=1.5,
-                          textposition='inside',
-                          insidetextanchor='middle',
-                          textfont_size=12,)
-        
-        fig.update_traces(hovertemplate= f"{items}"   +  " : %{customdata[0]}<br>" +
-                                         f"{tasks}"   +  " : %{customdata[1]}<br>" +
-                                         f"{filter1}" +  " : %{customdata[2]}<br>" +
-                                         f"{filter2}" +  " : %{customdata[3]}<br>"  +
-                                         f"Inicio"    +  " : %{customdata[4]}<br>" +
-                                         f"Fin"       +  " : %{customdata[5]}<extra></extra>")
-        
-        fig.add_annotation(text=f"Total: {bars["num_items"]} {items}",
-                           xref="paper",
-                           yref="paper",
-                           x=0.01, y=1.01,
-                           showarrow=False,
-                           font=dict(size=14, color="gray") )
-        
-        return fig
-        
-    def resize(df):  
-        h_disp = 700
-        num_items = len(df["Item"].unique())
-
-        if num_items == 0:
-            h_plot = 150  # Altura mínima si no hay datos
-        elif num_items == 1:
-            h_plot = 150  # Altura más cómoda para un solo ítem
-        elif num_items <= 5:
-            h_plot = num_items * 90
-        elif num_items <= 10:
-            h_plot = num_items * 70
-        elif num_items <= 15:
-            h_plot = num_items * 60
-        else:
-            h_plot = num_items * 50  # Para muchos ítems, más compacto
-
-        return {
-            "h_plot": h_plot,
-            "num_bar": h_disp / 50,  # Esto ahora es solo informativo
-            "num_items": num_items
-    }
-
-    
-    app.run(debug=True)
-
-
-"""plot_gantt(df   =df_historicos,
-           items="CHASIS",
-           tasks="PROCESO",
-           filter1="TECNICO",
-           filter2="ID_MODELO")"""
-"""plot_gantt(df   =df_historicos,
-           items="TECNICO",
-           tasks="ID_MODELO",
-           filter1="PROCESO",
-           filter2="CHASIS")"""
+"""

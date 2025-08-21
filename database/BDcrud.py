@@ -782,6 +782,8 @@ class TecnicosCrud(man.Crud):
                                 'PROCESOS': 'TECNICOS_PROCESOS.ID_PROCESO = PROCESOS.ID_PROCESO'
                             },
                             order_by='PROCESOS.SECUENCIA',
+                            group_by='TECNICOS.ID_TECNICO',
+                            distinct=True,
                             as_dataframe=True)
 
     def leer_tecnicos_modificado(self):
@@ -1348,6 +1350,9 @@ class VehiculosCrud(man.Crud):
 
 with man.Database('planta_con_ensamble1.db') as db:
     pass
+
+    #crud_T = TecnicosCrud(db)
+    #print(crud_T.leer_tecnicos_df())
     #crud_Proce=ProcesosCrud(db)
     #crud_Proce.actualizar_proceso(id_proceso='CAL',
     #                              nombre='CALIDAD',

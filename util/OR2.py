@@ -197,11 +197,9 @@ class modelOR:
         self.OBJ_MIN_MAKESPAN_PONDERADO = "MIN_MAKESPAN_PONDERADO"
         self.OBJ_MIN_MAKESPAN_SIMPLE = "MIN_MAKESPAN_SIMPLE"
         self.OBJ_MAX_NUM_TASK = "MAX_NUM_TASK"
-        self._functions = {
-            "MIN_MAKESPAN_PONDERADO": self.__obj_min_makespan_pondered__,
-            "MIN_MAKESPAN_SIMPLE": self.__obj_min_makespan__,
-            "MAX_NUM_TASK": self.__obj_max_num_task__  # agregada función para maximizar tareas
-        }
+        self._functions = { "MIN_MAKESPAN_PONDERADO": self.__obj_min_makespan_pondered__,
+                            "MIN_MAKESPAN_SIMPLE": self.__obj_min_makespan__,
+                            "MAX_NUM_TASK": self.__obj_max_num_task__}
         
     def __taks_flat_or__(self):
         operario_idx = {op: i for i, op in enumerate(self.operarios)}
@@ -210,7 +208,7 @@ class modelOR:
         for trabajo_id in self.trabajos:
             lista_procesos = self.procesos_trabajos[trabajo_id]
             for orden, (proceso, duracion) in enumerate(lista_procesos):
-                if (duracion == 0) or (  (self.procs_sched is not None)   and   (proceso not in self.procs_sched)  ):
+                if (duracion == 0) or ((self.procs_sched is not None)   and   (proceso not in self.procs_sched)):
                     continue
                 posibles_operarios = [op for op in self.operarios if proceso in self.procesos_operarios.get(op, [])]
                 if not posibles_operarios:
@@ -271,7 +269,60 @@ class modelOR:
 
         return model
 
+    def __add_vars__(self):
 
+        self.var_index_map = {}  # Diccionario: índice interno ORTools -> (nombre_var, tarea_id)
+        for tarea in self.tareas:
+            # Crear variables
+            tarea["start_var"] =self. model.NewIntVar(0, self.max_horizonte, f'start_{tarea["id"]}')
+            tarea["end_var"] = self.model.NewIntVar(0, self.max_horizonte, f'end_{tarea["id"]}')
+            tarea["presente"] = self.model.NewBoolVar(f'presente_t{tarea["id"]}')
+            tarea["op_var"] = self.model.NewIntVarFromDomain(cp_model.Domain.FromValues(tarea["operarios_idx"]),
+                                                        f'op_{tarea["id"]}' )
+
+            self.var_index_map[tarea["start_var"].Index()] = ("start_var", tarea["id"])
+            self.var_index_map[tarea["end_var"].Index()] = ("end_var", tarea["id"])
+            self.var_index_map[tarea["presente"].Index()] = ("presente", tarea["id"])
+            self.var_index_map[tarea["op_var"].Index()] = ("op_var", tarea["id"])
+
+        # Log con información adicional
+        with open('log_variables.txt', "w", encoding="utf-8") as log:
+            for idx, (var_name, tarea_id) in sorted(self.var_index_map.items()):
+                tarea = next((t for t in self.tareas if t["id"] == tarea_id), None)
+                if tarea:
+                    proceso = tarea.get("proceso", "N/A")
+                    duracion = tarea.get("duracion", "N/A")
+                    trabajo = tarea.get("trabajo", "N/A")
+                    log.write(f"{idx} : Tarea ID {tarea_id} (Proceso={proceso}, Duracion={duracion}, Trabajo={trabajo}), Variable: {var_name}\n")
+        
+        for t in self.tareas:
+            t["presente_operarios_vars"] = {}
+            trabajo = t["trabajo"]
+            proceso = t["proceso"]
+
+            for op_idx in range(len(self.operarios)):
+                t["presente_operarios_vars"][op_idx] = self.model.NewBoolVar(f'presente_t{t["id"]}_op{op_idx}')
+                
+        
+        for op_idx in range(len(self.operarios)):
+            for t in self.tareas:
+                presente_op = t["presente_operarios_vars"][op_idx]
+                intervalo_op = self.model.NewOptionalIntervalVar( t["start_var"],
+                                                                 t["duracion"],
+                                                                 t["end_var"],
+                                                                 presente_op,
+                                                                  f'int_opt_t{t["id"]}_op{op_idx}')
+
+        self.is_scheduled_vars = {}
+        for tarea in self.tareas:
+            tarea["is_scheduled"] = self.model.NewBoolVar(f'scheduled_{tarea["id"]}')
+            self.is_scheduled_vars[tarea["id"]] = tarea["is_scheduled"]
+
+            tarea["interval_var"] = self.model.NewOptionalIntervalVar(tarea["start_var"],
+                                                                      tarea["duracion"],
+                                                                      tarea["end_var"],
+                                                                      tarea["is_scheduled"],
+                                                                      f'interval_{tarea["id"]}')
     def __add_constr_jobs__(self):
         log_lines = []
         # Organizar tareas por trabajo y por id para búsqueda rápida
@@ -295,24 +346,14 @@ class modelOR:
                 self.model.Add(tarea_pre["end_var"] <= tarea["start_var"]).OnlyEnforceIf(
                     [tarea_pre["presente"], tarea["presente"]]).WithName(id_constrain)
                 log_lines.append(id_constrain + f"[Trabajo {trabajo}] ({tarea_pre['proceso']} → {tarea['proceso']}) " +
-                                 f":   end({tarea_pre['id']})   <=    start({tarea['id']}) " +
+                                 f" : end({tarea_pre['id']})   <=    start({tarea['id']}) " +
                                  f"[OnlyIf: presente({tarea_pre['id']}), presente({tarea['id']})]" )
-                
-                if self.const_count == 12:
-                    print(f"Creando restricción {id_constrain} para tareas {tarea_pre['id']} y {tarea['id']}")
-                    print(f"  Condición: presente({tarea_pre['id']}) ⇒ presente({tarea['id']})")
-                    print(f"  Duraciones: tarea {tarea_pre['id']}={tarea_pre['duracion']}, tarea {tarea['id']}={tarea['duracion']}")
                 
                 # Implicación presencia
                 id_constrain = f"R{self.next_iconst}jo "
                 self.model.AddImplication(tarea["presente"], tarea_pre["presente"]).WithName(id_constrain)
                 log_lines.append(id_constrain + f"[Trabajo {trabajo}] ({tarea_pre['proceso']} → {tarea['proceso']}) " +
                                  f" : presente({tarea_pre['id']}) ⇒ presente({tarea['id']}) [Implication]"  )
-                
-                if self.const_count == 12:
-                    print(f"Creando restricción {id_constrain} para tareas {tarea_pre['id']} y {tarea['id']}")
-                    print(f"  Condición: presente({tarea['id']}) ⇒ presente({tarea_pre['id']})")
-                    print(f"  Duraciones: tarea {tarea_pre['id']}={tarea_pre['duracion']}, tarea {tarea['id']}={tarea['duracion']}")
                         
         with open("log_constrains.txt", "w", encoding="utf-8") as f:
             f.write("\n=== RESTRICCIONES DE PROCESOS ===\n")
@@ -330,10 +371,11 @@ class modelOR:
 
             for op_idx in range(len(self.operarios)):
                 op_nombre = self.operarios[op_idx]
+                presente_op = self.model.NewBoolVar(f'presente_t{t["id"]}_op{op_idx}')
+                t["presente_operarios_vars"][op_idx] = presente_op
+                presente_operarios.append(presente_op)
+                
                 if op_idx in t["operarios_idx"]:
-                    presente_op = self.model.NewBoolVar(f'presente_t{t["id"]}_op{op_idx}')
-                    t["presente_operarios_vars"][op_idx] = presente_op
-                    presente_operarios.append(presente_op)
 
                     self.model.AddImplication(presente_op, t["presente"])
                     log_lines.append(f"R{self.next_iconst}op "+
@@ -348,7 +390,6 @@ class modelOR:
                                      f"[EnforceIf] Tarea {t['id']} [Trabajo: {trabajo}, Proceso: {proceso}, Operario: {op_nombre} (op{op_idx})] NO presente ⇒ op_var ≠ {op_idx}")
 
                 else:
-                    t["presente_operarios_vars"][op_idx] = self.model.NewBoolVar(f'presente_t{t["id"]}_op{op_idx}')
                     self.model.Add(t["presente_operarios_vars"][op_idx] == 0)
                     log_lines.append(f"R{self.next_iconst}op "+
                                      f"[Inhabilitado] Tarea {t['id']} [Trabajo: {trabajo}, Proceso: {proceso}, Operario: {op_nombre} (op{op_idx})] no puede asignarse ⇒ var = 0")
@@ -366,9 +407,13 @@ class modelOR:
             intervalos_op = []
             for t in self.tareas:
                 presente_op = t["presente_operarios_vars"][op_idx]
-                intervalo_op = self.model.NewOptionalIntervalVar(
-                    t["start_var"], t["duracion"], t["end_var"], presente_op,
-                    f'int_opt_t{t["id"]}_op{op_idx}')
+                
+                intervalo_op = self.model.NewOptionalIntervalVar( t["start_var"],
+                                                                 t["duracion"],
+                                                                 t["end_var"],
+                                                                 presente_op,
+                                                                  f'int_opt_t{t["id"]}_op{op_idx}')
+                t[f"interval_opt_op{op_idx}"] = intervalo_op
                 intervalos_op.append(intervalo_op)
             self.model.AddNoOverlap(intervalos_op)
             log_lines.append(f"R{self.next_iconst}op " +
@@ -397,13 +442,11 @@ class modelOR:
             self.model.Add(tarea["presente"] == tarea["is_scheduled"]).WithName(id_constrain)
             log_lines.append(id_constrain + f"Restricción: presente({tarea['id']}) == scheduled_{tarea['id']}")
 
-            tarea["interval_var"] = self.model.NewOptionalIntervalVar(
-                tarea["start_var"],
-                tarea["duracion"],
-                tarea["end_var"],
-                tarea["is_scheduled"],
-                f'interval_{tarea["id"]}'
-            )
+            tarea["interval_var"] = self.model.NewOptionalIntervalVar(tarea["start_var"],
+                                                                      tarea["duracion"],
+                                                                      tarea["end_var"],
+                                                                      tarea["is_scheduled"],
+                                                                      f'interval_{tarea["id"]}')
 
             limite = time_limit if time_limit is not None else self.max_horizonte
             id_constrain = f"R{self.next_iconst}ad "
@@ -415,6 +458,15 @@ class modelOR:
             log_lines.append(id_constrain + f"[EnforceIf] Límite de tiempo de tarea {tarea['id']}. Inicio < {limite}")
             log_lines.append(id_constrain + f"[EnforceIf] Límite de tiempo de tarea {tarea['id']}. Final <= {limite}")
 
+
+        self.model.Maximize(sum(self.is_scheduled_vars.values()))
+        log_lines.append(f"FO{self.next_iconst}ad " + f"Función objetivo: maximizar suma de tareas programadas: {len(self.is_scheduled_vars)} variables")
+
+        with open("log_constrains.txt", "a", encoding="utf-8") as f:
+            f.write("\n=== RESTRICCIONES DE LIMITE DE TIEMPO ===\n")
+            f.write("\n".join(log_lines))
+                    
+        return log_lines
         if time_limit is not None:
             for tarea in self.tareas:
                 for sucesora in tarea.get("sucesoras", []):
@@ -427,14 +479,6 @@ class modelOR:
                     self.model.AddImplication(self.is_scheduled_vars[pred_id].Not(),tarea["is_scheduled"].Not()).WithName(id_constrain)
                     log_lines.append(id_constrain  +  f"[Implication] Si predecesora {pred_id} NO programada, tarea {tarea['id']} NO programada")
 
-        self.model.Maximize(sum(self.is_scheduled_vars.values()))
-        log_lines.append(f"FO{self.next_iconst}ad " + f"Función objetivo: maximizar suma de tareas programadas: {len(self.is_scheduled_vars)} variables")
-
-        with open("log_constrains.txt", "a", encoding="utf-8") as f:
-            f.write("\n=== RESTRICCIONES DE LIMITE DE TIEMPO ===\n")
-            f.write("\n".join(log_lines))
-
-        return log_lines
 
     def __obj_min_makespan__(self):
         fin_sum = []

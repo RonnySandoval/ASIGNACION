@@ -5,7 +5,7 @@ import string
 import datetime as dt
 from database import BDmanage as man
 from . import entities as entid
-from . import OR2
+from . import OR3
 from model import gantt_pruebas2 as gantt
 
 path_db = 'C:/NUEVO_PORTATIL/GITHUB/ASIGNACION/planta_con_ensamble1.db'
@@ -17,8 +17,8 @@ with man.Database(path_db) as db:
     df_tiempos_modelos = plant.df_tiempos_modelos
     df_procesos = plant.df_procesos
     df_dispatch = pd.read_excel('C:/NUEVO_PORTATIL/GITHUB/ASIGNACION/DESPACHOS_2024.xlsx')
-    
-SEED = random.seed(106)
+
+random.seed(96)
 def choice_one(df: pd.DataFrame, columns: list[str], locator: str):
     ident = random.choice(list(df[locator]))
     row = df[df[locator] == ident][columns].iloc[0]
@@ -92,10 +92,9 @@ def simular_tiempos_vehiculos(df_tm: pd.DataFrame, df_veh: pd.DataFrame, initial
     procces = list(df_tm['ID_PROCESO'].unique())
     
     # Generar variaciones a tiempos
-
     df_tm_fluc['TIEMPO'] = df_tm_fluc.apply(
         lambda row: fluctuate_one(row['TIEMPO'], s=0.15 * row['TIEMPO']) if initial == False
-        else fluctuate_one(row['TIEMPO'], s=0.15 * row['TIEMPO']) if row['ID_PROCESO'] == procces else 0, axis=1)
+               else fluctuate_one(row['TIEMPO'], s=0.15 * row['TIEMPO']) if row['ID_PROCESO'] == procces else 0, axis=1)
     
     # añadir CHASIS y ID_PROCESO en base ambos dataframe
     df_cross = df_veh[['CHASIS']].merge(df_tm_fluc[['ID_PROCESO']].drop_duplicates(), how = "cross")
@@ -132,21 +131,11 @@ def simular_iniciales(n: int,
                       df_procesos: pd.DataFrame):
     
     df_vehiculos = simular_vehiculos(n, date, df_dispatch, df_references)
-    
     df_tiempos = simular_tiempos_vehiculos(df_tm, df_vehiculos)
-    
-    procces = list(df_procesos.loc[df_procesos['SECUENCIA'] != 1, 'ID_PROCESO'])
-
     df_tiempos_not_cero = df_tiempos[df_tiempos['TIEMPO'] != 0]
-
-    #print(f"\n-----DF TIEMPOS SIN CERO      (longitud = {(len(set(df_tiempos_not_cero['CHASIS'].to_list())))}) :\n",df_tiempos_not_cero)
-
     elecciones = dict(df_tiempos_not_cero.groupby("CHASIS")["ID_PROCESO"].apply(lambda s: random.choice(s.unique())))    # Diccionario {chasis: proceso_aleatorio_existente}
-
     df_tiempos_unique = df_tiempos_not_cero[ df_tiempos_not_cero.apply(lambda r: r["ID_PROCESO"] == elecciones[r["CHASIS"]], axis=1)]    # Filtrar usando el mapeo anterior
     
-    
-    #print(f"\n-----DF TIEMPOS UNIQUE     (longitud = {(len(set(df_tiempos_unique['CHASIS'].to_list())))}) :\n",  df_tiempos_unique)
     return df_vehiculos, df_tiempos, df_tiempos_unique
 
 def simular_pedido_inciales(n_jobs: int,
@@ -178,46 +167,57 @@ def simular_pedido_inciales(n_jobs: int,
             'vehiculos_pedido':vh_pedi,
             'tiempos_pedido':tm_pedi}
 
-pedido_simulado = simular_pedido_inciales(n_jobs = 50,
-                        n_init = 10,
-                        date = dt.datetime.now().date,
-                        df_dispatch = df_dispatch,
-                        df_references = df_referencias,
-                        df_tm = df_tiempos_modelos)
+pedido_simulado = simular_pedido_inciales(n_jobs = 35,
+                                          n_init = 30,
+                                          date = dt.datetime.now().date(),
+                                          df_dispatch = df_dispatch,
+                                          df_references = df_referencias,
+                                          df_tm = df_tiempos_modelos)
 
 with man.Database(path_db) as db:
     plant_simulate = entid.Plant(db, simul = pedido_simulado)
-    #plant_simulate.resume(completed=True)
 
-model_init = OR2.modelOR(operarios                = plant_simulate.operarios,
+model_init = OR3.modelOR(operarios               = list(set(plant_simulate.operarios)),
                         procesos_operarios       = plant_simulate.procesos_operarios,
-                        trabajos                 = plant_simulate.trabajos_inic,
-                        procesos_trabajos        = plant_simulate.procesos_trabajos_inic,
+                        trabajos                 = plant_simulate.trabajos_inic + plant_simulate.trabajos,
+                        procesos_trabajos        = plant_simulate.procesos_trabajos_inic | plant_simulate.procesos_trabajos,
                         precedencias_por_trabajo = plant_simulate.precedencias_trabajos)
 
 #model_init.objective_function(model_init.OBJ_MAX_NUM_TASK, time_limit=200)
 #model_init.objective_function(model_init.OBJ_MIN_MAKESPAN_SIMPLE)
 
-model_init.resume()
-[print (trabajo, procesos) for trabajo, procesos in model_init.procesos_trabajos.items()]
+
+#[print (trabajo, procesos) for trabajo, procesos in model_init.procesos_trabajos.items()]
 #[print (trabajo, precedencia) for trabajo, precedencia in model_init.precedencias_por_trabajo.items()]
 #[print (tarea["id"], tarea["predecesoras"]) for tarea in model_init.tareas]
-model_init.objective_function(model_init.OBJ_MAX_NUM_TASK, time_limit=1500)
-model_init.solve_model(check=True)
+model_init.objective_function(type_objective=model_init.OBJ_MIN_MAKESPAN_SIMPLE)
+#model_init.validate_consistency(time_limit=800)
+model_init.solve_model()
+#print(model_init.str_sequences())
+#print(model_init.tareas_asignadas_df.to_string())
 df_tareas = model_init.tareas_asignadas_df
 df_tareas = df_tareas.rename(columns={'trabajo': 'CHASIS',
                                       'proceso': 'PROCESO',
                                       'inicio': 'INICIO',
                                       'fin': 'FIN',
                                       'operario_asignado': 'TECNICO'})
-df_merged = df_tareas.merge(pedido_simulado['vehiculos_iniciales'][['CHASIS', 'ID_MODELO']], on='CHASIS', how='left')
-print(df_merged)
-gantt.plot_gantt(df   =df_merged,
-           items="TECNICO",
-           tasks="ID_MODELO",
-           filter1="PROCESO",
-           filter2="CHASIS")
+df_merged = df_tareas.merge(right = pd.concat([pedido_simulado['vehiculos_iniciales'],
+                                               pedido_simulado['vehiculos_pedido']],
+                                               ignore_index=True
+                                            )[['CHASIS', 'ID_MODELO']],
+                            on    = 'CHASIS',
+                            how   = 'left')
+#print(df_merged)
+#print(model_init.str_sequences())
 
+app_server, url_server = gantt.plot_gantt(df   =df_merged,
+                                        items="TECNICO",
+                                        tasks="PROCESO",
+                                        filter2="ID_MODELO",
+                                        filter1="CHASIS")
+                                        
+print(url_server)
+#is_numeric = True
 
 """model_init.tareas_asignadas, makespan = model_init.solve_model(tiempo_max=5, debug=True)
 [print(tarea) for tarea in model_init.tareas_asignadas.values()]

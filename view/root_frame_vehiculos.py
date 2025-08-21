@@ -5,7 +5,7 @@ import  controller.controller as controller
 from    view.estilos import *
 import  view.ventanas_emergentes as ventanas_emergentes
 import controller.glo as glo
-import database.BDqueries as BDqueries
+import database.BDqueries_before as BDqueries_before
 
 # Configuración global del estilo de customtkinter
 ctk.set_appearance_mode("dark")  # Modo oscuro por defecto
@@ -155,7 +155,7 @@ class TablaVehiculos():     #Tabla para pedido
         self.frameCheckProcesos.pack(fill="both", side="bottom")
 
         #CHECKBUTTON CON PROCESOS
-        self.infoProcesos = BDqueries.leer_procesos_completo(bbdd)
+        self.infoProcesos = BDqueries_before.leer_procesos_completo(bbdd)
         for id in [proceso[0] for proceso in self.infoProcesos]:
 
             int_name = f"checkIntvar-{id}"                                        # generar el nombre de la IntVar del checkbutton
@@ -169,7 +169,7 @@ class TablaVehiculos():     #Tabla para pedido
             glo.check_procesos[self.check_name_proceso].pack(fill=tk.X, side="left", padx=15, pady=5)
 
     def llenarTabla(self, bbdd):    # Agregar datos a la tabla    
-        self.datos = BDqueries.leer_vehiculos_completos_df(bbdd)
+        self.datos = BDqueries_before.leer_vehiculos_completos_df(bbdd)
         print(self.datos)
         for index, row in self.datos.iterrows():
             self.tablaVehiculos.insert(parent='', index='end', iid=row['CHASIS'], text='', values=row.tolist())
@@ -178,7 +178,7 @@ class TablaVehiculos():     #Tabla para pedido
         def obtener_texto_tooltip(iid):
             
             valores = self.tablaVehiculos.item(iid, 'values')
-            lecturaRegistros = BDqueries.leer_historico_chasis(bbdd, valores[0])
+            lecturaRegistros = BDqueries_before.leer_historico_chasis(bbdd, valores[0])
             
             if lecturaRegistros == None:
                 return f"Chasis: {valores[0]}\nSin procesos ejecutados"

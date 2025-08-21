@@ -1,7 +1,7 @@
 import tkinter as tk
 import customtkinter as ctk
 from view.estilos import *
-import database.BDqueries as BDqueries
+import database.BDqueries_before as BDqueries_before
 
 class VentanaEliminar:
 
@@ -28,19 +28,19 @@ class VentanaEliminar:
         self.entryItem.grid(row=0 ,column=1, sticky="ew", pady=5)
 
         if tipo == "MODELO":
-            self.items = BDqueries.leer_modelos(bbdd)
+            self.items = BDqueries_before.leer_modelos(bbdd)
             self.ids_items = {modelo[0]: modelo[0] for modelo in self.items}    # Crear diccionarios con comprensión
 
         elif tipo == "PEDIDO":
-            self.items = BDqueries.leer_pedidos(bbdd)
+            self.items = BDqueries_before.leer_pedidos(bbdd)
             self.ids_items = {pedido[0]: pedido[0] for pedido in self.items}    # Crear diccionarios con comprensión
 
         elif tipo == "PROCESO":
-            self.items = BDqueries.leer_procesos_completo(bbdd)
+            self.items = BDqueries_before.leer_procesos_completo(bbdd)
             self.ids_items = {proceso[1]: proceso[0] for proceso in self.items}     # Crear diccionarios con comprensión
                    
         elif tipo == "TECNICO":
-            self.items = BDqueries.leer_tecnicos_modificado(bbdd)
+            self.items = BDqueries_before.leer_tecnicos_modificado(bbdd)
             self.ids_items = {tecnico[1]: tecnico[0] for tecnico in self.items}    # Crear diccionarios con comprensión
 
 

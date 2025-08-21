@@ -3,7 +3,7 @@ from    tkinter import ttk
 import customtkinter as ctk
 import  controller.controller as controller
 from    view.estilos import *
-import database.BDqueries as BDqueries
+import database.BDqueries_before as BDqueries_before
 from menu.submenu_importar import vent_importar
 
 # Configuración global del estilo de customtkinter
@@ -160,7 +160,7 @@ class TablaHistoricos():        #Tabla para historicos
         self.llenarTabla(bbdd)
 
     def llenarTabla(self, bbdd):    # Agregar datos a la tabla 
-        self.lectura = BDqueries.leer_historicos_completo(bbdd)
+        self.lectura = BDqueries_before.leer_historicos_completo(bbdd)
         self.datos = [(record[0], record[1], record[2], record[3], record[4], record[5], record[6], record[7], record[8], record[9], record[13])
                         for record in self.lectura]
         self.otrosDatos = [(record[0], record[10], record[11], record[12])
@@ -174,7 +174,7 @@ class TablaHistoricos():        #Tabla para historicos
         def obtener_texto_tooltip(iid):
             
             valores = self.tablaHistoricos.item(iid, 'values')
-            lecturaRegistros = BDqueries.leer_historico_completo_porId(bbdd, valores[0])
+            lecturaRegistros = BDqueries_before.leer_historico_completo_porId(bbdd, valores[0])
             
             if lecturaRegistros == None:
                 return f"Chasis: {valores[0]}\nSin procesos ejecutados"

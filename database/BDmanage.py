@@ -19,7 +19,7 @@ class Query:
     def execute_query(self, db, type_query, table):
         cursor = db.connection.cursor()
         
-        print(self.query_string, self.params)
+        #print(self.query_string, self.params)
         try:
             if type_query == 'INSERT_OR REPLACE':
                 cursor.executemany(self.query_string, self.params)
@@ -157,7 +157,7 @@ class Crud:
 
         # CONSTRUCCIÓN DE CONSULTA SQL COMPLETA
         query_str = f"{select_clause} {from_clause} {join_clauses} {where_clause} {group_clause} {order_clause}"
-        print(query_str,', ' ,vals)
+        #print(query_str,', ' ,vals)
     
         # CREACIÓN DE OBJETO QUERY
         query = Query(query_string=query_str, params=vals, fetch=fetch)
@@ -178,7 +178,7 @@ class Crud:
                 return df_empty
             
             columns = results[0].keys()
-            print("LAS COLUMNAS SON:", columns)
+            #print("LAS COLUMNAS SON:", columns)
             return pd.DataFrame(results, columns=columns)
         
         # CONVERTIR A LISTA DE TUPLAS
@@ -262,7 +262,7 @@ class Crud:
             parameters = (*vals, params)
             
             
-        print(f"SQL:\n {sql} \n Params:\n {parameters}")
+        #print(f"SQL:\n {sql} \n Params:\n {parameters}")
         return self.__execute_changes__(sql    = sql,
                                         params = parameters,
                                         type_query = 'UPDATE')
@@ -354,7 +354,7 @@ class Crud:
                 
         else:
             for when_val in when_vals:
-                case_clause = f"WHEN {table}.{when_then["when"]} = '{when_val}' THEN {table}.{when_then["then"]}"
+                case_clause = f"WHEN {table}.{when_then['when']} = '{when_val}' THEN {table}.{when_then['then']}"
                 
                 if elseClause:
                     case_clause += f" ELSE '{elseClause}' END"
@@ -401,7 +401,7 @@ class Crud:
             # Solo toma el primer par clave-valor
             key, val = next(iter(field.items()))
             
-            return f"COALESCE({", ".join(val)}, 'ninguno') AS {key}"
+            return f"COALESCE({', '.join(val)}, 'ninguno') AS {key}"
         return field
 
 

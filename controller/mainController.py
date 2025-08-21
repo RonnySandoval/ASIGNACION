@@ -2,7 +2,7 @@ import os
 import pandas as pd
 from tkinter.filedialog import askopenfilename
 import database.BDcreate as BDcreate
-import database.BDqueries as BDqueries
+import database.BDqueries_before as BDqueries_before
 import controller.glo as glo
 import menu.stepsNuevaPlanta as steps_nueva_planta
 import menu.ventanaNuevaPlanta as ventanaNuevaPlanta
@@ -100,13 +100,13 @@ def crear_plantaBD(dataframes, name, description, ventana):
     if base_datos == "existe":
         return
     
-    BDqueries.insertar_info_planta(bbdd = base_datos, nombre = name, descripcion = description)
-    ins_proce  = BDqueries.insertar_procesos_df(bbdd = base_datos, dataframe=df_procesos)
-    ins_tecni  = BDqueries.insertar_tecnicos_df(bbdd = base_datos, dataframe=df_tecnicos)
-    ins_tecpr  = BDqueries.insertar_tecnicos_procesos_df(bbdd = base_datos, dataframe=df_tecnicos_procesos)
-    ins_model  = BDqueries.insertar_modelos_df(bbdd = base_datos, dataframe=df_modelos)  
-    ins_refer  = BDqueries.insertar_referencias_df(bbdd = base_datos, dataframe=df_referencias)
-    ins_timod  = BDqueries.insertar_tiempos_modelos_df(bbdd = base_datos, dataframe=df_tiempos_modelos)
+    BDqueries_before.insertar_info_planta(bbdd = base_datos, nombre = name, descripcion = description)
+    ins_proce  = BDqueries_before.insertar_procesos_df(bbdd = base_datos, dataframe=df_procesos)
+    ins_tecni  = BDqueries_before.insertar_tecnicos_df(bbdd = base_datos, dataframe=df_tecnicos)
+    ins_tecpr  = BDqueries_before.insertar_tecnicos_procesos_df(bbdd = base_datos, dataframe=df_tecnicos_procesos)
+    ins_model  = BDqueries_before.insertar_modelos_df(bbdd = base_datos, dataframe=df_modelos)  
+    ins_refer  = BDqueries_before.insertar_referencias_df(bbdd = base_datos, dataframe=df_referencias)
+    ins_timod  = BDqueries_before.insertar_tiempos_modelos_df(bbdd = base_datos, dataframe=df_tiempos_modelos)
 
     no_insertados = []
     if ins_proce is False:

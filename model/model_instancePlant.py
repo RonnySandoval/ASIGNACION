@@ -1,4 +1,4 @@
-import database.BDqueries as BDqueries
+import database.BDqueries_before as BDqueries_before
 import model.model_classPlant as model_classPlant
 import controller.glo as glo
 
@@ -15,32 +15,32 @@ def obtiene_datos_iniciales():
 
     print(pedido, procesos, objeModelos, objeVehiculos, objeTecnicos, objePedidos)
     
-    for ids, nombres in zip(BDqueries.obtener_id_procesos_secuencia(glo.base_datos), BDqueries.leer_procesos_secuencia(glo.base_datos)):
+    for ids, nombres in zip(BDqueries_before.obtener_id_procesos_secuencia(glo.base_datos), BDqueries_before.leer_procesos_secuencia(glo.base_datos)):
         procesos[nombres] = ids
 
-    for registro in BDqueries.leer_modelos_marcas(glo.base_datos):
+    for registro in BDqueries_before.leer_modelos_marcas(glo.base_datos):
         objeModelos[registro[1]] = model_classPlant.VehiculoBase(marca=registro[0], modelo=registro[1])
 
-    for vehiculo in BDqueries.leer_vehiculos_completos_marcamodelo(glo.base_datos):
+    for vehiculo in BDqueries_before.leer_vehiculos_completos_marcamodelo(glo.base_datos):
         objeVehiculos[vehiculo[0]] = model_classPlant.Vehiculo(
                                 id_chasis = vehiculo[0], fecha  = vehiculo[1],
                                 marca  = vehiculo[2],    modelo = vehiculo[3],
                                 color  = vehiculo[4],    estado = vehiculo[5],
                                 novedades = vehiculo[7], pedido = vehiculo[9])
 
-    for tecnico in BDqueries.leer_tecnicos(glo.base_datos):
+    for tecnico in BDqueries_before.leer_tecnicos(glo.base_datos):
         objeTecnicos[tecnico[0]] = model_classPlant.Tecnico(
                                             id_tecnico=tecnico[0],
                                             nombre=tecnico[1]+" "+tecnico[2],
                                             especializacion=procesos[tecnico[4]])
 
-    for pedido in BDqueries.leer_pedidos(glo.base_datos):
+    for pedido in BDqueries_before.leer_pedidos(glo.base_datos):
         objePedidos[pedido[0]] = model_classPlant.Pedido(
                             id_pedido=pedido[0],  fecha_recepcion=pedido[2], plazo_entrega = pedido[2], estado ="PENDIENTE",
                             vehiculos = [vehiculo for chasis, vehiculo in objeVehiculos.items() if vehiculo.pedido == pedido[0]])
 
-    tiempos["tiempos_mod"]   = BDqueries.leer_tiempos_modelos_df(glo.base_datos)
-    tiempos["tiempos_veh"] = BDqueries.leer_tiempos_vehiculos_df(glo.base_datos)    
+    tiempos["tiempos_mod"]   = BDqueries_before.leer_tiempos_modelos_df(glo.base_datos)
+    tiempos["tiempos_veh"] = BDqueries_before.leer_tiempos_vehiculos_df(glo.base_datos)    
 
     return procesos, objeModelos, objeVehiculos, objeTecnicos, objePedidos, tiempos
 

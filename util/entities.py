@@ -28,7 +28,7 @@ class Plant():
             self.df_proc_trab = crud['TiemposVehiculos'].leer_tiempos_vehiculos_df()
         else:
             self.df_trabajos  = simul['vehiculos_pedido']
-            self.df_proc_trab = simul['tiempos_iniciales']
+            self.df_proc_trab = simul['tiempos_pedido']
             self.df_trabajos_inic  = simul['vehiculos_iniciales']
             self.df_proc_trab_inic = simul['tiempos_iniciales']
             self.df_proc_trab_uniq = simul['procesos_unicos']
@@ -42,7 +42,7 @@ class Plant():
         self.trabajos, self.operarios, self.procesos = self.__filter_jobs_opers_procs__()        
         self.precedencias_trabajos = {'all': self.__precedencia_unica__()}
         
-        print(self.df_trabajos, self.df_operarios)
+        #print(self.df_trabajos, self.df_operarios)
         self.procesos_operarios = {}
         for op in self.operarios:
             procesos = self.df_proc_oper[self.df_proc_oper['ID_TECNICO'] == op]['ID_PROCESO'].tolist()
@@ -50,9 +50,9 @@ class Plant():
 
         self.procesos_trabajos = {}  
         for trab in self.trabajos:
-            time_list = []
             procesos = self.df_proc_trab[self.df_proc_trab['CHASIS'] == trab]['ID_PROCESO'].unique()    # Obtener todos los procesos únicos para ese vehículo
             
+            time_list = []
             for proc in procesos:
                 
                 filtro = self.df_proc_trab[ (self.df_proc_trab['CHASIS'] == trab) & 
@@ -110,9 +110,10 @@ class Plant():
         # Filtra operarios
         if self.oper_sched is not None:
             operarios = self.df_operarios[self.df_operarios["ID_TECNICO"].isin(self.oper_sched)]["ID_TECNICO"].drop_duplicates()
+            print(self.df_operarios)
         else:
             operarios = list(self.df_operarios["ID_TECNICO"])
-
+        
         # Filtra procesos
         if self.proc_sched is not None:
             df_proc = self.df_procesos[self.df_procesos['ID_PROCESO'].isin(self.proc_sched)].drop_duplicates()
@@ -214,7 +215,7 @@ class Plant():
      
      
    
-class PlantFlat():
+"""class PlantFlat():
     def __init__(self, db, jobs: list = None,  opers:list = None, procs:list = None):
             
         crud_P = BDcrud.ProcesosCrud(db)
@@ -290,7 +291,7 @@ class PlantFlat():
             else:
                 precedencia_unica[key] = []
         return precedencia_unica
-        
+        """
 
 """
 

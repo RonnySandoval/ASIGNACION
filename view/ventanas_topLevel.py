@@ -8,7 +8,7 @@ import datetime
 import model.model_datetime as model_datetime
 import re
 import controller.glo as glo
-import database.BDqueries as BDqueries
+import database.BDqueries_before as BDqueries_before
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import matplotlib.pyplot as plt
 import view.ventanas_emergentes as ventanas_emergentes
@@ -172,7 +172,7 @@ class VentanaCreaEditaModelo:
             self.colorfuenteLabel = blancoFrio
 
     def construyeCamposProcesos(self, bbdd):
-        self.procesos = BDqueries.leer_procesos_nombres(bbdd)  # leer BD para obtener una lista con los procesos
+        self.procesos = BDqueries_before.leer_procesos_nombres(bbdd)  # leer BD para obtener una lista con los procesos
         self.num = 0
 
         self.frameEntradas.grid_columnconfigure(0, weight=1)  # Columna para labels
@@ -222,7 +222,7 @@ class VentanaCreaEditaReferencia:
 
         self.defineAccionyEstilo()  # Determinar el título y el color
 
-        self.df_IdModelos = BDqueries.leer_modelos_id_modelos_df(bbdd)
+        self.df_IdModelos = BDqueries_before.leer_modelos_id_modelos_df(bbdd)
         self.lista_IdModelos = self.df_IdModelos["ID_MODELO"].to_list()
 
         # Variables objeto para los entry
@@ -279,7 +279,7 @@ class VentanaGestionaVehiculos:
         self.rootAux.title("Programación de Planta")    #coloca titulo de ventana
         #self.rootAux.geometry("400x570")                #dimensiones
         self.rootAux.resizable(False, False)            #deshabilita la redimension
-        self.procesos = BDqueries.leer_procesos_nombres(bbdd)  # leer BD para obtener una lista con los procesos
+        self.procesos = BDqueries_before.leer_procesos_nombres(bbdd)  # leer BD para obtener una lista con los procesos
 
         self.frameTitulo = ctk.CTkFrame(self.rootAux, fg_color=grisAzuladoMedio, height=10)
         self.frameTitulo.pack(expand=True, side="top", fill = "both")
@@ -562,8 +562,8 @@ class VentanaAsignaVehiculo:
         self.buttonCancelar.grid(row=6, column=0, padx=22, pady=15)  
         self.buttonAceptar.grid(row=6, column=1, padx=22, pady=15)
 
-        self.tecnicos = BDqueries.leer_tecnicos_modificado(bbdd)
-        self.procesos = BDqueries.leer_procesos_completo(bbdd)
+        self.tecnicos = BDqueries_before.leer_tecnicos_modificado(bbdd)
+        self.procesos = BDqueries_before.leer_procesos_completo(bbdd)
 
         # Crear diccionarios con comprensión
         self.ids_tecnicos = {tecnico[1]: tecnico[0] for tecnico in self.tecnicos}
@@ -765,8 +765,8 @@ class VentanaMuestraInfoPedi:
 class VentanaMuestraInfoProg:
     
     def __init__(self, id_programa, bbdd):
-        self.lecturaPrograma = BDqueries.leer_programa(bbdd, id_programa)
-        self.lecturaOrdenes = BDqueries.leer_ordenes_por_programa(bbdd, id_programa)
+        self.lecturaPrograma = BDqueries_before.leer_programa(bbdd, id_programa)
+        self.lecturaOrdenes = BDqueries_before.leer_ordenes_por_programa(bbdd, id_programa)
         self.cantidadOrdenes = len(self.lecturaOrdenes)
         self.cantidadVehiculos =  len(list({orden[1] for orden in self.lecturaOrdenes}))
         self.turnoAM = self.lecturaPrograma[4]+" - "+self.lecturaPrograma[5]
@@ -837,7 +837,7 @@ class VentanaMuestraInfoProg:
 class VentanaMuestraInfoOrde:
     
     def __init__(self, id_orden, bbdd):
-        self.datos = BDqueries.leer_orden_completo_porId(bbdd, id_orden)
+        self.datos = BDqueries_before.leer_orden_completo_porId(bbdd, id_orden)
         print("datos:", self.datos)
 
         # Configuración de la ventana auxiliar
@@ -903,7 +903,7 @@ class VentanaMuestraInfoOrde:
 class VentanaMuestraInfoHis:
     
     def __init__(self, id_historico, bbdd):
-        self.datos = BDqueries.leer_historico_completo_porId(bbdd, id_historico)
+        self.datos = BDqueries_before.leer_historico_completo_porId(bbdd, id_historico)
         print("datos:", self.datos)
 
         # Configuración de la ventana auxiliar
@@ -978,7 +978,7 @@ class VentanaCambiarEstadoHist:
         self.rootAux.configure(bg=grisAzuladoOscuro)    # Fondo oscuro
         ctk.set_appearance_mode("dark")                 # Establece el modo oscuro global
 
-        self.datos = BDqueries.leer_historico_completo_porId(bbdd, id_historico)
+        self.datos = BDqueries_before.leer_historico_completo_porId(bbdd, id_historico)
         self.labeltitulo = ctk.CTkLabel(self.rootAux, text="CAMBIAR ESTADO", font =textoMedio)
         self.labeltitulo.pack(expand=True, side="top", fill="both")
 
@@ -1087,9 +1087,9 @@ class VentanaModificarHistorico(RaizTopLevel):
 
         self.botones = ButtonsOkCancel(contenedor = self.frameEntradas, accionOk="Aceptar", accionCancel="Cancelar", fila=12)
 
-        self.procesos = BDqueries.leer_procesos_completo(bbdd)
-        self.tecnicos = BDqueries.leer_tecnicos_modificado(bbdd)
-        self.datosHistorico = BDqueries.leer_historico_completo_porId(bbdd, id_historico)
+        self.procesos = BDqueries_before.leer_procesos_completo(bbdd)
+        self.tecnicos = BDqueries_before.leer_tecnicos_modificado(bbdd)
+        self.datosHistorico = BDqueries_before.leer_historico_completo_porId(bbdd, id_historico)
         id, chasis, tecni, proce, mode, color, inic, fin, durac, estado, noved, subcon, observ, pedi = self.datosHistorico
 
         self.ids_procesos = {proceso[1]: proceso[0] for proceso in self.procesos}
@@ -1100,7 +1100,7 @@ class VentanaModificarHistorico(RaizTopLevel):
             self.ids_tecnicos = {tecnico[1]: tecnico[0] for tecnico in self.tecnicos}
             self.entryTecnico.configure(values=list(self.ids_tecnicos.keys()))
         else: 
-            self.tecnicos = BDqueries.leer_tecnicos_por_proceso(bbdd, self.varProceso)
+            self.tecnicos = BDqueries_before.leer_tecnicos_por_proceso(bbdd, self.varProceso)
             self.ids_tecnicos = {tecnico[1]: tecnico[0] for tecnico in self.tecnicos}
             self.entryTecnico.configure(values=list(self.ids_tecnicos.keys()))
 
@@ -1124,7 +1124,7 @@ class VentanaModificarHistorico(RaizTopLevel):
             self.ids_tecnicos = {tecnico[1]: tecnico[0] for tecnico in self.tecnicos}
             self.entryTecnico.configure(list(self.ids_tecnicos.keys()))
         else: 
-            self.tecnicos = BDqueries.leer_tecnicos_por_proceso(bbdd, self.varProceso.get())
+            self.tecnicos = BDqueries_before.leer_tecnicos_por_proceso(bbdd, self.varProceso.get())
             self.ids_tecnicos = {tecnico[1]: tecnico[0] for tecnico in self.tecnicos}
             self.entryTecnico.configure(list(self.ids_tecnicos.keys()))
 
@@ -1459,7 +1459,7 @@ class VentanaModificarPedido(RaizTopLevel):
 
         self.botones = ButtonsOkCancel(contenedor = self.frameEntradas, accionOk="Aceptar", accionCancel="Cancelar", fila=6)
 
-        self.datosPedido = BDqueries.leer_pedido(bbdd, id_pedido)
+        self.datosPedido = BDqueries_before.leer_pedido(bbdd, id_pedido)
         id, cliente, recepcion, ingreso, estimada, entrega, consec = self.datosPedido
 
         self.varIdPedido.set(id) 
@@ -1723,7 +1723,7 @@ class VentanaEditarPlanta:       #Ventana para crear o editar modelos
         self.entryNombre.grid     (row=0,column=1, sticky="ew", pady=5)
         self.entryDescripcion.grid(row=2,column=1, sticky="ew", pady=5)
 
-        self.nombre, self.descripcion, self.iniciaAM, self.terminaAM, self.iniciaPM, self.terminaPM = BDqueries.leer_planta_info(bbdd)
+        self.nombre, self.descripcion, self.iniciaAM, self.terminaAM, self.iniciaPM, self.terminaPM = BDqueries_before.leer_planta_info(bbdd)
         self.construyeCamposHorarios(iniciaAM=self.iniciaAM, terminaAM=self.terminaAM, iniciaPM=self.iniciaPM, terminaPM=self.terminaPM)
 
         self.buttonCancelar = ctk.CTkButton(self.frameEntradas, text="Cancelar", font = texto1Bajo, text_color = blancoFrio,
@@ -1809,9 +1809,9 @@ class VentanaTablaEditar:       #Ventana para crear o editar modelos
         self.rootAux.attributes('-topmost', 1)  # También puede asegurar que quede al frente
 
         if tipo == "TECNICO":
-            self.df_datos = BDqueries.leer_tecnicos_df(bbdd)
+            self.df_datos = BDqueries_before.leer_tecnicos_df(bbdd)
         elif tipo == "PROCESO":
-            self.df_datos = BDqueries.leer_procesos_df(bbdd)
+            self.df_datos = BDqueries_before.leer_procesos_df(bbdd)
 
         self.tablaEditar = FrameTablaGenerica(master = self.rootAux, nombreVentana=tipo, df=self.df_datos)
         self.tablaEditar.labeltitulo.configure(text = "SELECCIONE "+tipo+" A MODIFICAR")
