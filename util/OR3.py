@@ -11,11 +11,12 @@ class modelOR:
                  trabajos: list,
                  procesos_trabajos: dict,
                  precedencias_por_trabajo: dict,
-                 pesos_trabajo = {},
+                 pesos_trabajo: dict = {},
                  max_horizonte: int = None,
                  jobs_sched: list = None, 
                  opers_sched:list = None,
-                 procs_sched:list = None):
+                 procs_sched:list = None,
+                 last_id_task: int = 0):
         """
         self.tareas: list[dict]
         {
@@ -44,7 +45,7 @@ class modelOR:
         self.opers_sched = opers_sched
         self.procs_sched = procs_sched
         self.operarios_idx = {}
-        self.tareas = self.__taks_flat_or__()
+        self.tareas = self.__taks_flat_or__(last_id_task)
         self.max_horizonte = sum(t["duracion"] for t in self.tareas) if max_horizonte is None else max_horizonte
         self.tareas_finales = self.__final_tasks__()
         self.tareas_asignadas = {}
@@ -56,18 +57,18 @@ class modelOR:
         self.__add_constr_jobs__()
         self.__add_constr_oper__()
         self.current_objetive = None
-        self.OBJ_MIN_MAKESPAN_PONDERADO = "MIN_MAKESPAN_PONDERADO"
+        self.OBJ_MIN_MAKESPAN_WEIGHTED = "MIN_MAKESPAN_WEIGHTED"
         self.OBJ_MIN_MAKESPAN_SIMPLE = "MIN_MAKESPAN_SIMPLE"
         self.OBJ_MAX_NUM_TASK = "MAX_NUM_TASK"
-        self._functions = { "MIN_MAKESPAN_PONDERADO": self.__obj_min_makespan_pondered__,
+        self._functions = { "MIN_MAKESPAN_WEIGHTED": self.__obj_min_makespan_pondered__,
                             "MIN_MAKESPAN_SIMPLE": self.__obj_min_makespan__,
                             "MAX_NUM_TASK": self.__obj_max_num_task__}
         
-    def __taks_flat_or__(self):
+    def __taks_flat_or__(self, last_id_task: int):
         operario_idx = {op: i for i, op in enumerate(self.operarios)}
         self.operarios_idx = operario_idx
         tareas = []
-        id_tarea = 0
+        id_tarea = last_id_task + 1 if last_id_task >= 0 else 0
         for trabajo_id in self.trabajos:
             lista_procesos = self.procesos_trabajos[trabajo_id]
             for orden, (proceso, duracion) in enumerate(lista_procesos):
@@ -407,7 +408,7 @@ class modelOR:
         with open("model.txt", "w") as f:
             f.write(str(self.model.Proto()))
 
-    def solve_model(self, tiempo_max=5, check_times = False):
+    def solve_model(self, solver_time = 5, check_times = False):
         try:
             self.__validate_operators__()
         except ValueError as e:
@@ -417,10 +418,10 @@ class modelOR:
         solver = cp_model.CpSolver()
         solver.parameters.cp_model_probing_level = 2
         #solver.parameters.log_search_progress = True
-        solver.parameters.max_time_in_seconds = tiempo_max
+        solver.parameters.max_time_in_seconds = solver_time
         status = solver.Solve(self.model)
         print("Tiempo de solución:", solver.WallTime(), "segundos")
-        print(solver.ResponseStats())
+        #print(solver.ResponseStats())
 
 
         if status == cp_model.INFEASIBLE:
@@ -455,7 +456,7 @@ class modelOR:
                     "inicio": inicio,
                     "fin": fin,
                     "operario_asignado": operario_asignado,
-                    "presente": int(presente)
+                    #"presente": int(presente)
                 }
 
             print(f"Valor objetivo {type_solution}:", solver.ObjectiveValue())
@@ -564,10 +565,10 @@ class modelOR:
             return True
 
     def __validate_operators__(self):
-        print( f"Total trabajos: {len(self.trabajos)}\n"
-            f"Total operarios: {len(self.operarios)}\n"
-            f"Total tareas: {len(self.tareas)}\n"
-            f"max horizonte: {self.max_horizonte}\n"
+        print( f"Total trabajos: {len(self.trabajos)}, "
+            f"Total operarios: {len(self.operarios)}, "
+            f"Total tareas: {len(self.tareas)}, "
+            f"max horizonte: {self.max_horizonte}, "
             f"time limit: {self.time_limit}")
 
         #print("Duraciones de tareas:", [t['duracion'] for t in self.tareas])

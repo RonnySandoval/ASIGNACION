@@ -1,5 +1,5 @@
 from database import BDcrud as BDcrud
-from . import OR
+import pandas as pd
 
 class Plant():
     def __init__(self, db, simul:dict = None, jobs: list = None,  opers:list = None, procs:list = None):
@@ -14,21 +14,20 @@ class Plant():
                 'TiemposModelos'    : BDcrud.TiemposModelosCrud(db),
                 'Historicos'        : BDcrud.HistoricosCrud(db)}
         
-        self.df_operarios = crud['Tecnicos'].leer_tecnicos_df()
-        self.df_trabajos  = crud['Vehiculos'].leer_vehiculos_df()
-        self.df_procesos  = crud['Procesos'].leer_procesos_df()
-        self.df_proc_oper = crud['TecnicosProcesos'].leer_tecnicos_procesos_df()
-        self.df_referencias = crud['Referencias'].leer_referencias_modelos_df()
-        self.df_modelos_df = crud['Modelos'].leer_modelos_df()
+        self.df_operarios       = crud['Tecnicos'].leer_tecnicos_df()
+        self.df_trabajos        = crud['Vehiculos'].leer_vehiculos_df()
+        self.df_procesos        = crud['Procesos'].leer_procesos_df()
+        self.df_proc_oper       = crud['TecnicosProcesos'].leer_tecnicos_procesos_df()
+        self.df_referencias     = crud['Referencias'].leer_referencias_modelos_df()
+        self.df_modelos         = crud['Modelos'].leer_modelos_df()
         self.df_tiempos_modelos = crud['TiemposModelos'].leer_procesos_modelos_df()
-        self.df_historicos = crud['Historicos'].leer_historicos_completo_df()
+        self.df_historicos      = crud['Historicos'].leer_historicos_completo_df()
         
         if simul is None:
-            self.df_trabajos  = crud['Vehiculos'].leer_vehiculos_df()
             self.df_proc_trab = crud['TiemposVehiculos'].leer_tiempos_vehiculos_df()
         else:
-            self.df_trabajos  = simul['vehiculos_pedido']
-            self.df_proc_trab = simul['tiempos_pedido']
+            self.df_trabajos       = simul['vehiculos_pedido']
+            self.df_proc_trab      = simul['tiempos_pedido']
             self.df_trabajos_inic  = simul['vehiculos_iniciales']
             self.df_proc_trab_inic = simul['tiempos_iniciales']
             self.df_proc_trab_uniq = simul['procesos_unicos']
@@ -56,11 +55,15 @@ class Plant():
             for proc in procesos:
                 
                 filtro = self.df_proc_trab[ (self.df_proc_trab['CHASIS'] == trab) & 
-                                    (self.df_proc_trab['ID_PROCESO'] == proc) ]                 # Filtrar la fila con ese chasis y proceso
-                if not filtro.empty:
+                                            (self.df_proc_trab['ID_PROCESO'] == proc) ]                 # Filtrar la fila con ese chasis y proceso
+                
+                if filtro.empty or pd.isna(filtro['TIEMPO'].iloc[0]):
+                    print(f"⚠️ Sin tiempo definido para CHASIS={trab}, PROCESO={proc}")
+                else:
                     time_list.append((proc, int(filtro['TIEMPO'].iloc[0])))
-            
-            self.procesos_trabajos[trab] = time_list
+
+                            
+                self.procesos_trabajos[trab] = time_list
     
     def __flat_initial__(self):
         self.trabajos_inic = list(self.df_trabajos_inic['CHASIS'])
@@ -190,9 +193,34 @@ class Plant():
         for trab, lista in tiempos_inic:
             print(f"     • Trabajo {trab}: {len(lista)} procesos ➤ {lista}" )
         print(points)
-     
-     
-     
+
+class Plant_simulated(Plant):
+    """Clase que hereda de Plant y permite simular una planta con los datos de la base de datos.
+    Se utiliza para simular el estado de la planta en un momento dado, con los trabajos, operarios y procesos
+    que se encuentran en ese momento."""
+    
+    def __init__(self, simul:dict = None, plant:Plant=None, jobs: list = None,  opers:list = None, procs:list = None):
+        
+        self.df_operarios       = plant.df_operarios
+        self.df_trabajos        = plant.df_trabajos
+        self.df_procesos        = plant.df_procesos
+        self.df_proc_oper       = plant.df_proc_oper
+        self.df_referencias     = plant.df_referencias
+        self.df_modelos         = plant.df_modelos
+        self.df_tiempos_modelos = plant.df_tiempos_modelos
+        self.df_historicos      = plant.df_historicos
+        
+        if simul is None:
+            self.df_proc_trab   = plant.df_proc_trab
+        else:
+            self.df_trabajos       = simul['vehiculos_pedido']
+            self.df_proc_trab      = simul['tiempos_pedido']
+            self.df_trabajos_inic  = simul['vehiculos_iniciales']
+            self.df_proc_trab_inic = simul['tiempos_iniciales']
+            self.df_proc_trab_uniq = simul['procesos_unicos']
+        self.__flat__()
+        if simul is not None:
+            self.__flat_initial__()
      
      
      

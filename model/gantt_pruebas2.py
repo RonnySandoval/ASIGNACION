@@ -4,7 +4,6 @@ from datetime import datetime as dt
 from datetime import timedelta as td
 import plotly.express as px
 import plotly.graph_objects as go
-from typing import Tuple
 from plotly.subplots import make_subplots
 from dash import Dash, dcc, html, Input, Output
 from database import BDcrud, BDmanage as man
@@ -17,15 +16,35 @@ with man.Database('planta_con_ensamble1.db') as db:
     #df_historicos = crud_historicos.leer_ordenes_graficar_programa('inmediato_NISSAN4_4_3')
     #print(df_historicos.to_string())
     pass
-def flat_df_gantt(df_data, items, tasks, filter1, filter2, as_intX=False):
+def flat_df_gantt(df_data, items, tasks, filter1, filter2, as_intX=False, hour_init:str="08:00:00") -> pd.DataFrame:
 
-    df = df_data[["CHASIS", "TECNICO", "PROCESO", "ID_MODELO", "INICIO", "FIN"]].copy()
+    df = df_data[["CHASIS", "TECNICO", "PROCESO", "ID_MODELO", "INICIO", "FIN", "DIA"]].copy()
     
     if as_intX==False:
-        base = dt.now()
-        print("FECHA_HORA ACTUAL:", base)
-        df["Inicio"] = df["INICIO"].apply(lambda x: base + td(minutes=int(x)))
-        df["Fin"] = df["FIN"].apply(lambda x: base + td(minutes=int(x)))
+        if "DIA" in df.columns:
+            print("ENTRO A DIA in df.columns")
+            
+            # si es string, intenta convertir a datetime
+            print(df["DIA"].dtype)
+            if (pd.api.types.is_string_dtype(df["DIA"])   or   pd.api.types.is_object_dtype(df["DIA"])):
+                df["DIA"] = pd.to_datetime(df["DIA"], errors="coerce") + pd.to_timedelta(hour_init)
+                print("convertido de string a datetime")
+            
+            # si es datetime, saco la mínima
+            if pd.api.types.is_datetime64_any_dtype(df["DIA"]):
+                init_day = df["DIA"].min()
+                print("columna es datetime")
+            
+            # si hay hora inicial, combino fecha mínima + hora
+            if hour_init:
+                hh, mm, ss = map(int, hour_init.split(":"))
+                date_hour_init = init_day.replace(hour=hh, minute=mm, second=ss, microsecond=0)
+                print("hour_init aplicado:", date_hour_init)
+
+                
+        print("FECHA_HORA INICIAL:", date_hour_init)
+        df["Inicio"] = df.apply(lambda row: row["DIA"] + td(minutes=int(row["INICIO"])), axis=1)
+        df["Fin"]    = df.apply(lambda row: row["DIA"] + td(minutes=int(row["FIN"])), axis=1)
     else:
         df["Inicio"] = pd.to_datetime(df["INICIO"])
         df["Fin"] = pd.to_datetime(df["FIN"])
@@ -35,6 +54,7 @@ def flat_df_gantt(df_data, items, tasks, filter1, filter2, as_intX=False):
     df["Filter1"] = df[filter1]
     df["Filter2"] = df[filter2]
     df = df[["Item", "Task", "Filter1", "Filter2", "Inicio", "Fin"]]
+    
     if as_intX:
         ref = df["Inicio"].min()
         df["Inicio"] = (df["Inicio"] - ref).dt.total_seconds().astype(int)
@@ -42,7 +62,7 @@ def flat_df_gantt(df_data, items, tasks, filter1, filter2, as_intX=False):
     #print(df[["Inicio", "Fin"]].head(10))
     return df
 
-def plot_gantt(df, items, tasks, filter1, filter2, as_intX=False) -> Tuple[Dash, str]:
+def plot_gantt(df, items, tasks, filter1, filter2, as_intX=False) -> tuple[Dash, str]:
     df_data = flat_df_gantt(df, items, tasks, filter1, filter2, as_intX)
     
     app = Dash(__name__)    # App Dash
